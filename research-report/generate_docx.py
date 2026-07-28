@@ -1550,54 +1550,12 @@ doc.add_paragraph(
     '说明模型正在逐步学习条件到图像的映射。'
 )
 
-# 插入 Palette 125 轮图
-palette_125_path = os.path.join(
-    os.path.dirname(__file__),
-    '..', 'Fundus-Diffusion', 'cond_diffusion',
-    'Palette-Image-to-Image-Diffusion-Models',
-    'experiments', 'train_fundus_260726_213905',
-    'results', 'val', '125', 'epoch0125_cond_out_gt.png'
-)
-palette_125_path = os.path.normpath(os.path.abspath(palette_125_path))
-if os.path.exists(palette_125_path):
-    doc.add_picture(palette_125_path, width=Inches(5.5))
-    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap = doc.add_paragraph(
-        '图 11a：Palette 条件扩散 epoch 125（cond | out | gt，中间列可见初步细节）')
-    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap.runs[0].font.size = Pt(9)
-    cap.runs[0].font.color.rgb = RGBColor(100, 100, 100)
-else:
-    doc.add_paragraph(f'[图片未找到: {palette_125_path}]')
-
 doc.add_paragraph(
-    '但到了 epoch 275（图 11b），情况比预期更糟糕——'
-    '不仅病灶特征（白斑、亮色区域）在进一步减弱，'
-    '连基本的圆形轮廓都开始模糊了。'
-    '这与 ddpm 条件扩散中"病灶被背景溶解"的现象一致，'
-    '但 Palette 的退化更为严重：ddpm 至少在 500~800 轮仍能保持整体结构，'
-    '而 Palette 在 275 轮就已经出现轮廓消散的迹象。'
+    '图 11a 和 11b 展示了 epoch 125 和 275 的生成结果对比'
+    '（Palette 输出格式为 cond | out | gt 三栏图）：'
+    'epoch 125 时已出现初步的血管丝状感，'
+    '到 epoch 275 反而连圆形轮廓都开始消散了。'
 )
-
-# 插入 Palette 275 轮图
-palette_275_path = os.path.join(
-    os.path.dirname(__file__),
-    '..', 'Fundus-Diffusion', 'cond_diffusion',
-    'Palette-Image-to-Image-Diffusion-Models',
-    'experiments', 'train_fundus_260726_213905',
-    'results', 'val', '275', 'epoch0275_cond_out_gt.png'
-)
-palette_275_path = os.path.normpath(os.path.abspath(palette_275_path))
-if os.path.exists(palette_275_path):
-    doc.add_picture(palette_275_path, width=Inches(5.5))
-    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap = doc.add_paragraph(
-        '图 11b：Palette 条件扩散 epoch 275（轮廓和细节均明显退化）')
-    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap.runs[0].font.size = Pt(9)
-    cap.runs[0].font.color.rgb = RGBColor(100, 100, 100)
-else:
-    doc.add_paragraph(f'[图片未找到: {palette_275_path}]')
 
 doc.add_paragraph(
     '这个结果确认了两个事实：'
@@ -1638,34 +1596,9 @@ doc.add_paragraph(
 )
 
 doc.add_paragraph(
-    '图 11c 和 11d 为两个 checkpoint 的推理结果示例（每张图从左到右为：'
-    '血管骨架｜生成图｜真实图）。可以看到生成图（中间列）仅有模糊的圆形痕迹，'
-    '与骨架条件和真实图均无结构相似性。'
+    '推理生成的图像基本就是一片纯色背景，'
+    '骨架条件几乎被模型完全忽略，颜色也完全不对。'
 )
-
-# 插入 Palette 推理结果 150
-for pal_test_img in ['palette_test_150_1.png', 'palette_test_150_2.png']:
-    pal_test_path = os.path.join(os.path.dirname(__file__), pal_test_img)
-    if os.path.exists(pal_test_path):
-        doc.add_picture(pal_test_path, width=Inches(5.5))
-        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap = doc.add_paragraph(
-            f'图 11c：Palette epoch 150 推理结果（左=骨架，中=生成，右=真实）')
-        cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap.runs[0].font.size = Pt(9)
-        cap.runs[0].font.color.rgb = RGBColor(100, 100, 100)
-
-# 插入 Palette 推理结果 300
-for pal_test_img in ['palette_test_300_1.png', 'palette_test_300_2.png']:
-    pal_test_path = os.path.join(os.path.dirname(__file__), pal_test_img)
-    if os.path.exists(pal_test_path):
-        doc.add_picture(pal_test_path, width=Inches(5.5))
-        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap = doc.add_paragraph(
-            f'图 11d：Palette epoch 300 推理结果（情况与 epoch 150 相同）')
-        cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap.runs[0].font.size = Pt(9)
-        cap.runs[0].font.color.rgb = RGBColor(100, 100, 100)
 
 doc.add_paragraph(
     '这个结果说明：Palette 的通道拼接条件扩散方案，在本项目的数据条件下完全不可行。'
@@ -2036,6 +1969,61 @@ doc.add_paragraph(
     '价值在于系统性地回答了"小样本医学图像生成中，每种模型为什么不行、'
     '怎么改进、极限在哪"。'
     '这些经验为后续在更大数据量和计算资源上的工作提供了清晰的路线图。'
+)
+
+doc.add_heading('5.5 学到的经验', level=2)
+doc.add_paragraph(
+    '作为一个边学边做的项目，过程踩了不少坑，但每个坑都有收获：'
+)
+
+doc.add_paragraph(
+    '小样本下 GAN 真的很难训。'
+    '不是参数没调好，是判别器天生就比生成器更容易赢。'
+    'DCGAN、WGAN-GP 标准版、WGAN-GP 削弱版都是同一个根源的不同表现，'
+    'StyleGAN2-ADA 理论上能解决这个问题但被环境卡住了。',
+    style='List Bullet'
+)
+
+doc.add_paragraph(
+    '扩散模型的"细节甜蜜期"是真实存在的。'
+    '最佳生成结果往往出现在训练中期（200-400 轮），'
+    '继续训练反而会损失锐利度——不是模型崩了，是 MSE 在"磨平棱角"。'
+    '这提醒我们：训练时要盯着生成预览，不能只看 loss 曲线。',
+    style='List Bullet'
+)
+
+doc.add_paragraph(
+    '医学图像的色彩一致性很重要。'
+    'ColorJitter 这类增强在自然图像上是标配，但在医学图像上却是毒药——'
+    '眼底图的颜色有诊断意义，不能随便扰动。'
+    '数据增强最好限制在几何变换范围内。',
+    style='List Bullet'
+)
+
+doc.add_paragraph(
+    '预训练在生成模型中不是必须的。'
+    '和分类/检测任务不同，医学图像生成从零训练是常态。'
+    '不必因为"别人都用预训练"而焦虑——在生成任务上，从零训往往更好。',
+    style='List Bullet'
+)
+
+doc.add_paragraph(
+    'MSE 是双刃剑。'
+    '它让优化稳定、收敛顺利，但在生成任务中——'
+    '尤其当数据分布不均时（眼底图暗背景占主导、亮病灶占少数）——'
+    '会系统性地"溶解"少数类特征。'
+    '这个坑在 VAE、DDPM、条件扩散、Palette 里反复出现，'
+    '直到 FiLM + L1 + LPIPS 才真正缓解。',
+    style='List Bullet'
+)
+
+doc.add_paragraph(
+    '回顾全程，从 VAE 的模糊、GAN 的过拟合到 Diffusion 的病灶溶解，'
+    '每次碰壁都不是"某个参数没调好"这种层面的问题，'
+    '而是每个模型家族的根本局限在小样本医学图像上被放大了。'
+    '但也正因如此，最终筛选出的 FiLM DDPM + L1 + LPIPS 方案，'
+    '是在充分理解了"为什么其他方案不行"之后得到的，'
+    '不是随便试出来的。'
 )
 
 doc.add_heading('参考文献', level=1)
