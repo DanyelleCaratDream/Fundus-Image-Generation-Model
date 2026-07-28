@@ -1,0 +1,21 @@
+{
+  "epochs": 1200,
+  "batch_size": 32,
+  "lr": 0.001,
+  "img_size": 128,
+  "latent_dim": 256,
+  "beta": 1.0,
+  "dim": 64,
+  "model_save_interval": 250,
+  "image_save_interval": 50,
+  "preview_grid_size": 4,
+  "output_dir": "Fundus-VAE/results/vanilla_vae_large_210726_213242",
+  "dataset_path": "fundus/_all_images_ORIGINAL",
+  "num_workers": 4,
+  "seed": 42,
+  "no_cuda": false,
+  "resume": null,
+  "precache": true,
+  "amp": false,
+  "timestamp": true
+}

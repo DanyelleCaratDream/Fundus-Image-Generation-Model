@@ -1,0 +1,43 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+
+# === 模型权重（使用 Git LFS 或单独分发） ===
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+# === 训练日志 ===
+logs/
+tb_logger/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === 操作系统 ===
+Thumbs.db
+.DS_Store
+
+# === Claude 记忆 ===
+.claude/
+
+# === 数据集（不在 git 中分发） ===
+fundus/
+
+# === 大文件 ===
+*.pdf
+*.zip
+*.tar.gz
+*.rar
+
+# === 临时实验输出（保留 images/ 和 models/ 在各自目录中） ===
+**/results_ColorJitter*/

@@ -1,0 +1,35 @@
+{
+  "epochs": 550,
+  "batch_size": 5,
+  "lr": 0.0001,
+  "img_size": 128,
+  "channels": 3,
+  "timesteps": 1000,
+  "beta_start": 0.0001,
+  "beta_end": 0.02,
+  "base_dim": 128,
+  "dim_mults": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "attn_layers": [
+    2
+  ],
+  "dropout": 0.1,
+  "ema_decay": 0.999,
+  "use_scale_shift_norm": true,
+  "no_scale_shift_norm": false,
+  "model_save_interval": 100,
+  "image_save_interval": 25,
+  "preview_grid_size": 4,
+  "output_dir": "./results_film",
+  "dataset_path": "../../fundus/_all_images_ORIGINAL",
+  "num_workers": 4,
+  "seed": 42,
+  "no_cuda": false,
+  "resume": "./results_film/models/checkpoint_epoch_000250.pth",
+  "color_weight": 0.01,
+  "cond_path": "./conditions"
+}
