@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>眼底彩照生成模型研究 — 项目汇报</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --card: #1a2035;
+  --primary: #38bdf8;
+  --accent: #2dd4bf;
+  --accent2: #a78bfa;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --grad-title: linear-gradient(135deg, #38bdf8, #2dd4bf);
+  --grad-card: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(45,212,191,0.05));
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+.slide-deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+@media (min-width: 769px) {
+  .slide-deck {
+    max-width: calc(100vh * 16 / 9);
+    max-height: calc(100vw * 9 / 16);
+    margin: auto;
+    position: absolute;
+    inset: 0;
+  }
+}
+
+.slide {
+  position: absolute;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 60px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s;
+  background: var(--bg);
+  overflow: hidden;
+}
+.slide.active { opacity: 1; visibility: visible; }
+.slide-content {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Typography */
+h1 {
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 900;
+  background: var(--grad-title);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+h2 {
+  font-size: clamp(26px, 3.5vw, 44px);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+h3 {
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 500;
+  color: var(--primary);
+}
+p, li {
+  font-size: clamp(15px, 1.6vw, 22px);
+  line-height: 1.6;
+  color: var(--text2);
+}
+.highlight { color: var(--primary); font-weight: 500; }
+.accent { color: var(--accent); font-weight: 500; }
+.big-num {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 900;
+  background: var(--grad-title);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Labels */
+.tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: clamp(12px, 1vw, 16px);
+  font-weight: 500;
+}
+.tag-red { background: rgba(239,68,68,0.2); color: #f87171; }
+.tag-yellow { background: rgba(234,179,8,0.2); color: #facc15; }
+.tag-green { background: rgba(34,197,94,0.2); color: #4ade80; }
+.tag-blue { background: rgba(56,189,248,0.2); color: #38bdf8; }
+.tag-purple { background: rgba(167,139,250,0.2); color: #a78bfa; }
+
+/* Cards */
+.card-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+.card-grid-2 { grid-template-columns: 1fr 1fr; }
+.card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 20px 24px;
+  text-align: left;
+}
+.card h4 { font-size: clamp(14px, 1.3vw, 20px); font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.card p { font-size: clamp(12px, 1.1vw, 16px); }
+.card .score {
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+/* Chart container */
+.chart-box {
+  width: min(80%, 700px);
+  height: clamp(220px, 40vh, 380px);
+  margin: 0 auto;
+}
+
+/* List */
+ul { list-style: none; text-align: left; width: 100%; max-width: 800px; }
+ul li { padding: 6px 0; padding-left: 24px; position: relative; }
+ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.6;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 900px;
+}
+.timeline-item {
+  flex: 1;
+  text-align: center;
+  padding: 16px 8px;
+  position: relative;
+}
+.timeline-item::after {
+  content: '→';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  font-size: 24px;
+}
+.timeline-item:last-child::after { display: none; }
+.timeline-item .tl-label {
+  font-size: clamp(12px, 1.1vw, 18px);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+.timeline-item .tl-score {
+  font-size: clamp(20px, 2vw, 32px);
+  font-weight: 900;
+  display: block;
+}
+.timeline-item .tl-desc {
+  font-size: clamp(10px, 0.9vw, 14px);
+  color: var(--text2);
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--grad-title);
+  transition: width 0.3s;
+  z-index: 1000;
+}
+
+/* Navigation */
+.nav-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1000;
+}
+.nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  transition: 0.2s;
+}
+.nav-btn:hover { background: rgba(56,189,248,0.2); border-color: var(--primary); }
+.slide-counter { color: var(--text2); font-size: 14px; }
+
+/* Animations */
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-stagger > * {
+  opacity: 0;
+  animation: fadeUp 0.5s ease-out forwards;
+}
+.animate-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.animate-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+.animate-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+.animate-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+.animate-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+
+/* Slide-specific backgrounds */
+.slide-title-bg {
+  background: radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 50%, rgba(45,212,191,0.06) 0%, transparent 50%),
+              var(--bg);
+}
+
+/* Scrollable content */
+.scroll-content {
+  overflow-y: auto;
+  width: 100%;
+  max-height: 100%;
+  padding: 10px 0;
+}
+.scroll-content::-webkit-scrollbar { width: 4px; }
+.scroll-content::-webkit-scrollbar-track { background: transparent; }
+.scroll-content::-webkit-scrollbar-thumb { background: var(--text2); border-radius: 2px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .slide { padding: 24px 20px; }
+  .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
+  .timeline { flex-wrap: wrap; gap: 8px; }
+  .timeline-item { flex: 1 1 45%; }
+  .timeline-item::after { display: none; }
+  .nav-controls { bottom: 16px; gap: 10px; }
+  .nav-btn { width: 32px; height: 32px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="slide-deck">
+
+<!-- ========== SLIDE 1: 封面 ========== -->
+<div class="slide active slide-title-bg">
+  <div class="slide-content animate-fade-up">
+    <div style="margin-bottom: 12px;">
+      <span class="tag tag-blue">科研项目汇报</span>
+    </div>
+    <h1>眼底彩照生成模型研究</h1>
+    <p style="font-size: clamp(18px, 2vw, 28px); margin-top: 8px; color: var(--text);">
+      小样本设定下 VAE → GAN → Diffusion 的系统性探索
+    </p>
+    <div style="margin-top: 24px; color: var(--text2);">
+      <p>NVIDIA RTX 4060 (8GB) &nbsp;·&nbsp; 330 张眼底彩照 &nbsp;·&nbsp; 三大生成家族</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 2: 研究背景 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 900px;">
+    <h2 class="animate-fade-up">研究背景与挑战</h2>
+    <div class="card-grid card-grid-2" style="margin-top: 16px;">
+      <div class="card animate-stagger">
+        <h4>🎯 任务目标</h4>
+        <p>在仅 <span class="highlight">330 张</span> 严重症状眼底彩照上训练生成模型，探索 VAE → GAN → Diffusion 三大路线</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>⚡ 硬件约束</h4>
+        <p>仅 <span class="highlight">8GB VRAM</span> 笔记本 GPU，限制模型规模和 batch size</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🧠 研究路线</h4>
+        <p>老师要求从后往前：VAE → GAN → Diffusion → Flow Matching（纳入展望）</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🔬 评估方式</h4>
+        <p>FID 打分 + 肉眼观察病灶保持度、血管纹理清晰度</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 3: 数据集 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 900px;">
+    <h2 class="animate-fade-up">数据集一览</h2>
+    <div style="margin-top: 12px; text-align: center;">
+      <span class="big-num">330</span>
+      <p style="color: var(--text2);">原始眼底彩照（224×224 ~ 2448×2448）</p>
+    </div>
+    <div class="card-grid card-grid-3" style="margin-top: 16px;">
+      <div class="card animate-stagger">
+        <h4>📦 ORIGINAL</h4>
+        <div class="score" style="color: var(--primary);">330</div>
+        <p>原始图，多种分辨率</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>📦 Much（增强）</h4>
+        <div class="score" style="color: var(--accent);">1,320</div>
+        <p>水平翻转 + ±30° 旋转</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>📦 256 版</h4>
+        <div class="score" style="color: var(--accent2);">1,320</div>
+        <p>缩至 256×256，加载更快</p>
+      </div>
+    </div>
+    <p style="margin-top: 12px; font-size: clamp(13px, 1.2vw, 18px);">
+      ⚠️ 330 张对深度学习严重偏少，GAN 判别器极易过拟合，扩散模型也难以收敛
+    </p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 4: 实验路线总览 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 1000px;">
+    <h2 class="animate-fade-up">实验路线总览</h2>
+    <div class="timeline" style="margin-top: 24px;">
+      <div class="timeline-item">
+        <span class="tl-label" style="color: #f87171;">VAE</span>
+        <span class="tl-score" style="color: #f87171;">10</span>
+        <span class="tl-desc">模糊天花板</span>
+      </div>
+      <div class="timeline-item">
+        <span class="tl-label" style="color: #fb923c;">GAN</span>
+        <span class="tl-score" style="color: #fb923c;">20</span>
+        <span class="tl-desc">判别器过拟合</span>
+      </div>
+      <div class="timeline-item">
+        <span class="tl-label" style="color: #facc15;">DDPM</span>
+        <span class="tl-score" style="color: #facc15;">75</span>
+        <span class="tl-desc">结构对缺纹理</span>
+      </div>
+      <div class="timeline-item">
+        <span class="tl-label" style="color: #38bdf8;">FiLM DDPM</span>
+        <span class="tl-score" style="color: #38bdf8;">85</span>
+        <span class="tl-desc">FiLM 延缓溶解</span>
+      </div>
+      <div class="timeline-item">
+        <span class="tl-label" style="color: #4ade80;">FiLM+L1+LPIPS</span>
+        <span class="tl-score" style="color: #4ade80;">85-90</span>
+        <span class="tl-desc">🏆 最佳方案</span>
+      </div>
+    </div>
+    <div class="chart-box" style="margin-top: 12px;">
+      <canvas id="overviewChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 5: VAE 失败分析 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 900px;">
+    <h2 class="animate-fade-up" style="color: #f87171;">VAE — MSE 模糊天花板</h2>
+    <p style="margin-bottom: 8px;">Vanilla VAE / Beta-VAE · 500 轮训练 · <span class="tag tag-red">评分 10/100</span></p>
+    <div class="card-grid card-grid-2" style="margin-top: 8px;">
+      <div class="card animate-stagger">
+        <h4>🔍 现象</h4>
+        <p>血管边界糊成一片，病灶边缘不清晰。loss 从 1600+ 降到 290~380 但视觉质量无提升</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🧬 根因：MSE 天花板</h4>
+        <p>MSE 在"多个可能输出"之间取平均 → 模糊。好比让人画"平均脸"——越像所有人就越像没有人</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>💡 尝试改进</h4>
+        <p>加大 latent_dim（128→256）、增加解码器容量 → 模糊依旧</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>✅ 结论</h4>
+        <p>VAE 的"模糊天性"无法通过调参突破，果断放弃</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 6: GAN 失败分析 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 900px;">
+    <h2 class="animate-fade-up" style="color: #fb923c;">GAN — 小样本过拟合</h2>
+    <p style="margin-bottom: 8px;">DCGAN → WGAN-GP → StyleGAN2-ADA · <span class="tag tag-yellow">评分 20/100</span></p>
+    <div class="card-grid card-grid-2" style="margin-top: 8px;">
+      <div class="card animate-stagger">
+        <h4>🔍 现象</h4>
+        <p>DCGAN 训练震荡，生成图有明显伪影；WGAN-GP 同样不稳定</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🧬 根因</h4>
+        <p>330 张样本 → 判别器迅速背诵训练集 → 生成器无法学到有效映射</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>💡 尝试</h4>
+        <p>WGAN-GP 梯度惩罚 · 削弱版生成器 · StyleGAN2-ADA（CUDA 环境不兼容）</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>✅ 结论</h4>
+        <p>小样本下 GAN 训练极其困难，对抗训练的弱点集中暴露</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 7: 主力方法 — Diffusion ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 900px;">
+    <h2 class="animate-fade-up" style="color: #38bdf8;">扩散模型 — 真正的突破口</h2>
+    <p style="margin-bottom: 8px;">无条件 DDPM → 条件 DDPM → Palette → <span class="highlight">FiLM DDPM</span></p>
+    <div class="card-grid card-grid-3" style="margin-top: 8px;">
+      <div class="card animate-stagger">
+        <h4>🔄 无条件 DDPM</h4>
+        <div class="score" style="color: #facc15;">75</div>
+        <p>结构基本正确，但噪点多、细节纹理不够锐利</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🖼️ 条件 Diffusion</h4>
+        <div class="score" style="color: #facc15;">70</div>
+        <p>血管骨架引导，220 轮巅峰后病灶逐渐溶解（MSE 溶解效应）</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>🎨 Palette</h4>
+        <div class="score" style="color: #f87171;">0</div>
+        <p>125 轮巅峰 → 275 轮模糊 → 推理完全无效</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 12px;">
+      <h4>💡 MSE 溶解机制 — 核心发现</h4>
+      <p>暗背景（95% 像素）上，亮病灶区域的梯度贡献被大量暗像素平均化 → 病灶随时间推移模糊。这解释了为什么条件扩散和 Palette 都逃不过"先好后差"</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 8: 最佳方案 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 950px;">
+    <h2 class="animate-fade-up" style="color: #4ade80;">🏆 最佳方案：FiLM DDPM + L1 + LPIPS</h2>
+    <p style="margin-bottom: 8px;">780 轮全链训练 · <span class="tag tag-green">评分 85-90/100</span></p>
+    <div class="card-grid card-grid-2" style="margin-top: 8px;">
+      <div class="card animate-stagger">
+        <h4>🎛️ FiLM 调制</h4>
+        <p>特征线性调制 <code style="color: var(--accent);">GN(h)·(1+scale)+shift</code>，UNet 每残差块根据时间步动态调整特征，延缓溶解到 450 轮</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>📐 L1 损失</h4>
+        <p>替代 MSE，对离群点更鲁棒。最终 L1 ~0.048-0.055（等价 MSE ~0.002-0.003）</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>👁️ LPIPS 感知损失</h4>
+        <p>权重 0.1，仅 t&lt;200 时间步。基于预训练 AlexNet 特征相似度，大幅提升血管纹理锐利度</p>
+      </div>
+      <div class="card animate-stagger">
+        <h4>📊 EMA 0.9999</h4>
+        <p>指数移动平均 decay 0.9999 保留更多历史信息，比默认 0.999 更稳定</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 10px; border-color: rgba(74,222,128,0.3);">
+      <p style="color: var(--text); font-weight: 500;">
+        ✅ 病灶保持 · ✅ 血管纹理锐利 · ⚠️ 部分白色斑点伪影（LPIPS 高频过度激活）<br>
+        ~60-70% 样本达可用标准，最佳 epoch ~700 轮
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 9: 评分对比图 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 950px;">
+    <h2 class="animate-fade-up" style="font-size: clamp(24px, 2.8vw, 38px);">模型评分对比</h2>
+    <div class="card-grid card-grid-2" style="margin-top: 8px; align-items: center;">
+      <div class="chart-box" style="width: 100%; height: clamp(280px, 45vh, 400px);">
+        <canvas id="scoreChart"></canvas>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom: 8px;">
+          <h4>🏆 最佳</h4>
+          <p><span class="highlight">FiLM DDPM + L1 + LPIPS</span> — 85-90/100</p>
+        </div>
+        <div class="card" style="margin-bottom: 8px;">
+          <h4>📈 关键提升</h4>
+          <p>无条件 DDPM 75 → FiLM+L1+LPIPS 85-90</p>
+        </div>
+        <div class="card">
+          <h4>❌ 失败教训</h4>
+          <p>VAE (10) → GAN (20) → Palette (0)，越早放弃越不浪费时间</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 10: Loss 曲线 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 950px;">
+    <h2 class="animate-fade-up" style="font-size: clamp(24px, 2.8vw, 38px);">FiLM DDPM + L1 + LPIPS 训练曲线</h2>
+    <p style="margin-bottom: 4px;">780 轮 · 交替使用 ORIGINAL(330 张) 和 much(1320 张增强版)</p>
+    <div class="chart-box" style="width: min(90%, 800px); height: clamp(300px, 50vh, 420px);">
+      <canvas id="lossChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 11: 核心发现 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 950px;">
+    <h2 class="animate-fade-up" style="font-size: clamp(24px, 2.8vw, 38px);">核心发现与学到的经验</h2>
+    <div class="scroll-content" style="margin-top: 8px;">
+      <ul class="animate-stagger">
+        <li>
+          <strong style="color: var(--text);">1. 小样本 GAN 极其难训</strong><br>
+          330 张图对判别器来说就是"开卷考试"，它背下训练集后生成器无法学到任何有效映射。这不是 WGAN-GP 或调参能解决的问题。
+        </li>
+        <li>
+          <strong style="color: var(--text);">2. 扩散模型也有"甜蜜期"</strong><br>
+          条件扩散在 200-300 轮时效果最好，继续训练病灶反而溶解。MSE 损失在暗背景上的平均化效应是罪魁祸首。
+        </li>
+        <li>
+          <strong style="color: var(--text);">3. 损失函数决定上限</strong><br>
+          L1 替代 MSE + LPIPS 感知损失让血管纹理质量发生质变。同样的 FiLM 架构，换损失函数就能从 75 分跳到 85-90 分。
+        </li>
+        <li>
+          <strong style="color: var(--text);">4. 颜色一致性不可忽视</strong><br>
+          色彩抖动（ColorJitter）让眼底图的颜色分布被打乱，模型学到的解剖结构正确但颜色全偏。后期加的颜色校正虽然能补救，但从源头保护好数据更关键。
+        </li>
+        <li>
+          <strong style="color: var(--text);">5. 预训练并非必须</strong><br>
+          医学图像生成和分类不同，ImageNet 预训练的特征对医学图像特征分布帮助有限。从零训练 + 数据增强 + 正则化反而更容易控制训练行为。
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 12: 后续方向 ========== -->
+<div class="slide">
+  <div class="slide-content" style="max-width: 950px;">
+    <h2 class="animate-fade-up" style="font-size: clamp(24px, 2.8vw, 38px);">后续优化方向</h2>
+    <div class="card-grid card-grid-2" style="margin-top: 12px;">
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>🔧 推理后处理</h4>
+          <span class="tag tag-green">高 · 易</span>
+        </div>
+        <p>中值滤波去伪影 + ESRGAN/SwinIR 超分 128→256</p>
+      </div>
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>⚡ 梯度检查点</h4>
+          <span class="tag tag-green">高 · 易</span>
+        </div>
+        <p>降低显存 30-50%，支持更大 base_dim</p>
+      </div>
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>🎯 边缘感知损失</h4>
+          <span class="tag tag-yellow">中 · 需重训</span>
+        </div>
+        <p>Sobel/Canny 边缘 L1 损失，减少白色斑点伪影</p>
+      </div>
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>🏗️ 多尺度条件注入</h4>
+          <span class="tag tag-yellow">中 · 需重训</span>
+        </div>
+        <p>类似 ControlNet 在各分辨率层分别注入条件特征</p>
+      </div>
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>📚 自监督预训练</h4>
+          <span class="tag tag-blue">低 · 数据受限</span>
+        </div>
+        <p>在 10000+ 无标注眼底图上预训练 UNet 再微调</p>
+      </div>
+      <div class="card animate-stagger">
+        <div style="display: flex; justify-content: space-between;">
+          <h4>🌊 Flow Matching</h4>
+          <span class="tag tag-blue">低 · 远期</span>
+        </div>
+        <p>将 Diffusion 的 ODE 框架类比引入离散数据流</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 13: Q&A ========== -->
+<div class="slide slide-title-bg">
+  <div class="slide-content animate-fade-up">
+    <h1>谢谢！</h1>
+    <p style="font-size: clamp(20px, 2.5vw, 36px); margin-top: 12px; color: var(--text);">
+      欢迎提问 🙋‍♂️
+    </p>
+    <div style="margin-top: 24px; color: var(--text2);">
+      <p>📄 完整报告：research-report/REPORT.docx</p>
+      <p>💻 代码仓库：github.com/DanyelleCaratDream/Fundus-Image-Generation-Model</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.slide-deck -->
+
+<!-- Navigation -->
+<div class="nav-controls">
+  <button class="nav-btn" onclick="prevSlide()">←</button>
+  <span class="slide-counter"><span id="current">1</span> / <span id="total">13</span></span>
+  <button class="nav-btn" onclick="nextSlide()">→</button>
+</div>
+
+<script>
+let current = 1;
+const total = document.querySelectorAll('.slide').length;
+document.getElementById('total').textContent = total;
+
+function showSlide(n) {
+  if (n < 1) n = 1;
+  if (n > total) n = total;
+  current = n;
+  document.querySelectorAll('.slide').forEach((s, i) => {
+    s.classList.toggle('active', i === n - 1);
+  });
+  document.getElementById('current').textContent = n;
+  document.getElementById('progressBar').style.width = (n / total * 100) + '%';
+  // Trigger chart resize on chart slides
+  setTimeout(() => {
+    Chart.instances.forEach(c => c.resize());
+  }, 100);
+}
+
+function nextSlide() { showSlide(current + 1); }
+function prevSlide() { showSlide(current - 1); }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.nav-controls')) nextSlide();
+});
+
+showSlide(1);
+
+// ===== Charts =====
+
+// Slide 4: 模型评分概览柱状图
+new Chart(document.getElementById('overviewChart'), {
+  type: 'bar',
+  data: {
+    labels: ['VAE', 'DCGAN / WGAN-GP', '无条件 DDPM', '条件 DDPM (MSE)', 'Palette (MSE)', 'FiLM DDPM (MSE)', 'FiLM DDPM + L1 + LPIPS'],
+    datasets: [{
+      label: '评分',
+      data: [10, 20, 75, 70, 0, 85, 88],
+      backgroundColor: [
+        'rgba(248,113,113,0.7)',
+        'rgba(251,146,60,0.7)',
+        'rgba(250,204,21,0.7)',
+        'rgba(250,204,21,0.6)',
+        'rgba(248,113,113,0.5)',
+        'rgba(56,189,248,0.7)',
+        'rgba(74,222,128,0.8)'
+      ],
+      borderColor: [
+        '#f87171', '#fb923c', '#facc15', '#eab308', '#ef4444', '#38bdf8', '#4ade80'
+      ],
+      borderWidth: 2,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#94a3b8', font: { size: 10 } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: '#94a3b8' },
+        min: 0, max: 100
+      }
+    }
+  }
+});
+
+// Slide 9: 评分对比图 (水平柱状图)
+new Chart(document.getElementById('scoreChart'), {
+  type: 'bar',
+  data: {
+    labels: ['VAE', 'GAN', '无条件 DDPM', '条件 DDPM', 'Palette', 'FiLM DDPM', 'FiLM + L1 + LPIPS'],
+    datasets: [{
+      label: '评分',
+      data: [10, 20, 75, 70, 0, 85, 88],
+      backgroundColor: [
+        'rgba(248,113,113,0.6)',
+        'rgba(251,146,60,0.6)',
+        'rgba(250,204,21,0.6)',
+        'rgba(234,179,8,0.6)',
+        'rgba(239,68,68,0.5)',
+        'rgba(56,189,248,0.7)',
+        'rgba(74,222,128,0.8)'
+      ],
+      borderColor: ['#f87171','#fb923c','#facc15','#eab308','#ef4444','#38bdf8','#4ade80'],
+      borderWidth: 2,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#94a3b8' }, min: 0, max: 100 },
+      y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+    }
+  }
+});
+
+// Slide 10: Loss 曲线
+new Chart(document.getElementById('lossChart'), {
+  type: 'line',
+  data: {
+    labels: ['100', '200', '300', '400', '500', '600', '700', '780'],
+    datasets: [{
+      label: 'L1 Loss',
+      data: [0.22, 0.14, 0.10, 0.08, 0.065, 0.055, 0.050, 0.048],
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56,189,248,0.08)',
+      borderWidth: 3,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+      pointBackgroundColor: '#38bdf8',
+    }, {
+      label: 'MSE (等价值)',
+      data: [0.048, 0.020, 0.010, 0.0064, 0.0042, 0.0030, 0.0025, 0.0023],
+      borderColor: '#a78bfa',
+      backgroundColor: 'rgba(167,139,250,0.06)',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      fill: true,
+      tension: 0.4,
+      pointRadius: 2,
+      pointBackgroundColor: '#a78bfa',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: { color: '#94a3b8', font: { size: 13 }, usePointStyle: true, padding: 20 }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#94a3b8' },
+        title: { display: true, text: 'Epoch', color: '#64748b' }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: '#94a3b8' },
+        title: { display: true, text: 'Loss', color: '#64748b' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
