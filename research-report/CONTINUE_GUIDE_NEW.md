@@ -1,9 +1,9 @@
-# Continue Guide - 2026-08-02（v16 — Phase A ✅ + Phase B ✅ + 评估体系 ✅ + 综合评分 ✅ + 目录重组 ✅ + git 已提交 ✅）
+# Continue Guide - 2026-08-02（v17 — Phase A ✅ + Phase B ✅ + 评估体系 ✅ + 综合评分 ✅ + 目录重组 ✅ + REPORT 排版修复 ✅ + 白话文档 ✅ + git 已提交 a3e90b7 ✅）
 
-> **当前状态（2026-08-02 晚，全部完成并已 git commit 0b9a912，工作区干净）**：Phase A/B 评估 ✅ + 可视化四图 ✅ + **综合评分方案 ✅**（score_scheme.py 六维门控 0-100 + 人工分校准，报告 5.6/5.7/5.8 + docs/09 设计文档，md/docx 均已转 Word）→ **目录重组 ✅**（Fundus-* 搬入 `generate_project/deep_learning/`，新建 pretrained/machine_learning/transfer_learning + `classify/` 占位，7 文档路径全更新、代码零改动）→ **分类方案已定 = 方案 1**（同项目 `classify/` 目录，Phase D）→ 待用户收尾 REPORT（原版）.docx 排版 → 老师已答复：① 只做 DR 分级分类（不框出/检测）；② 330 张需提前标注等级（老师/医生标）；③ 分级标准 = KW（Keith-Wagener）I-IV 级高血压视网膜病变（老师说的 HR 即此，用户 2026-08-02 确认）→ **等 330 标注到位 + KW 细节定 Phase C/D**
+> **当前状态（2026-08-02 深夜，git 已提交 a3e90b7 并双远端推送成功，工作区干净）**：Phase A/B 评估 ✅ + 可视化四图 ✅ + **综合评分方案 ✅**（score_scheme.py 六维门控 0-100 + 人工分校准，报告 5.6/5.7/5.8 + docs/09 设计文档，md/docx 均已转 Word）→ **目录重组 ✅**（Fundus-* 搬入 `generate_project/deep_learning/`，新建 pretrained/machine_learning/transfer_learning + `classify/` 占位）→ **分类方案已定 = 方案 1**（同项目 `classify/` 目录，Phase D）→ 老师已答复：① 只做 DR 分级分类；② 330 张需提前标注等级（老师/医生标）；③ 分级标准 = KW（Keith-Wagener）I-IV 级（用户 2026-08-02 确认）→ **REPORT.docx 排版修复 ✅**（13/9 列大表拆词已修：固定列宽+8pt+noWrap，转 PDF 验证完整；替换原文件留给用户自己做）→ **docs/10 评分白话版 ✅** → **下一步 = Phase C2 传统 ML 实验（计划见下第六节 9，需先读再实施）** → 等 330 标注 + KW 细节 → Phase D
 > **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令的 `../../eval_data` → `../../../eval_data`（深一层）。旧位置已不存在。
-> **compact 后第一步**：读本指引 + docs/08-Work-Guide.md（新路径命令）→ 若无用户新指示，主任务 = 等 KW 分级细节 + 330 标注 → Phase C/D；可顺手推进第五节遗留待办（REPORT.docx 收尾等）。
-> **⚠️ 注意：第五节还有少数"待改/待完善"（颜色表措辞、evaluation_report.docx 与 md 不同步），以及 REPORT.docx 收尾**
+> **compact 后第一步**：读本指引第六节 9（Phase C2 计划）→ 按计划实施 C2；涉及根目录命令见 docs/08-Work-Guide.md（新路径）。
+> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头。
 > **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
 > **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分**
 > **双远端：** GitHub + Gitee
@@ -54,6 +54,9 @@
 | **文档转 Word**：evaluation_report.md/.docx（含 5.6/5.7/5.8 + 5 图）+ docs/09-Score-Scheme-Design.docx（pandoc 3.8 直转，无需样式模板） | ✅ 2026-08-02 |
 | **目录重组**：Fundus-* 搬入 generate_project/deep_learning/（git mv 719 文件）+ 新建 pretrained/machine_learning/transfer_learning + classify/ 占位，7 文档路径更新 | ✅ 2026-08-02 |
 | **git 提交**：0b9a912（重组 + 评估体系 + 综合评分 + 文档，798 文件） | ✅ 工作区干净 |
+| **REPORT.docx 排版修复**（2026-08-02 深夜）：_insert_metrics.py make_table 支持固定列宽+字号+noWrap → 重新生成 _with_metrics.docx，13/9 列大表拆词全部修复（转 PDF 逐词验证 1-NN(0.5)/MS-SSIM↓/FiLM+L1+LPIPS/178.8 完整）；原文件替换留用户自己处理 | ✅ 排版已修，替换待用户 |
+| **docs/10 评分标准白话版**（2026-08-02 深夜）：docs/10-Score-Scheme-For-Beginners.md（故事化解释人工分校准/六维权重/门控/用法/局限，面向非技术读者）+ 00-Doc-Index 收录 | ✅ |
+| **git 提交**：a3e90b7（REPORT 排版修复 + 白话版 + 补交 interview-prep.docx，5 文件）→ 双远端推送成功，工作区干净 | ✅ |
 
 ---
 
@@ -115,10 +118,10 @@
 - [x] **命令沉淀**（2026-08-02）：生成（三/节，DDIM 50 步）+ 评估（四节 metrics_common/metrics_fundus）已写入 docs/08-Work-Guide.md
 - [x] **metrics_common.py 放置**（2026-08-02）：保持 eval/ 不动（多处文档引用，挪动纯churn），新增 `eval/README.md` 说明两脚本用法
 
-### 3.5 REPORT.docx 评估章节增强（2026-08-02，待用户收尾）
-- [ ] **用户自己改 REPORT（原版）_with_metrics.docx 的排版**（插入的新章节 2.1~2.10 + 4 张评估表，用户发现排版问题自行修改）
-- [ ] 用户改好 → 确认是否替换原 `REPORT（原版）.docx`（原文件至今未动）
-- [ ] 替换后删除临时脚本 `research-report/_insert_metrics.py`
+### 3.5 REPORT.docx 评估章节增强（2026-08-02 排版已修复 ✅，替换留用户）
+- [x] **排版修复**（2026-08-02 深夜）：_insert_metrics.py make_table 支持固定列宽+字号+noWrap → 重新生成 _with_metrics.docx（682 段/11 表），13 列通用层/9 列专用层大表拆词全部修复（转 PDF 逐词验证完整），新章节表格零溢出
+- [ ] **替换原文件**（用户自己做）：用户确认排版 OK 后，将 `REPORT（原版）_with_metrics.docx` 重命名替换 `REPORT（原版）.docx`（原文件至今未动）
+- [ ] 替换后删除临时脚本 `research-report/_insert_metrics.py`（届时 _with_metrics.docx 的表格修复逻辑已固化在 docx 本身）
 
 ### 5. ⭐ 综合评分方案（✅ 已完成 2026-08-02，实现见 `eval/score_scheme.py` + 报告 5.6/5.7）
 
@@ -149,6 +152,7 @@
 - [x] **Phase A 自设计指标已补齐**（2026-08-01 晚：metrics_fundus.py 病灶/血管/记忆/C2ST/BRISQUE/Vessel Dice 全部跑完并写入报告）→ Bug 1 的"通用+自设计"两层指标均已落地
 - [x] **Phase B 评分标准调研已完成**（2026-08-02：结论并入 evaluation_report.md 第二部分，"保留现有两层指标 + TSTR/TRTR 为终极金标准 + RETFound-FD 可选探索"）→ Bug 1 第二半落地
 - [x] **老师已答复分类模型要求（2026-08-02）**：只做分级分类、330需标注、分级标准 = KW I-IV 级（老师说的 HR，用户已确认）→ 剩余：等 330 标注到位 + KW 分级细节确认 → 定 Phase C/D
+- [x] **Phase C2 计划已定（2026-08-02 深夜）**：传统 ML 3 基线（PCA/GMM/补丁合成）各 300 张 → 评估 → 评分入图 → 报告否定性结论，详见第六节 9
 - [ ] 是否有用户自己发现的报告/数据问题要改？
 
 ---
@@ -164,8 +168,32 @@
 
 ### Phase C：新方法探索（Bug 2）
 - **C1 经典增广**（⏸ 用户 2026-08-02 表态：不用做，已报告过可用）——若老师后续要求可随时补跑
-- **C2 传统 ML**（1 次实验，预期否决）：PCA/GMM/补丁合成，确证后作为否定性结论
 - **C3 Stable Diffusion**（可选）：先调研 8GB VRAM LoRA 可行性，再跑
+
+### 9. ⭐ Phase C2 传统 ML 实验计划（2026-08-02 深夜制定，compact 后按此实施）
+
+**目标**：验证"非深度学习生成方法能否产出可用的眼底图"，跑 1 次实验，作为**否定性结论**写进报告（回应老师 Bug 2 的"方法不限于深度学习"）。
+
+**预期**：C2 得分远低于扩散模型（预期 0-20 分），确证传统 ML 无生成价值，与其他方法对照形成完整结论。
+
+**方法**：`generate_project/machine_learning/` 下实现 **3 个传统基线**，各生成 300 张评估图（对齐现有模型口径）：
+1. **PCA 线性重建**（`pca_gen.py`）：全部 330 张图拉平 → 主成分分解 → 保留前 k 个主成分（试 k=32/64/128）→ 从主成分空间采样/扰动重建
+2. **GMM 高斯混合采样**（`gmm_gen.py`）：对 128px 图的像素/块特征做 GMM（试 K=8/16/32）→ 从分布采样合成
+3. **补丁合成**（`patch_gen.py`）：从 330 张图随机裁块 + 拼接/平均，生成"新图"（直观验证无结构）
+
+**步骤**：
+1. 在 `generate_project/machine_learning/` 建 3 个脚本 + `README.md`（更新占位说明）
+2. 数据：直接读 `fundus/_all_images_ORIGINAL/`，预处理到 **128×128**（与 eval_data/real 口径一致）
+3. 各生成 300 张 → `eval_data/{pca,gmm,patch}/singles/`（命名 `sample_0000.png` 对齐）
+4. 评估：根目录跑 `python eval/metrics_common.py --real eval_data/real --fake eval_data/<m>/singles --img_size 128 --device cuda --json`（每模型一个）→ 产出 `<m>_metrics.json`
+5. 专用层（可选，条件模型无血管骨架时 vessel_dice 会跳过）：`python eval/metrics_fundus.py --real eval_data/real --fake eval_data/<m>/singles --model <m> --device cuda --json`
+6. 打分入图：`python eval/score_scheme.py --scorecard && python eval/plot_metrics.py` → 新方法自动进总分表 + 雷达图（显示名需在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补一行）
+7. 报告：在 `evaluation_report.md` 增加 C2 小节（3 个基线得分表 + 否定性结论 + 与扩散对比）
+8. 若某基线意外得分高 → 停下跟用户确认，不擅自扩展
+
+**注意**：`metrics_fundus.py` 的 C2ST 会训练小 CNN，3 个模型各跑较慢（GPU 串行）；`--skip_c2st` 可先跳过。GPU 8GB，3 个传统方法不占显存，但评估脚本照常走 cuda。
+
+**预期输出**：`eval_data/{pca,gmm,patch}_metrics.json` + `_scores.json` 新增 3 行 + figures 更新 + 报告 C2 小节。
 
 ### Phase D：下游分类器验证（终极目标）
 **老师答复后调整（2026-08-02）**：只做 DR 分级分类（纯分类网络，无检测）；330 张需标注等级（老师/医生标）；分级标准 = **KW（Keith-Wagener）高血压视网膜病变 I-IV 级**（用户 2026-08-02 确认老师说的 HR 即此，本项目生成 IV 级最重）→ 分类器类别数 = KW 等级数（等 KW 分级细节确认）。剩余路径：等 KW 分级细节 + 330 标注 → 定标签格式 + 公开数据对齐策略（找 KW 标注公开集 or 将公开集重标为 KW）→ ResNet/EfficientNet 分类器 → TSTR/TRTR 验收"合成重度图显著提升对应类 Recall/F1/平衡准确率"。
