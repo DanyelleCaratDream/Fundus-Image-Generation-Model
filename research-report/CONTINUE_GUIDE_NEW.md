@@ -1,7 +1,8 @@
-# Continue Guide - 2026-08-02（v15 — Phase A ✅ + Phase B ✅ + 第五节收尾 ✅ + 可视化图表 ✅ + 综合评分方案 ✅ + 目录重组 ✅）
+# Continue Guide - 2026-08-02（v16 — Phase A ✅ + Phase B ✅ + 评估体系 ✅ + 综合评分 ✅ + 目录重组 ✅ + git 已提交 ✅）
 
-> **当前状态：Phase A ✅ + Phase B ✅ + 第五节收尾 ✅ + 综合评分方案 ✅（2026-08-02）→ ⚠️ 目录重组 ✅（Fundus-* 已搬入 `generate_project/deep_learning/`，新建 pretrained/machine_learning/transfer_learning + classify/ 占位，所有文档路径已更新、代码零改动）→ REPORT（原版）.docx 待用户改排版 → 老师已答复：① 只做 DR 分级分类（不框出/检测）；② 330 张需提前标注等级（老师/医生标）；③ 分级标准 = KW（Keith-Wagener）I-IV 级高血压视网膜病变（老师说的 HR 即此，用户 2026-08-02 确认）→ 等 330 标注到位 + KW 细节定 Phase C/D**
+> **当前状态（2026-08-02 晚，全部完成并已 git commit 0b9a912，工作区干净）**：Phase A/B 评估 ✅ + 可视化四图 ✅ + **综合评分方案 ✅**（score_scheme.py 六维门控 0-100 + 人工分校准，报告 5.6/5.7/5.8 + docs/09 设计文档，md/docx 均已转 Word）→ **目录重组 ✅**（Fundus-* 搬入 `generate_project/deep_learning/`，新建 pretrained/machine_learning/transfer_learning + `classify/` 占位，7 文档路径全更新、代码零改动）→ **分类方案已定 = 方案 1**（同项目 `classify/` 目录，Phase D）→ 待用户收尾 REPORT（原版）.docx 排版 → 老师已答复：① 只做 DR 分级分类（不框出/检测）；② 330 张需提前标注等级（老师/医生标）；③ 分级标准 = KW（Keith-Wagener）I-IV 级高血压视网膜病变（老师说的 HR 即此，用户 2026-08-02 确认）→ **等 330 标注到位 + KW 细节定 Phase C/D**
 > **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令的 `../../eval_data` → `../../../eval_data`（深一层）。旧位置已不存在。
+> **compact 后第一步**：读本指引 + docs/08-Work-Guide.md（新路径命令）→ 若无用户新指示，主任务 = 等 KW 分级细节 + 330 标注 → Phase C/D；可顺手推进第五节遗留待办（REPORT.docx 收尾等）。
 > **⚠️ 注意：第五节还有少数"待改/待完善"（颜色表措辞、evaluation_report.docx 与 md 不同步），以及 REPORT.docx 收尾**
 > **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
 > **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分**
@@ -50,6 +51,9 @@
 | **评估可视化图表**（2026-08-02）：eval/plot_metrics.py（可复用，新增方法重跑即入图）→ research-report/figures/ 四图，已整合进 evaluation_report.md | ✅ 详见第五节 |
 | **REPORT（原版）.docx 插入评估章节**（新「2.评估指标与评分标准」+ 原章节重编号 +1 → REPORT（原版）_with_metrics.docx，原文件未动） | 🟡 用户 2026-08-02 将自行改排版，待替换 |
 | **综合评分方案：需求确认 + 文献调研 + 公式设计 + 实现（score_scheme.py 六维门控 0-100 总分 + 校准表 + scorecard 图，见第五节 5）** | ✅ 2026-08-02 |
+| **文档转 Word**：evaluation_report.md/.docx（含 5.6/5.7/5.8 + 5 图）+ docs/09-Score-Scheme-Design.docx（pandoc 3.8 直转，无需样式模板） | ✅ 2026-08-02 |
+| **目录重组**：Fundus-* 搬入 generate_project/deep_learning/（git mv 719 文件）+ 新建 pretrained/machine_learning/transfer_learning + classify/ 占位，7 文档路径更新 | ✅ 2026-08-02 |
+| **git 提交**：0b9a912（重组 + 评估体系 + 综合评分 + 文档，798 文件） | ✅ 工作区干净 |
 
 ---
 
