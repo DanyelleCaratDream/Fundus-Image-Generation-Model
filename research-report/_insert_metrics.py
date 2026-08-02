@@ -84,19 +84,76 @@ print('重编号完成。锚点现在是:', ref.text.strip())
 # 原表格样式（统一 Table Grid）
 tbl_style = 'Table Grid'
 
-def make_table(header, rows, widths=None):
-    """创建表格（不插入，返回 table 元素），复用 Table Grid 样式，表头加粗"""
+def make_table(header, rows, widths=None, font_size=None, no_wrap_cols=None):
+    """创建表格（不插入，返回 table 元素），复用 Table Grid 样式，表头加粗。
+    widths: 每列宽度 twips 列表（1/20 pt）；font_size: 单元格字号 pt；
+    no_wrap_cols: 数据行禁换行的列下标集合（防数字被拆成两行，如 0.442→0.44/2）。
+    列宽+字号+缩 margin+noWrap 用于防止 13 列大表拆词/换行。"""
     t = d.add_table(rows=1, cols=len(header), style=tbl_style)
+    if widths:
+        t.autofit = False
+        total = sum(widths)
+        tblPr = t._tbl.tblPr
+        # 表格总宽 tblW
+        tblW = tblPr.find(qn('w:tblW'))
+        if tblW is None:
+            tblW = OxmlElement('w:tblW')
+            tblPr.append(tblW)
+        tblW.set(qn('w:w'), str(total))
+        tblW.set(qn('w:type'), 'dxa')
+        # 固定布局 tblLayout（防止 Word 重新均分）
+        layout = tblPr.find(qn('w:tblLayout'))
+        if layout is None:
+            layout = OxmlElement('w:tblLayout')
+            tblPr.append(layout)
+        layout.set(qn('w:type'), 'fixed')
+        # 缩小单元格内边距（默认 108 twips，压到 40，省出实际列宽）
+        cellmar = tblPr.find(qn('w:tblCellMar'))
+        if cellmar is None:
+            cellmar = OxmlElement('w:tblCellMar')
+            tblPr.append(cellmar)
+        for side in ('left', 'right'):
+            el = cellmar.find(qn('w:' + side))
+            if el is None:
+                el = OxmlElement('w:' + side)
+                cellmar.append(el)
+            el.set(qn('w:w'), '40')
+            el.set(qn('w:type'), 'dxa')
+        # 列网格 tblGrid
+        grid = t._tbl.find(qn('w:tblGrid'))
+        if grid is not None:
+            for gc, w in zip(grid.findall(qn('w:gridCol')), widths):
+                gc.set(qn('w:w'), str(w))
+        # 每个单元格 tcW
+        for j, w in enumerate(widths):
+            for cell in t.columns[j].cells:
+                tcPr = cell._tc.get_or_add_tcPr()
+                tcW = tcPr.find(qn('w:tcW'))
+                if tcW is None:
+                    tcW = OxmlElement('w:tcW')
+                    tcPr.append(tcW)
+                tcW.set(qn('w:w'), str(w))
+                tcW.set(qn('w:type'), 'dxa')
+    # ---- 填充内容（表头加粗；可设字号） ----
     for j, h in enumerate(header):
         cell = t.rows[0].cells[j]
         cell.text = ''
         run = cell.paragraphs[0].add_run(h)
         run.bold = True
+        if font_size:
+            run.font.size = Pt(font_size)
     for row in rows:
         cells = t.add_row().cells
         for j, v in enumerate(row):
             cells[j].text = ''
-            cells[j].paragraphs[0].add_run(str(v))
+            run = cells[j].paragraphs[0].add_run(str(v))
+            if font_size:
+                run.font.size = Pt(font_size)
+            # 数据列禁用换行（noWrap），防止数字被拆成两行
+            if no_wrap_cols and j in no_wrap_cols:
+                tcPr = cells[j]._tc.get_or_add_tcPr()
+                if tcPr.find(qn('w:noWrap')) is None:
+                    tcPr.append(OxmlElement('w:noWrap'))
     return t
 
 # ============================================================
@@ -173,7 +230,10 @@ gen_rows = [
     ['DCGAN', '229.8', '0.204', '0.007', '1.18', '0.000', '0.000', '0.000', '0.000', '1.000', '0.652', '0.726', '20'],
     ['VAE Large', '188.4', '0.189', '0.004', '2.30', '0.013', '0.000', '0.003', '0.009', '1.000', '0.361', '0.455', '10'],
 ]
-t_gen = make_table(gen_header, gen_rows)
+t_gen = make_table(gen_header, gen_rows,
+    widths=[1300, 620, 620, 620, 620, 560, 560, 560, 560, 880, 880, 800, 620],
+    font_size=8,
+    no_wrap_cols=set(range(1, 13)))
 insert_before(ref, t_gen._tbl)
 new_para_before(ref, '方向：FID/KID/MMD/MS-SSIM/LPIPS 越低越好；IS/Precision/Recall/Density/Coverage 越高越好；1-NN 越接近 0.5 越好。表格中 P/R/D/C = Precision/Recall/Density/Coverage。', 'Normal')
 
@@ -189,7 +249,9 @@ col_rows = [
     ['DCGAN', '0.483', '0.294', '0.0061', '[0.234, 0.041, 0.011]'],
     ['VAE Large', '0.024', '0.040', '0.0018', '[0.003, -0.412, -0.735]'],
 ]
-t_col = make_table(col_header, col_rows)
+t_col = make_table(col_header, col_rows,
+    widths=[1500, 1100, 1100, 1200, 2200], font_size=9,
+    no_wrap_cols=set(range(1, 5)))
 insert_before(ref, t_col._tbl)
 new_para_before(ref, '观察：VAE 颜色最贴近真实，但这是"颜色对、结构糊"的假象；所有扩散模型颜色偏亮偏蓝（B 通道偏正），存在系统性色偏，留给后续颜色校正处理。', 'Normal')
 
@@ -205,7 +267,9 @@ spec_rows = [
     ['DCGAN', '0.127', '0.000', '0.975', '40.0', '0.040', '—', '-0.010', '0.000'],
     ['VAE Large', '0.068', '0.700', '0.018', '0.30', '0.026', '—', '0.329', '0.000'],
 ]
-t_spec = make_table(spec_header, spec_rows)
+t_spec = make_table(spec_header, spec_rows,
+    widths=[1500, 850, 850, 850, 850, 850, 850, 1050, 800], font_size=8,
+    no_wrap_cols=set(range(1, 9)))
 insert_before(ref, t_spec._tbl)
 
 new_para_before(ref, 'C2ST 真伪分类 + BRISQUE 无参考质量：', 'Normal')
@@ -218,7 +282,9 @@ c2_rows = [
     ['DCGAN', '1.000', '36.1'],
     ['VAE Large', '0.999', '32.6'],
 ]
-t_c2 = make_table(c2_header, c2_rows)
+t_c2 = make_table(c2_header, c2_rows,
+    widths=[2200, 1700, 1500], font_size=9,
+    no_wrap_cols=set(range(1, 3)))
 insert_before(ref, t_c2._tbl)
 new_para_before(ref, '真实 BRISQUE = 3.69（BRISQUE 在自然图像上训练，眼底图仅参考）；C2ST = 小 CNN 真/假二分类 5 折交叉验证 AUC（越低越难被识破）。', 'Normal')
 

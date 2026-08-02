@@ -27,6 +27,7 @@
 | [07-Model-Card-Template.md](07-Model-Card-Template.md) | 模型档案模板 | ✅ |
 | [08-Work-Guide.md](08-Work-Guide.md) | 工作说明手册（常用命令 + 已知坑） | ✅ |
 | [09-Score-Scheme-Design.md](09-Score-Scheme-Design.md) | 综合评分方案设计文档（为什么这么设计：决策链/权重理由/门控/归一化/指标去留/局限）（Word 版：09-Score-Scheme-Design.docx） | ✅ 2026-08-02 |
+| [10-Score-Scheme-For-Beginners.md](10-Score-Scheme-For-Beginners.md) | 评分标准白话版（用故事+类比解释评分为什么这么设计，面向看不懂正式报告的人） | ✅ 2026-08-02 |
 
 ### research-report/（交付物 + 会话指引）
 
