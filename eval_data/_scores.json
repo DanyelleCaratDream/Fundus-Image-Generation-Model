@@ -1,0 +1,240 @@
+{
+  "formula_version": "v1",
+  "gate": "D2 抗识破+分布",
+  "n_models": 6,
+  "weights": {
+    "D1 病灶保留": 0.3,
+    "D2 抗识破+分布": 0.25,
+    "D3 多样性/质量": 0.2,
+    "D4 血管结构": 0.1,
+    "D5 颜色": 0.08,
+    "D6 记忆风险": 0.07
+  },
+  "gated_dims": [
+    "D1 病灶保留",
+    "D4 血管结构",
+    "D5 颜色"
+  ],
+  "dimensions": [
+    {
+      "name": "D1 病灶保留",
+      "weight": 0.3,
+      "gated": true,
+      "metrics": [
+        {
+          "src": "f",
+          "key": "lesion_hemo_wass",
+          "direction": "lower",
+          "weight": 0.25
+        },
+        {
+          "src": "f",
+          "key": "lesion_hemo_retention",
+          "direction": "close1",
+          "weight": 0.3
+        },
+        {
+          "src": "f",
+          "key": "lesion_exud_wass",
+          "direction": "lower",
+          "weight": 0.2
+        },
+        {
+          "src": "f",
+          "key": "lesion_exud_retention",
+          "direction": "close1",
+          "weight": 0.25
+        }
+      ]
+    },
+    {
+      "name": "D2 抗识破+分布",
+      "weight": 0.25,
+      "gated": false,
+      "metrics": [
+        {
+          "src": "f",
+          "key": "c2st_auc",
+          "direction": "lower",
+          "weight": 0.4
+        },
+        {
+          "src": "g",
+          "key": "fid",
+          "direction": "lower",
+          "weight": 0.25
+        },
+        {
+          "src": "g",
+          "key": "kid",
+          "direction": "lower",
+          "weight": 0.25
+        },
+        {
+          "src": "g",
+          "key": "one_nn",
+          "direction": "close05",
+          "weight": 0.1
+        }
+      ]
+    },
+    {
+      "name": "D3 多样性/质量",
+      "weight": 0.2,
+      "gated": false,
+      "metrics": [
+        {
+          "src": "g",
+          "key": "recall",
+          "direction": "higher",
+          "weight": 0.4
+        },
+        {
+          "src": "g",
+          "key": "ms_ssim",
+          "direction": "lower",
+          "weight": 0.3
+        },
+        {
+          "src": "g",
+          "key": "is",
+          "direction": "higher",
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "name": "D4 血管结构",
+      "weight": 0.1,
+      "gated": true,
+      "metrics": [
+        {
+          "src": "f",
+          "key": "vessel_frac_wass",
+          "direction": "lower",
+          "weight": 0.5
+        },
+        {
+          "src": "f",
+          "key": "vessel_dice",
+          "direction": "higher",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "name": "D5 颜色",
+      "weight": 0.08,
+      "gated": true,
+      "metrics": [
+        {
+          "src": "g",
+          "key": "color_mean_dist",
+          "direction": "lower",
+          "weight": 0.3333333333333333
+        },
+        {
+          "src": "g",
+          "key": "color_std_dist",
+          "direction": "lower",
+          "weight": 0.3333333333333333
+        },
+        {
+          "src": "g",
+          "key": "color_hist_dist",
+          "direction": "lower",
+          "weight": 0.3333333333333333
+        }
+      ]
+    },
+    {
+      "name": "D6 记忆风险",
+      "weight": 0.07,
+      "gated": false,
+      "metrics": [
+        {
+          "src": "f",
+          "key": "mem_ssim_mean",
+          "direction": "lower",
+          "weight": 1.0
+        }
+      ]
+    }
+  ],
+  "scores": {
+    "film_l1lpips": 72.92,
+    "film": 43.96,
+    "cond": 44.0,
+    "base_cj": 44.22,
+    "dcgan": 7.0,
+    "vae": 25.68
+  },
+  "dims_scores": {
+    "film_l1lpips": {
+      "D1 病灶保留": 0.815,
+      "D2 抗识破+分布": 0.9032,
+      "D3 多样性/质量": 0.8293,
+      "D4 血管结构": 0.3344,
+      "D5 颜色": 0.6102,
+      "D6 记忆风险": 0.6052
+    },
+    "film": {
+      "D1 病灶保留": 0.5215,
+      "D2 抗识破+分布": 0.4017,
+      "D3 多样性/质量": 0.9531,
+      "D4 血管结构": 0.5,
+      "D5 颜色": 0.5411,
+      "D6 记忆风险": 0.6889
+    },
+    "cond": {
+      "D1 病灶保留": 0.5005,
+      "D2 抗识破+分布": 0.4791,
+      "D3 多样性/质量": 0.8355,
+      "D4 血管结构": 0.2958,
+      "D5 颜色": 0.4389,
+      "D6 记忆风险": 0.7176
+    },
+    "base_cj": {
+      "D1 病灶保留": 0.4935,
+      "D2 抗识破+分布": 0.4699,
+      "D3 多样性/质量": 0.7264,
+      "D4 血管结构": 0.8562,
+      "D5 颜色": 0.4458,
+      "D6 记忆风险": 0.7554
+    },
+    "dcgan": {
+      "D1 病灶保留": 0.0,
+      "D2 抗识破+分布": 0.0,
+      "D3 多样性/质量": 0.0,
+      "D4 血管结构": 0.7524,
+      "D5 颜色": 0.0,
+      "D6 记忆风险": 1.0
+    },
+    "vae": {
+      "D1 病灶保留": 0.8246,
+      "D2 抗识破+分布": 0.2458,
+      "D3 多样性/质量": 0.4516,
+      "D4 血管结构": 1.0,
+      "D5 颜色": 1.0,
+      "D6 记忆风险": 0.0
+    }
+  },
+  "gate_value": {
+    "film_l1lpips": 0.9032,
+    "film": 0.4017,
+    "cond": 0.4791,
+    "base_cj": 0.4699,
+    "dcgan": 0.0,
+    "vae": 0.2458
+  },
+  "tau_vs_human": 0.6,
+  "human": {
+    "film_l1lpips": 87.5,
+    "film": 85,
+    "cond": 70,
+    "base_cj": 75,
+    "dcgan": 20,
+    "vae": 10
+  },
+  "no_gate": null
+}

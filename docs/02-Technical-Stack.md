@@ -16,8 +16,13 @@
 | numpy | 数值计算 | |
 | Pillow | 图像 I/O | |
 | matplotlib | 绘图（Loss 曲线等） | |
-| scipy | FID 分数计算 | `pip install scipy` |
-| clean-fid | 更精确的 FID（可选） | `pip install clean-fid` |
+| scipy | FID 分数计算（矩阵平方根） | `pip install scipy` |
+| cv2 | 血管骨架提取、经典图像处理 | `pip install opencv-python` |
+| lpips | 感知损失 / 评估 | `pip install lpips` |
+| pytorch-fid | FID / IS / KID | `pip install pytorch-fid` |
+| prdc | Precision/Recall, Density/Coverage | `pip install prdc` |
+| pytorch-msssim | MS-SSIM 多样性 | `pip install pytorch-msssim` |
+| piq | BRISQUE/NIQE 无参考质量 | `pip install piq` |
 
 ## GPU 环境验证
 每次训练前运行以下命令确认 GPU 就绪：

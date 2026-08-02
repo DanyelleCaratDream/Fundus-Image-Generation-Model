@@ -1,0 +1,22 @@
+{
+  "lesion_hemo_wass": 0.06750057336055872,
+  "lesion_exud_wass": 0.017579752604166672,
+  "lesion_hemo_retention": 0.6997244926205981,
+  "lesion_exud_retention": 0.29617984849718987,
+  "lesion_hemo_presence": 0.91,
+  "lesion_exud_presence": 0.23,
+  "lesion_real_hemo_median": 0.04254150390625,
+  "lesion_real_exud_median": 0.002838134765625,
+  "vessel_frac_wass": 0.026078713156960226,
+  "vessel_frac_real_mean": 0.07676003196022728,
+  "vessel_frac_fake_mean": 0.1028387451171875,
+  "mem_ssim_mean": 0.32937315106391907,
+  "mem_ssim_median": 0.3312801122665405,
+  "mem_ssim_pct_gt_085": 0.0,
+  "brisque_fake": 32.63330078125,
+  "brisque_real": 3.688394069671631,
+  "model": "vae",
+  "c2st_auc": 0.9991919191919193,
+  "c2st_auc_std": 0.001133835571749643,
+  "c2st_time_s": 32.6
+}

@@ -29,39 +29,39 @@
 
 ```
 AI_Model_Project_for_Fundus_Color_Images/
+├── generate_project/               # 生成方法库（按方法族分区）
+│   ├── deep_learning/              #   深度学习从零训练（Phase A/B 已完成）
+│   │   ├── Fundus-VAE/             #     VAE 系列
+│   │   │   ├── train.py            #       训练入口
+│   │   │   ├── generate.py         #       推理入口
+│   │   │   ├── vanilla_vae/        #       基本 VAE
+│   │   │   ├── beta_vae/           #       beta-VAE（含 KL 加权）
+│   │   │   └── results/            #       训练结果（生成图 + 重建图）
+│   │   ├── Fundus-GAN/             #     GAN 系列
+│   │   │   ├── dcgan/              #       DCGAN
+│   │   │   ├── wgan_gp/            #       WGAN-GP（梯度惩罚）
+│   │   │   └── stylegan2/          #       StyleGAN2-ADA（小样本自适应）
+│   │   └── Fundus-Diffusion/       #     Diffusion 系列 ⭐ 主力
+│   │       └── ddpm/               #       DDPM + 条件扩散
+│   │           ├── train.py        #         训练脚本（含 FiLM / L1+LPIPS）
+│   │           ├── generate.py     #         推理采样
+│   │           ├── prep_conditions.py #      条件图（血管骨架）预处理
+│   │           ├── conditions/     #         血管骨架条件图（330 张）
+│   │           └── results_film_l1lpips/ #  最佳实验结果
+│   ├── pretrained/                 #   预训练模型（Phase C3 占位）
+│   ├── machine_learning/           #   传统 ML/OpenCV（Phase C2 占位）
+│   └── transfer_learning/          #   迁移学习（Phase C 占位）
+├── classify/                       # DR 分级分类模型（Phase D，方案 1）
+├── eval/                           # 评估/评分脚本（metrics_common / metrics_fundus / plot_metrics / score_scheme）
+├── eval_data/                      # 评估数据（生成图 + *_metrics.json + _scores.json）
+├── fundus/                         # 数据集（git 排除，需单独获取）
 ├── docs/                           # 规范文档（项目概述、技术栈、开发标准等）
-├── Fundus-VAE/                     # VAE 系列
-│   ├── train.py                    #   训练入口
-│   ├── generate.py                 #   推理入口
-│   ├── vanilla_vae/                #   基本 VAE
-│   ├── beta_vae/                   #   beta-VAE（含 KL 加权）
-│   └── results/                    #   训练结果（生成图 + 重建图）
-├── Fundus-GAN/                     # GAN 系列
-│   ├── dcgan/                      #   DCGAN
-│   │   ├── train.py
-│   │   └── generate.py
-│   ├── wgan_gp/                    #   WGAN-GP（梯度惩罚）
-│   │   ├── train.py
-│   │   └── generate.py
-│   └── stylegan2/                  #   StyleGAN2-ADA（小样本自适应）
-│       ├── train.py
-│       └── generate.py
-├── Fundus-Diffusion/               # Diffusion 系列 ⭐ 主力
-│   ├── ddpm/                       #   DDPM + 条件扩散
-│   │   ├── train.py                #   训练脚本（含 FiLM / L1+LPIPS）
-│   │   ├── generate.py             #   推理采样
-│   │   ├── prep_conditions.py      #   条件图（血管骨架）预处理
-│   │   ├── conditions/             #   血管骨架条件图（330 张）
-│   │   └── results_film_l1lpips/   #   最佳实验结果
-│   └── STANDARDS.md
 ├── research-report/                # 科研报告
 │   ├── REPORT.docx                 #   完整实验报告（含结论章）
-│   ├── generate_docx.py            #   DOCX 生成脚本
-│   ├── ref_report.txt              #   参考报告文本
-│   └── *.png                       #   报告嵌入结果图
-├── fundus/                         # 数据集（git 排除，需单独获取）
+│   ├── evaluation_report.md/.docx  #   评估报告（Phase A/B + 综合评分）
+│   ├── CONTINUE_GUIDE_NEW.md       #   实验继续指引（主恢复文档）
+│   └── *.png / figures/            #   报告嵌入结果图
 ├── .gitignore
-├── CONTINUE_GUIDE_NEW.md           # 实验继续指引
 └── README.md                       # 本文件
 ```
 
@@ -126,16 +126,16 @@ pip install lpips  # 感知损失（最佳方案需要）
 ### 训练（DDPM）
 
 ```bash
-cd Fundus-Diffusion/ddpm
+cd generate_project/deep_learning/Fundus-Diffusion/ddpm
 
 # 基础 DDPM 训练
 python train.py --epochs 500 --batch_size 16 --img_size 128 \
-    --dataset_path "../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
     --output_dir "./results"
 
 # FiLM DDPM + L1 + LPIPS（最佳方案）
 python train.py --epochs 780 --batch_size 16 --img_size 128 \
-    --dataset_path "../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
     --output_dir "./results_film_l1lpips" \
     --film --loss_type l1 --lpips_weight 0.1 --lpips_t 200 \
     --ema_decay 0.9999
@@ -153,7 +153,7 @@ python generate.py \
 
 ```bash
 python train.py --epochs 500 --batch_size 16 --img_size 128 \
-    --dataset_path "../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
     --cond_path "./conditions" \
     --output_dir "./results_cond"
 ```

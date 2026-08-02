@@ -33,6 +33,9 @@ Thumbs.db
 # === 数据集（不在 git 中分发） ===
 fundus/
 
+# === 评估图（只提交评估结果 JSON/CSV，不提交 1800+ 张图片） ===
+eval_data/*/
+
 # === 大文件 ===
 *.pdf
 *.zip
