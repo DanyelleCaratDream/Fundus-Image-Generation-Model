@@ -5,4 +5,6 @@
 
 **状态**：📌 占位，尚未开始。启动条件：Phase C2（传统 ML）完成后按需评估。
 
-**参考**：`research-report/metrics_research.md`（Phase B 调研——预训练帮助有限的分析）+ `docs/05-Research-Methodology.md`。
+**资料**：`report-pretrained-lit.md` —— 预训练/迁移/生成模型扩充的文献归档（Phase B 结论 + 2026-08-03 调研补），供 C3 启动前查阅。
+
+**参考**：`research-report/evaluation_report.md`（Phase B 调研——预训练帮助有限的分析）+ `docs/05-Research-Methodology.md`。

@@ -1,9 +1,9 @@
-# Continue Guide - 2026-08-02（v17 — Phase A ✅ + Phase B ✅ + 评估体系 ✅ + 综合评分 ✅ + 目录重组 ✅ + REPORT 排版修复 ✅ + 白话文档 ✅ + git 已提交 a3e90b7 ✅）
+# Continue Guide - 2026-08-03（v18 — 上版 ✅ + generate_project 文档体系整合 ✅ + ML 文档/脚本就绪 ✅ + 待用户审阅后实验）
 
-> **当前状态（2026-08-02 深夜，git 已提交 a3e90b7 并双远端推送成功，工作区干净）**：Phase A/B 评估 ✅ + 可视化四图 ✅ + **综合评分方案 ✅**（score_scheme.py 六维门控 0-100 + 人工分校准，报告 5.6/5.7/5.8 + docs/09 设计文档，md/docx 均已转 Word）→ **目录重组 ✅**（Fundus-* 搬入 `generate_project/deep_learning/`，新建 pretrained/machine_learning/transfer_learning + `classify/` 占位）→ **分类方案已定 = 方案 1**（同项目 `classify/` 目录，Phase D）→ 老师已答复：① 只做 DR 分级分类；② 330 张需提前标注等级（老师/医生标）；③ 分级标准 = KW（Keith-Wagener）I-IV 级（用户 2026-08-02 确认）→ **REPORT.docx 排版修复 ✅**（13/9 列大表拆词已修：固定列宽+8pt+noWrap，转 PDF 验证完整；替换原文件留给用户自己做）→ **docs/10 评分白话版 ✅** → **下一步 = Phase C2 传统 ML 实验（计划见下第六节 9，需先读再实施）** → 等 330 标注 + KW 细节 → Phase D
+> **当前状态（2026-08-03，git 未提交）**：上版（v17 为止）全部 ✅ → **generate_project 文档体系整合 ✅**（2026-08-03：三路文献调研完成 → `machine_learning/report/` 5 篇文献报告 + `machine_learning/docs/` 7 份工程规范 + `machine_learning/scripts/` 3 个基线脚本已重写并冒烟通过 + `pretrained/`/`transfer_learning/` 文献归档 + `generate_project/docs/` 宏观文档 4 份 + `deep_learning/README.md` 补写）→ **下一步 = 用户审阅文档 → 启动 Phase C2 实验**（步骤见第六节 9，已按新结构重写）→ 等 330 标注 + KW 细节 → Phase D
 > **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令的 `../../eval_data` → `../../../eval_data`（深一层）。旧位置已不存在。
-> **compact 后第一步**：读本指引第六节 9（Phase C2 计划）→ 按计划实施 C2；涉及根目录命令见 docs/08-Work-Guide.md（新路径）。
-> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头。
+> **compact 后第一步**：读 `generate_project/machine_learning/docs/05-Execution-Plan.md`（Phase C2 执行步骤）→ 按阶段 1（3 确定性基线）实施 → 阶段 2（2 组合）→ 阶段 3（报告收尾）。每步前先读 `generate_project/machine_learning/docs/` 相关规范。
+> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；**generate_project 文档体系 git 未提交（待用户确认后一起 commit）**。
 > **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
 > **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分**
 > **双远端：** GitHub + Gitee
@@ -57,6 +57,7 @@
 | **REPORT.docx 排版修复**（2026-08-02 深夜）：_insert_metrics.py make_table 支持固定列宽+字号+noWrap → 重新生成 _with_metrics.docx，13/9 列大表拆词全部修复（转 PDF 逐词验证 1-NN(0.5)/MS-SSIM↓/FiLM+L1+LPIPS/178.8 完整）；原文件替换留用户自己处理 | ✅ 排版已修，替换待用户 |
 | **docs/10 评分标准白话版**（2026-08-02 深夜）：docs/10-Score-Scheme-For-Beginners.md（故事化解释人工分校准/六维权重/门控/用法/局限，面向非技术读者）+ 00-Doc-Index 收录 | ✅ |
 | **git 提交**：a3e90b7（REPORT 排版修复 + 白话版 + 补交 interview-prep.docx，5 文件）→ 双远端推送成功，工作区干净 | ✅ |
+| **generate_project 文档体系整合**（2026-08-03）：三路文献调研（传统ML 18法/眼底新奇组合/经典增广证据）→ machine_learning/ report 5篇 + docs 7份 + scripts 3基线脚本重写冒烟通过 + pretrained/transfer_learning 文献归档 + generate_project/docs 宏观4份 + deep_learning/README 补写 | ✅ 2026-08-03（git 未提交，待用户确认后 commit） |
 
 ---
 
@@ -170,30 +171,24 @@
 - **C1 经典增广**（⏸ 用户 2026-08-02 表态：不用做，已报告过可用）——若老师后续要求可随时补跑
 - **C3 Stable Diffusion**（可选）：先调研 8GB VRAM LoRA 可行性，再跑
 
-### 9. ⭐ Phase C2 传统 ML 实验计划（2026-08-02 深夜制定，compact 后按此实施）
+### 9. ⭐ Phase C2 传统 ML 实验（2026-08-03 文档体系已就绪，用户审阅后启动）
 
-**目标**：验证"非深度学习生成方法能否产出可用的眼底图"，跑 1 次实验，作为**否定性结论**写进报告（回应老师 Bug 2 的"方法不限于深度学习"）。
+**目标（更新）**：不再是"1 次否定性实验"，而是**完整传统 ML 生成章节**——① 纯传统 ML 基线（否定性结论，回应 Bug 2）；② 高价值组合（泊松病变重排/Retinex 光照交换，"相似但不相同"亮点）。
 
-**预期**：C2 得分远低于扩散模型（预期 0-20 分），确证传统 ML 无生成价值，与其他方法对照形成完整结论。
+**文档体系（已完成，2026-08-03）**：
+- `generate_project/machine_learning/report/`（5 篇）：00 导航+边界 / 01 传统 ML 18 法 / 02 眼底新奇组合 / 03 经典增广证据 / 04 综合洞察 / 05 论文结构
+- `generate_project/machine_learning/docs/`（7 份）：00 导航 / 01 需求 / 02 技术规范 / 03 设计规范 / 04 工作说明 / 05 执行步骤 / 06 实验记录
+- `generate_project/machine_learning/scripts/`：**3 基线脚本已重写 + 冒烟通过**（pca/gmm/patch_gen.py）；poisson/retinex_gen.py + memory_check.py 待建
+- 宏观：`generate_project/docs/`（4 份）+ `pretrained/`/`transfer_learning/` 文献归档 + `deep_learning/README.md`
 
-**方法**：`generate_project/machine_learning/` 下实现 **3 个传统基线**，各生成 300 张评估图（对齐现有模型口径）：
-1. **PCA 线性重建**（`pca_gen.py`）：全部 330 张图拉平 → 主成分分解 → 保留前 k 个主成分（试 k=32/64/128）→ 从主成分空间采样/扰动重建
-2. **GMM 高斯混合采样**（`gmm_gen.py`）：对 128px 图的像素/块特征做 GMM（试 K=8/16/32）→ 从分布采样合成
-3. **补丁合成**（`patch_gen.py`）：从 330 张图随机裁块 + 拼接/平均，生成"新图"（直观验证无结构）
+**执行（按 `machine_learning/docs/05-Execution-Plan.md`）**：
+1. 阶段 1：3 确定性基线各 300 张（`scripts/pca_gen.py --num_images 300 --seed 42` 等）→ 评估 → 复制检测三件套 → 打分入图 → 预期 0-20 分（否定性底）
+2. 阶段 2：2 高价值组合各 300 张（poisson/retinex_gen.py 待建）→ 同上 → 预期"相似但不相同"亮点
+3. 阶段 3：报告 C2 章节（按 `report/05-paper-structure.md`）→ 更新指引 v19 → git 提交
 
-**步骤**：
-1. 在 `generate_project/machine_learning/` 建 3 个脚本 + `README.md`（更新占位说明）
-2. 数据：直接读 `fundus/_all_images_ORIGINAL/`，预处理到 **128×128**（与 eval_data/real 口径一致）
-3. 各生成 300 张 → `eval_data/{pca,gmm,patch}/singles/`（命名 `sample_0000.png` 对齐）
-4. 评估：根目录跑 `python eval/metrics_common.py --real eval_data/real --fake eval_data/<m>/singles --img_size 128 --device cuda --json`（每模型一个）→ 产出 `<m>_metrics.json`
-5. 专用层（可选，条件模型无血管骨架时 vessel_dice 会跳过）：`python eval/metrics_fundus.py --real eval_data/real --fake eval_data/<m>/singles --model <m> --device cuda --json`
-6. 打分入图：`python eval/score_scheme.py --scorecard && python eval/plot_metrics.py` → 新方法自动进总分表 + 雷达图（显示名需在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补一行）
-7. 报告：在 `evaluation_report.md` 增加 C2 小节（3 个基线得分表 + 否定性结论 + 与扩散对比）
-8. 若某基线意外得分高 → 停下跟用户确认，不擅自扩展
+**注意**：评估脚本走 cuda（8GB 串行）；`--skip_c2st` 可加速；**新模型记得在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名**；复制检测必配（330 张小样本记忆风险）。
 
-**注意**：`metrics_fundus.py` 的 C2ST 会训练小 CNN，3 个模型各跑较慢（GPU 串行）；`--skip_c2st` 可先跳过。GPU 8GB，3 个传统方法不占显存，但评估脚本照常走 cuda。
-
-**预期输出**：`eval_data/{pca,gmm,patch}_metrics.json` + `_scores.json` 新增 3 行 + figures 更新 + 报告 C2 小节。
+**门控**：任一方法复制率超标或意外高分 → 停下跟用户确认，不擅自扩展。
 
 ### Phase D：下游分类器验证（终极目标）
 **老师答复后调整（2026-08-02）**：只做 DR 分级分类（纯分类网络，无检测）；330 张需标注等级（老师/医生标）；分级标准 = **KW（Keith-Wagener）高血压视网膜病变 I-IV 级**（用户 2026-08-02 确认老师说的 HR 即此，本项目生成 IV 级最重）→ 分类器类别数 = KW 等级数（等 KW 分级细节确认）。剩余路径：等 KW 分级细节 + 330 标注 → 定标签格式 + 公开数据对齐策略（找 KW 标注公开集 or 将公开集重标为 KW）→ ResNet/EfficientNet 分类器 → TSTR/TRTR 验收"合成重度图显著提升对应类 Recall/F1/平衡准确率"。
@@ -211,6 +206,11 @@
 | `eval_data/` | 评估图（real/ 330 张 + 每模型 300 张，**已 .gitignore 只提交 JSON**）+ 各模型 `*_metrics.json` / `*_fundus_metrics.json` + `_step_compare/`（50/100 步 DDIM 对比图）+ `_scores.json`（综合评分输出） |
 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_film_l1lpips/` | 最佳模型结果（checkpoint: models/final_model.pth） |
 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/` | 330 张血管骨架 mask（条件+评估用） |
+| `generate_project/docs/` | **宏观文档 4 份**（00 导航 / 01 设计规范 / 02 工作说明 / 03 执行步骤，跨方向） |
+| `generate_project/machine_learning/` | **传统 ML 方向（当前）**：`report/`（5 篇文献报告）+ `docs/`（7 份工程规范）+ `scripts/`（pca/gmm/patch_gen.py 已建冒烟通过；poisson/retinex/memory_check 待建） |
+| `generate_project/pretrained/` | 预训练方向（Phase C3 可选）：README + `report-pretrained-lit.md`（文献归档） |
+| `generate_project/transfer_learning/` | 迁移学习方向：README + `report-tl-lit.md`（文献归档） |
+| `generate_project/deep_learning/` | 深度学习方向（已完成）：README 总览 + 各项目 STANDARDS.md |
 | `fundus/` | `_all_images_ORIGINAL/`（330 张真实眼底图，训练基准 + real 集）+ **rotate_augment_check.py** + **使用说明.txt**（旋转安全筛选工具） |
 
 ## 八、快速命令
