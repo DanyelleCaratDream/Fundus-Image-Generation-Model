@@ -1,9 +1,10 @@
-# Continue Guide - 2026-08-03（v18 — 上版 ✅ + generate_project 文档体系整合 ✅ + ML 文档/脚本就绪 ✅ + 待用户审阅后实验）
+# Continue Guide - 2026-08-03（v20 — 阶段1 基线 ✅ + C2ST 门控闭环 ✅ + REPORT_ML 生成 ✅ + 六段式流程已记文档，用户已确认）
 
-> **当前状态（2026-08-03，git 未提交）**：上版（v17 为止）全部 ✅ → **generate_project 文档体系整合 ✅**（2026-08-03：三路文献调研完成 → `machine_learning/report/` 5 篇文献报告 + `machine_learning/docs/` 7 份工程规范 + `machine_learning/scripts/` 3 个基线脚本已重写并冒烟通过 + `pretrained/`/`transfer_learning/` 文献归档 + `generate_project/docs/` 宏观文档 4 份 + `deep_learning/README.md` 补写）→ **下一步 = 用户审阅文档 → 启动 Phase C2 实验**（步骤见第六节 9，已按新结构重写）→ 等 330 标注 + KW 细节 → Phase D
+> **当前状态（2026-08-03）**：上版（v19 为止）全部 ✅ → **Phase C2 阶段 1 完成 ✅**（PCA **20.0** / GMM **40.2** / 补丁 **42.1**，C2ST 补跑后全 9 模型同口径；门控发现 **C2ST 必跑**，patch 62.9 伪高分事件已闭环）→ **REPORT_ML.docx 已生成并获用户确认**（research-report/，9 章 6 表 4 图，`_build_report_ml.py` 生成，可重跑更新）→ **六段式汇报流程已记入 5 份文档**（本指引 / 执行计划 05 / 工作说明 04 / 记录 06 / ML README）→ **下一步 = 阶段 2**（泊松病变重排 + Retinex 光照交换，按六段式每步向用户汇报、确认后再下一步）→ 等 330 标注 + KW 细节 → Phase D
 > **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令的 `../../eval_data` → `../../../eval_data`（深一层）。旧位置已不存在。
-> **compact 后第一步**：读 `generate_project/machine_learning/docs/05-Execution-Plan.md`（Phase C2 执行步骤）→ 按阶段 1（3 确定性基线）实施 → 阶段 2（2 组合）→ 阶段 3（报告收尾）。每步前先读 `generate_project/machine_learning/docs/` 相关规范。
-> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；**generate_project 文档体系 git 未提交（待用户确认后一起 commit）**。
+> **📋 实验汇报流程（六段式，强制）**：每个实验全程向用户汇报，写作顺序 = **是什么 → 怎么做（略写）→ 为什么 → 结果（图片/脚本评分/人眼评分【待人工评估】）→ 致命缺点 → 下一步**。做完先问用户有没有补充/修改，用户确认该实验 OK 后才进行下一步。此流程同时写入 `machine_learning/docs/04-Work-Guide.md`（〇节）与执行计划 05。
+> **compact 后第一步**：读本指引确认状态 → 按 `generate_project/machine_learning/docs/05-Execution-Plan.md` 阶段 2 执行：先 `scripts/poisson_gen.py`（泊松病变重排），六段式汇报、等用户确认后再 `retinex_gen.py`。每方法完成后重跑 `_build_report_ml.py` 更新 REPORT_ML 第 7 章。
+> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；**阶段 1 实验产物 + REPORT_ML + 文档 v20 git 均未提交（待阶段 2 后或用户确认一起 commit）**。
 > **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
 > **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分**
 > **双远端：** GitHub + Gitee
@@ -58,6 +59,9 @@
 | **docs/10 评分标准白话版**（2026-08-02 深夜）：docs/10-Score-Scheme-For-Beginners.md（故事化解释人工分校准/六维权重/门控/用法/局限，面向非技术读者）+ 00-Doc-Index 收录 | ✅ |
 | **git 提交**：a3e90b7（REPORT 排版修复 + 白话版 + 补交 interview-prep.docx，5 文件）→ 双远端推送成功，工作区干净 | ✅ |
 | **generate_project 文档体系整合**（2026-08-03）：三路文献调研（传统ML 18法/眼底新奇组合/经典增广证据）→ machine_learning/ report 5篇 + docs 7份 + scripts 3基线脚本重写冒烟通过 + pretrained/transfer_learning 文献归档 + generate_project/docs 宏观4份 + deep_learning/README 补写 | ✅ 2026-08-03（git 未提交，待用户确认后 commit） |
+| **Phase C2 阶段 1 基线实验**（2026-08-03）：3 基线各 300 张（pca/gmm/patch_gen.py）+ 评估 + 打分入图；**C2ST 门控闭环**（patch 62.9 伪高分 → 补跑 C2ST → 42.1，教训写入执行计划：C2ST 必跑）→ 最终同口径：PCA 20.0 / GMM 40.2 / 补丁 42.1 | ✅ 2026-08-03 |
+| **REPORT_ML.docx 生成 + 用户确认**（2026-08-03）：`_build_report_ml.py`（python-docx，复用 _insert_metrics.py 表格样式）→ 9 章 6 表 4 图（原版骨架映射 + 六段式方法章 + 2.7 C2ST 踩坑教训 + 7 章组合待实验） | ✅ 2026-08-03 |
+| **六段式汇报流程记入 5 文档**（2026-08-03）：指引 v19→v20（📋 约定）/ 执行计划 05（C2ST 必跑 + 汇报门控）/ 工作说明 04（〇节强制流程）/ 记录 06（EX-001~003 ✅）/ ML README（分数更新） | ✅ 2026-08-03 |
 
 ---
 
@@ -171,22 +175,20 @@
 - **C1 经典增广**（⏸ 用户 2026-08-02 表态：不用做，已报告过可用）——若老师后续要求可随时补跑
 - **C3 Stable Diffusion**（可选）：先调研 8GB VRAM LoRA 可行性，再跑
 
-### 9. ⭐ Phase C2 传统 ML 实验（2026-08-03 文档体系已就绪，用户审阅后启动）
+### 9. ⭐ Phase C2 传统 ML 实验（2026-08-03 阶段 1 已完成，阶段 2 待做）
 
 **目标（更新）**：不再是"1 次否定性实验"，而是**完整传统 ML 生成章节**——① 纯传统 ML 基线（否定性结论，回应 Bug 2）；② 高价值组合（泊松病变重排/Retinex 光照交换，"相似但不相同"亮点）。
 
-**文档体系（已完成，2026-08-03）**：
-- `generate_project/machine_learning/report/`（5 篇）：00 导航+边界 / 01 传统 ML 18 法 / 02 眼底新奇组合 / 03 经典增广证据 / 04 综合洞察 / 05 论文结构
-- `generate_project/machine_learning/docs/`（7 份）：00 导航 / 01 需求 / 02 技术规范 / 03 设计规范 / 04 工作说明 / 05 执行步骤 / 06 实验记录
-- `generate_project/machine_learning/scripts/`：**3 基线脚本已重写 + 冒烟通过**（pca/gmm/patch_gen.py）；poisson/retinex_gen.py + memory_check.py 待建
-- 宏观：`generate_project/docs/`（4 份）+ `pretrained/`/`transfer_learning/` 文献归档 + `deep_learning/README.md`
+**阶段 1 已执行（2026-08-03，六维门控同口径后）**：
+- PCA 线性重建 **20.0**（FID 297 全组最差，过平滑）｜ GMM 混合采样 **40.2**（高斯分量天生平滑）｜ 补丁拼接 **42.1**（真实像素平凡胜利，非生成）
+- ⚠️ **门控发现**：补丁初测 62.9 伪高分 → 根因 = 跳过 C2ST 导致 D2 口径不均 → **已改：C2ST 必跑**（执行计划步骤 1.5 已更新）→ 补跑后 42.1，全 9 模型同口径
+- 复制检测三件套全部通过（接近复制占比 0）；REPORT_ML.docx 已按六段式记录（含 2.7 踩坑教训）
 
-**执行（按 `machine_learning/docs/05-Execution-Plan.md`）**：
-1. 阶段 1：3 确定性基线各 300 张（`scripts/pca_gen.py --num_images 300 --seed 42` 等）→ 评估 → 复制检测三件套 → 打分入图 → 预期 0-20 分（否定性底）
-2. 阶段 2：2 高价值组合各 300 张（poisson/retinex_gen.py 待建）→ 同上 → 预期"相似但不相同"亮点
-3. 阶段 3：报告 C2 章节（按 `report/05-paper-structure.md`）→ 更新指引 v19 → git 提交
+**阶段 2（待做，按六段式汇报）**：2 高价值组合各 300 张（`poisson_gen.py` / `retinex_gen.py` 待建）→ 评估（**含 C2ST**）→ 复制检测 → 打分入图 → 写入 REPORT_ML 第 7 章替换【待实验】
 
-**注意**：评估脚本走 cuda（8GB 串行）；`--skip_c2st` 可加速；**新模型记得在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名**；复制检测必配（330 张小样本记忆风险）。
+**阶段 3（收尾）**：报告完成 → 更新指引 v20 → git 提交
+
+**注意**：评估脚本走 cuda（8GB 串行）；**C2ST 必跑不得 `--skip_c2st`**（否则评分口径不均，见 2.7）；**新模型记得在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名**；复制检测必配（330 张小样本记忆风险）。
 
 **门控**：任一方法复制率超标或意外高分 → 停下跟用户确认，不擅自扩展。
 

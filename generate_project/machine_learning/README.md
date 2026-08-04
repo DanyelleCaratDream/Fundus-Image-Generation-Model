@@ -35,14 +35,17 @@
 | [docs/06-Records.md](docs/06-Records.md) | 实验记录规范（EX-XXX 模板） |
 
 ### 📜 代码 → `scripts/`
-| 脚本 | 方法 | 状态 |
-|------|------|:--:|
-| [scripts/pca_gen.py](scripts/pca_gen.py) | PCA 线性重建（确定性基线） | ✅ 冒烟通过 |
-| [scripts/gmm_gen.py](scripts/gmm_gen.py) | GMM 混合采样（确定性基线） | ✅ 冒烟通过 |
-| [scripts/patch_gen.py](scripts/patch_gen.py) | 补丁拼接（确定性基线） | ✅ 冒烟通过 |
-| `scripts/poisson_gen.py` | 泊松病变重排（高价值组合） | ⏳ 待建 |
-| `scripts/retinex_gen.py` | Retinex 光照交换（高价值组合） | ⏳ 待建 |
-| `scripts/memory_check.py` | 复制检测三件套（质检） | ⏳ 待建 |
+| 脚本 | 方法 | 状态 | 总分(六维门控) |
+|------|------|:--:|--:|
+| [scripts/pca_gen.py](scripts/pca_gen.py) | PCA 线性重建（确定性基线） | ✅ 已完成 | 20.0 |
+| [scripts/gmm_gen.py](scripts/gmm_gen.py) | GMM 混合采样（确定性基线） | ✅ 已完成 | 40.2 |
+| [scripts/patch_gen.py](scripts/patch_gen.py) | 补丁拼接（确定性基线） | ✅ 已完成 | 42.1 |
+| `scripts/poisson_gen.py` | 泊松病变重排（高价值组合） | ⏳ 待建 | — |
+| `scripts/retinex_gen.py` | Retinex 光照交换（高价值组合） | ⏳ 待建 | — |
+| `scripts/memory_check.py` | 复制检测三件套（质检） | ⏳ 待建 | — |
+
+> 分数口径：**C2ST 必跑**（同口径才与深度方法可比）。3 基线已写入 `research-report/REPORT_ML.docx`（`_build_report_ml.py` 生成）。
+> 深度最佳对照：film_l1lpips 70.8（同口径）。
 
 ---
 

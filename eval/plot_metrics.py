@@ -48,6 +48,9 @@ MODEL_LABELS = {
     "base_cj": "基础DDPM",
     "dcgan": "DCGAN",
     "vae": "VAE Large",
+    "pca": "PCA（传统ML）",
+    "gmm": "GMM（传统ML）",
+    "patch": "补丁拼接（传统ML）",
 }
 MODEL_COLORS = {
     "film_l1lpips": "#c0392b",  # 红（最佳，突出）
@@ -56,8 +59,12 @@ MODEL_COLORS = {
     "base_cj": "#16a085",       # 绿
     "dcgan": "#8e44ad",         # 紫
     "vae": "#7f8c8d",           # 灰
+    "pca": "#d4a017",           # 暗金（传统ML组）
+    "gmm": "#b7950b",           # 暗金
+    "patch": "#9a7d0a",         # 暗金
 }
 # 人工评分（报告 5.4 综合排名；85-90 取中间值 87.5 画图，备注在报告里写清）
+# 传统 ML 基线暂无人评分（留给下游分类验证），缺省在图中以断线跳过。
 HUMAN_SCORE = {
     "film_l1lpips": 87.5,
     "film": 85,
@@ -67,7 +74,7 @@ HUMAN_SCORE = {
     "vae": 10,
 }
 # 模型展示顺序：排在前的画在左；不在列表里的新模型自动追加到末尾
-MODEL_ORDER = ["film_l1lpips", "film", "cond", "base_cj", "dcgan", "vae"]
+MODEL_ORDER = ["film_l1lpips", "film", "cond", "base_cj", "dcgan", "vae", "pca", "gmm", "patch"]
 
 # 通用层面板定义: (json 键, 中文标签, 方向, 数值格式, 是否 log 轴)
 GENERAL_PANELS = [
@@ -245,7 +252,7 @@ def draw_score_overview(scores_data, models, labels, colors, human, outpath, dpi
     ax.bar(xs, vals, color=[colors.get(m, "#95a5a6") for m in order], width=0.6, zorder=3)
     for i, v in enumerate(vals):
         ax.text(i, v + 0.6, f"{v:.1f}", ha="center", va="bottom", fontsize=9, zorder=4)
-    hv = [human.get(m) for m in order]
+    hv = np.array([np.nan if human.get(m) is None else human.get(m) for m in order])
     ax.plot(xs, hv, "k--o", markersize=4, alpha=0.5, label="人工分", zorder=5)
     ax.set_ylim(0, 105)
     ax.set_xticks(xs)

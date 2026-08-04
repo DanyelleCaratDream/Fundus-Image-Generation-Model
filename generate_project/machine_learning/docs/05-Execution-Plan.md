@@ -1,7 +1,8 @@
 # 执行步骤：Phase C2 传统 ML 实验
 
-> 更新日期：2026-08-03 ｜ 按本文档顺序执行；每步完成标记 ✅/❌
+> 更新日期：2026-08-03（v2：阶段 1 已完成 + C2ST 必跑 + 六段式汇报）
 > 目标：3 个确定性基线 + 2 个高价值组合，各 300 张 → 评估 → 打分入图 → 报告。
+> **📋 工作方式（强制）**：每个实验全程向用户汇报，六段式 = **是什么 → 怎么做（略写）→ 为什么 → 结果（图片/脚本评分/人眼评分【待人工评估】）→ 致命缺点 → 下一步**。做完先问用户补充/修改，**用户确认该实验 OK 后才进行下一步**。
 
 ---
 
@@ -46,13 +47,14 @@ python eval/metrics_common.py --real eval_data/real --fake eval_data/patch/singl
 ```
 - [ ] `eval_data/{pca,gmm,patch}_metrics.json` 产出
 
-### 步骤 1.5 专用层评估（传统 ML 无条件图，跳过 C2ST/血管）
+### 步骤 1.5 专用层评估（**C2ST 必跑，不跳过**）
+> ⚠️ v1 曾写"跳过 C2ST"导致 patch 62.9 伪高分（D2 口径不均，见 report 2.7 踩坑教训）。**C2ST 是 D2 权重 0.40 的成员，跳过会使 ML 与深度模型不可比。禁止 `--skip_c2st`。**（无条件图仅跳过 cond_path 血管 dice）
 ```bash
-python eval/metrics_fundus.py --real eval_data/real --fake eval_data/pca/singles   --model pca   --device cuda --skip_c2st --json
-python eval/metrics_fundus.py --real eval_data/real --fake eval_data/gmm/singles   --model gmm   --device cuda --skip_c2st --json
-python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singles --model patch --device cuda --skip_c2st --json
+python eval/metrics_fundus.py --real eval_data/real --fake eval_data/pca/singles   --model pca   --device cuda --json
+python eval/metrics_fundus.py --real eval_data/real --fake eval_data/gmm/singles   --model gmm   --device cuda --json
+python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singles --model patch --device cuda --json
 ```
-- [ ] `eval_data/{pca,gmm,patch}_fundus_metrics.json` 产出
+- [ ] `eval_data/{pca,gmm,patch}_fundus_metrics.json` 产出（含 c2st_auc）
 
 ### 步骤 1.6 复制检测三件套（质检门控）
 - [ ] `scripts/memory_check.py` 建立并跑 3 个基线
@@ -65,8 +67,11 @@ python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singl
 - [ ] `_scores.json` 出现 3 个新行；雷达图/总分表更新
 
 ### 步骤 1.8 记录 + 初步结论
-- [ ] 填 `docs/06-Records.md`（EX-001/002/003）
-- [ ] 预期：3 基线得分远低于扩散（0-20 分）→ 否定性结论底成立
+- [x] 填 `docs/06-Records.md`（EX-001/002/003，已按最终分数更新）
+- [x] **阶段 1 实际结果（2026-08-03）**：PCA **20.0** / GMM **40.2** / 补丁 **42.1**（C2ST 补跑后全 9 模型同口径）
+- [x] ⚠️ **门控事件已闭环**：patch 初测 62.9 → 根因 C2ST 缺失（步骤 1.5 已改为必跑）→ 补跑后 42.1。报告第 2.7 节记录此教训。
+- [x] 复制检测三件套全部通过（mem_ssim_pct_gt_085=0）
+- [x] **六段式汇报**：阶段 1 已向用户汇报（是什么/怎么做/为什么/结果/致命缺点/下一步），等用户确认后进入阶段 2
 
 ---
 
@@ -78,9 +83,10 @@ python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singl
 
 ### 步骤 2.2-2.8 同阶段 1（冒烟 → 全量 → 评估 → 质检 → 打分 → 记录）
 - [ ] 各 300 张 → `eval_data/{poisson,retinex}/singles/`
-- [ ] 评估 + 复制检测（组合方法**必须**重点验"相似但不相同"）
+- [ ] 评估（**含 C2ST**）+ 复制检测（组合方法**必须**重点验"相似但不相同"）
 - [ ] `MODEL_LABELS` 补显示名 → score_scheme + plot_metrics
 - [ ] 填 `docs/06-Records.md`（EX-004/005）
+- [ ] **六段式汇报**：阶段 2 每步向用户汇报，用户确认后才继续
 
 ---
 
@@ -90,6 +96,7 @@ python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singl
 - [ ] 按 `report/05-paper-structure.md` 结构，把实验数据填充进章节
 - [ ] 横向对比表：3 基线 + 2 组合 + 6 深度方法统一评分
 - [ ] 诚实结论：纯传统 ML 否定性 + 组合价值（新病灶组合）+ 局限声明
+- [ ] **REPORT_ML.docx**（research-report/，`_build_report_ml.py` 生成）：阶段 2 完成后重跑脚本，第 7 章替换【待实验】为实际结果；按六段式补充每方法章
 
 ### 步骤 3.2 更新文档
 - [ ] `report/00-README.md` 状态更新
