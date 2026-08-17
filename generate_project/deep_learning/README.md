@@ -27,7 +27,7 @@
 
 ```bash
 cd generate_project/deep_learning/Fundus-Diffusion/ddpm
-python generate.py --checkpoint <ckpt> --num_images 300 --output_dir ../../../eval_data/<model> \
+python generate.py --checkpoint <ckpt> --num_images 300 --output_dir ../../../../eval_data/<model> \
     --grid_size 0 --sampler ddim --sampling_steps 50 \
     --base_dim <64|128> --dim_mults 1 2 3 4 --attn_layers 2 \
     [--cond_path ./conditions] --seed 42

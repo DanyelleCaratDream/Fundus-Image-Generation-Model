@@ -19,11 +19,11 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available(), tor
 
 - 训练基准集：`fundus/_all_images_ORIGINAL/`（330 张）
 - 血管骨架条件图：`generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/`（330 张 128×128，条件扩散 + Vessel Dice 用）
-- 重新生成骨架：`python prep_conditions.py --dataset_path "../../../fundus/_all_images_ORIGINAL" --output_dir "./conditions" --mode mask --img_size 128`（在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/` 下）
+- 重新生成骨架：`python prep_conditions.py --dataset_path "../../../../fundus/_all_images_ORIGINAL" --output_dir "./conditions" --mode mask --img_size 128`（在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/` 下）
 
 ## 三、生成评估图（Diffusion / GAN / VAE）
 
-> 所有生成脚本都在各自目录下运行（`from train import ...` 依赖 cwd）。
+> 所有生成脚本都在各自目录下运行（`from train import ...` 依赖 cwd）。**路径按各自项目目录相对根目录**：Diffusion/GAN 子项目 4 层 `../../../../`，VAE 3 层 `../../../`。
 > generate.py 会自动建 `{output_dir}/singles/` 子目录存独立单张图 —— 评估 `--fake` 必须指向该子目录。
 > **评估统一用 DDIM 50 步、seed 42**（Phase A 同配置）。
 
@@ -31,7 +31,7 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available(), tor
 ```bash
 # ① 最佳模型 FiLM+L1+LPIPS（条件，base_dim=128）
 python generate.py --checkpoint results_film_l1lpips/models/final_model.pth \
-    --num_images 300 --output_dir ../../../eval_data/film_l1lpips --grid_size 0 \
+    --num_images 300 --output_dir ../../../../eval_data/film_l1lpips --grid_size 0 \
     --sampler ddim --sampling_steps 50 --cond_path ./conditions \
     --base_dim 128 --dim_mults 1 2 3 4 --attn_layers 2 --seed 42
 
@@ -43,7 +43,7 @@ python generate.py --checkpoint results_film_l1lpips/models/final_model.pth \
 ### DCGAN（`generate_project/deep_learning/Fundus-GAN/dcgan/`）
 ```bash
 python generate.py --checkpoint results_220726_020708/models/checkpoint_epoch_001500.pth \
-    --num_images 300 --output_dir ../../../eval_data/dcgan \
+    --num_images 300 --output_dir ../../../../eval_data/dcgan \
     --img_size 128 --latent_dim 100 --grid_size 0 --seed 42
 ```
 

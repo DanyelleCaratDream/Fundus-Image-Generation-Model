@@ -19,7 +19,7 @@ Fundus-Diffusion DDPM/DDIM 生成脚本
     python generate.py --checkpoint "./results/models/final_model.pth" \
         --num_images 64 --output_dir "./generated_colorfix" \
         --sampler ddim --sampling_steps 100 \
-        --color_correct --dataset_path "../../fundus/_all_images_ORIGINAL"
+        --color_correct --dataset_path "../../../../fundus/_all_images_ORIGINAL"
 """
 
 import argparse

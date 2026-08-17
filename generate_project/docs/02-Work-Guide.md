@@ -62,6 +62,6 @@ git push github main && git push gitee main
 |:--|:--|
 | Windows GBK | 文件读写 `encoding="utf-8"`；控制台 `python -X utf8` |
 | 显存 8GB | 评估脚本串行跑，不并行多个；必要时 `--skip_c2st` |
-| 路径层级 | 生成脚本在 `generate_project/*/` 下执行，到 `eval_data` 是 `../../eval_data` |
+| 路径层级 | 生成脚本在各自项目目录下执行：一层项目（如 `machine_learning/`）到 `eval_data` 是 `../../eval_data`；`deep_learning/*/` 子目录（如 `ddpm/`）到根目录是 4 层 `../../../../` |
 | 显示名 | 新模型忘了补 MODEL_LABELS → 图里显示裸键名 |
 | 评估口径 | 必须 128×128、300 张、命名 `sample_XXXX.png`，否则评估脚本不识别 |

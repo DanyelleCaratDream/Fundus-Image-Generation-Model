@@ -6,7 +6,7 @@ Fundus-VAE 训练脚本
 
 用法:
     python train.py --epochs 500 --batch_size 32 --img_size 128 \\
-        --dataset_path "../../fundus/_all_images_ORIGINAL" --output_dir "./results"
+        --dataset_path "../../../fundus/_all_images_ORIGINAL" --output_dir "./results"
 """
 
 import argparse

@@ -11,7 +11,7 @@ DDPM 是目前生成质量最高的模型之一，训练稳定，不会模式坍
 
 用法:
     python train.py --epochs 500 --batch_size 16 --img_size 128 \\
-        --dataset_path "../../fundus/_all_images_ORIGINAL" --output_dir "./results"
+        --dataset_path "../../../../fundus/_all_images_ORIGINAL" --output_dir "./results"
 
 采样（训练后）:
     python generate.py --checkpoint "./results/models/checkpoint_epoch_000500.pth" \\

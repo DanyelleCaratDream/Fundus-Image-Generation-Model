@@ -6,7 +6,7 @@ Fundus-GAN WGAN-GP 训练脚本
 
 用法:
     python train.py --epochs 800 --batch_size 16 --img_size 128 \\
-        --dataset_path "../../fundus/_all_images_ORIGINAL" --output_dir "./results"
+        --dataset_path "../../../../fundus/_all_images_ORIGINAL" --output_dir "./results"
 """
 
 import argparse

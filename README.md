@@ -130,12 +130,12 @@ cd generate_project/deep_learning/Fundus-Diffusion/ddpm
 
 # 基础 DDPM 训练
 python train.py --epochs 500 --batch_size 16 --img_size 128 \
-    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../../fundus/_all_images_ORIGINAL" \
     --output_dir "./results"
 
 # FiLM DDPM + L1 + LPIPS（最佳方案）
 python train.py --epochs 780 --batch_size 16 --img_size 128 \
-    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../../fundus/_all_images_ORIGINAL" \
     --output_dir "./results_film_l1lpips" \
     --film --loss_type l1 --lpips_weight 0.1 --lpips_t 200 \
     --ema_decay 0.9999
@@ -153,7 +153,7 @@ python generate.py \
 
 ```bash
 python train.py --epochs 500 --batch_size 16 --img_size 128 \
-    --dataset_path "../../../fundus/_all_images_ORIGINAL" \
+    --dataset_path "../../../../fundus/_all_images_ORIGINAL" \
     --cond_path "./conditions" \
     --output_dir "./results_cond"
 ```
