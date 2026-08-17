@@ -40,12 +40,13 @@
 | [scripts/pca_gen.py](scripts/pca_gen.py) | PCA 线性重建（确定性基线） | ✅ 已完成 | 20.0 |
 | [scripts/gmm_gen.py](scripts/gmm_gen.py) | GMM 混合采样（确定性基线） | ✅ 已完成 | 40.2 |
 | [scripts/patch_gen.py](scripts/patch_gen.py) | 补丁拼接（确定性基线） | ✅ 已完成 | 42.1 |
-| `scripts/poisson_gen.py` | 泊松病变重排（高价值组合） | ⏳ 待建 | — |
+| [scripts/poisson_gen.py](scripts/poisson_gen.py) | 泊松贴片重排（高价值组合，v6 增强版） | ✅ 已完成 | **87.5** |
 | `scripts/retinex_gen.py` | Retinex 光照交换（高价值组合） | ⏳ 待建 | — |
 | `scripts/memory_check.py` | 复制检测三件套（质检） | ⏳ 待建 | — |
 
 > 分数口径：**C2ST 必跑**（同口径才与深度方法可比）。3 基线已写入 `research-report/REPORT_ML.docx`（`_build_report_ml.py` 生成）。
-> 深度最佳对照：film_l1lpips 70.8（同口径）。
+> ⚠️ **min-max 相对分数**：poisson 加入后模型库扩大，旧分数整体平移（film_l1lpips 70.8→47.4）。分数是相对值，非绝对值。
+> poisson v6：复制率 0.3% ✅（v1 曾 96.7% 近复制触发门控 → v6 增强重排归零）；87.5 高分部分源于底图复用，用户 2026-08-03 确认有效。
 
 ---
 

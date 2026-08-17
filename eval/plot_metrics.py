@@ -51,6 +51,7 @@ MODEL_LABELS = {
     "pca": "PCA（传统ML）",
     "gmm": "GMM（传统ML）",
     "patch": "补丁拼接（传统ML）",
+    "poisson": "泊松重排（传统ML）",
 }
 MODEL_COLORS = {
     "film_l1lpips": "#c0392b",  # 红（最佳，突出）
@@ -62,6 +63,7 @@ MODEL_COLORS = {
     "pca": "#d4a017",           # 暗金（传统ML组）
     "gmm": "#b7950b",           # 暗金
     "patch": "#9a7d0a",         # 暗金
+    "poisson": "#2c6e49",       # 墨绿（组合方法组）
 }
 # 人工评分（报告 5.4 综合排名；85-90 取中间值 87.5 画图，备注在报告里写清）
 # 传统 ML 基线暂无人评分（留给下游分类验证），缺省在图中以断线跳过。
@@ -74,7 +76,7 @@ HUMAN_SCORE = {
     "vae": 10,
 }
 # 模型展示顺序：排在前的画在左；不在列表里的新模型自动追加到末尾
-MODEL_ORDER = ["film_l1lpips", "film", "cond", "base_cj", "dcgan", "vae", "pca", "gmm", "patch"]
+MODEL_ORDER = ["film_l1lpips", "film", "cond", "base_cj", "dcgan", "vae", "pca", "gmm", "patch", "poisson"]
 
 # 通用层面板定义: (json 键, 中文标签, 方向, 数值格式, 是否 log 轴)
 GENERAL_PANELS = [

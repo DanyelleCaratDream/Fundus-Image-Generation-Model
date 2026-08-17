@@ -48,7 +48,7 @@ python scripts/retinex_gen.py  --num_images 300 --seed 42  # → ../../eval_data
 python scripts/pca_gen.py --num_images 5
 ```
 
-**路径说明**：脚本在 `scripts/`，相对 `scripts/` 到根目录素材是 `../../fundus/...`，到 `eval_data` 是 `../../eval_data/...`。
+**路径说明**：上列命令在 `generate_project/machine_learning/` 下执行（`python scripts/xx.py`），相对执行目录两级上跳到根目录：素材 `../../fundus/...`、输出 `../../eval_data/...`。
 
 ## 三、评估（在项目根目录执行）
 

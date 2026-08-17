@@ -41,7 +41,7 @@ python scripts/<method>_gen.py \
 
 | 参数 | 类型 | 默认 | 说明 |
 |:--|:--|:--|:--|
-| `--data` | str | `../../fundus/_all_images_ORIGINAL` | 素材图目录（相对 `scripts/` 是两级上跳） |
+| `--data` | str | `../../fundus/_all_images_ORIGINAL` | 素材图目录（脚本以 `python scripts/xx.py` 在 `machine_learning/` 下执行，相对执行目录两级上跳到根目录） |
 | `--output` | str | `../../eval_data/<model>` | 输出根目录（含 `singles/`） |
 | `--img_size` | int | 128 | 生成分辨率 |
 | `--num_images` | int | 300 | 生成数量 |
