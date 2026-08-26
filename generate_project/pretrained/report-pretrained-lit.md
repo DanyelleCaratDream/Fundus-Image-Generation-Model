@@ -57,5 +57,5 @@
 
 ## 4. 待补资料（后续方向）
 
-- **Stable Diffusion + LoRA 在 8GB VRAM 的可行性**（Phase C3 启动前调研：LoRA 512 输出 vs 128 评估体系对接）——尚未调研，列入 C3 前任务。
-- 眼底域特化预训练基础模型（RETFound 系列）的最新进展。
+- ~~**Stable Diffusion + LoRA 在 8GB VRAM 的可行性**~~ → **已调研（2026-08-26）**：SD1.5/2.1 LoRA 训练 6–8GB 可行、512 输出；SDXL 紧、FLUX 排除；现成眼底 LoRA/血管 ControlNet 清单 + 推荐路线见 `machine_learning/report/07-pretrained-gen-models.md`。
+- 眼底域特化预训练基础模型（RETFound 系列）的最新进展 → RETFound 2025 更新版（含 DINOv2 系列）已并入 07 报告 2.5 节。
