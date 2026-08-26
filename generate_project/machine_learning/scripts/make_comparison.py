@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-make_comparison.py —— 报告用五方法并排对比图（面向小白）
+make_comparison.py —— 报告用七方法并排对比图（面向小白）
 
 用法（在 generate_project/machine_learning/ 下执行）：
     python scripts/make_comparison.py
 
 输出：report/figures/trad-ml-vs-deep_comparison.png
-    行 = 方法（真实 / 深度最佳 / 3 个传统 ML），列 = 3 个样本索引。
+    行 = 方法（真实 / 深度最佳 / 2 组合 / 3 传统 ML 基线），列 = 3 个样本索引。
 
-说明：PCA / GMM / 补丁是 Phase C2 的传统 ML 结果（seed=42，各 300 张），
-      FiLM+LPIPS 是 Phase A/B 的深度最佳（72.9 分）。分数为六维门控综合分。
+说明：分数为六维门控综合分（11 模型现版 _scores.json，min-max 相对分）。
+      poisson/retinex 为 Phase C2 阶段 2 组合方法，pca/gmm/patch 为阶段 1 基线。
 """
 import os
 
@@ -21,14 +21,16 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "
 
 ROWS = [
     ("真实原图（330 张）", os.path.join(EVAL, "real"), "real_%04d.png"),
-    ("FiLM 扩散（深度学习，72.9 分）", os.path.join(EVAL, "film_l1lpips", "singles"), "sample_%04d.png"),
-    ("PCA（传统 ML，6.7 分）", os.path.join(EVAL, "pca", "singles"), "sample_%04d.png"),
-    ("GMM（传统 ML，30.4 分）", os.path.join(EVAL, "gmm", "singles"), "sample_%04d.png"),
-    ("补丁拼接（传统 ML·纯像素重排，62.9 分）", os.path.join(EVAL, "patch", "singles"), "sample_%04d.png"),
+    ("FiLM 扩散（深度学习，45.2 分）", os.path.join(EVAL, "film_l1lpips", "singles"), "sample_%04d.png"),
+    ("泊松病变重排（组合·80.8 分）", os.path.join(EVAL, "poisson", "singles"), "sample_%04d.png"),
+    ("Retinex 光照交换（组合·72.5 分）", os.path.join(EVAL, "retinex", "singles"), "sample_%04d.png"),
+    ("补丁拼接（基线·31.0 分）", os.path.join(EVAL, "patch", "singles"), "sample_%04d.png"),
+    ("GMM（基线·22.6 分）", os.path.join(EVAL, "gmm", "singles"), "sample_%04d.png"),
+    ("PCA（基线·11.9 分）", os.path.join(EVAL, "pca", "singles"), "sample_%04d.png"),
 ]
 IDX = [0, 1, 2]          # 3 个样本
 CELL = 180               # 每张缩略图边长
-LABEL_W = 300            # 左侧标签区宽度
+LABEL_W = 320            # 左侧标签区宽度
 PAD = 12                 # 单元间距
 TITLE_H = 54             # 顶部标题区
 
@@ -52,7 +54,7 @@ def main():
     H = TITLE_H + n_rows * CELL + (n_rows + 1) * PAD
     canvas = Image.new("RGB", (W, H), "white")
     draw = ImageDraw.Draw(canvas)
-    draw.text((PAD, PAD), "传统 ML vs 深度学习：眼底重度 DR 图生成效果对比（128×128）",
+    draw.text((PAD, PAD), "眼底重度 DR 图生成：深度学习 vs 传统 ML 组合 vs 基线（128×128，现版综合分）",
               font=f_title, fill=(20, 20, 20))
 
     missing = []
