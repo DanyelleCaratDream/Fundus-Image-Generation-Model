@@ -1,7 +1,7 @@
 # 执行步骤：Phase C2 传统 ML 实验
 
 > 更新日期：2026-08-03（v2：阶段 1 已完成 + C2ST 必跑 + 六段式汇报）
-> 目标：3 个确定性基线 + 2 个高价值组合，各 300 张 → 评估 → 打分入图 → 报告。
+> 目标：3 个确定性基线 + 2 个高价值组合，各 60 张（2026-08-18 新规，不再 300 全量）→ 评估 → 打分入图 → 报告。
 > **📋 工作方式（强制）**：每个实验全程向用户汇报，六段式 = **是什么 → 怎么做（略写）→ 为什么 → 结果（图片/脚本评分/人眼评分【待人工评估】）→ 致命缺点 → 下一步**。做完先问用户补充/修改，**用户确认该实验 OK 后才进行下一步**。
 
 ---
@@ -30,13 +30,13 @@ python scripts/patch_gen.py --num_images 5
 - [ ] 每脚本 5 张产出，`../../eval_data/{pca,gmm,patch}/singles/` 有 `sample_0000.png`
 - [ ] 抽查 1 张尺寸/颜色正常（用 PIL 检查 128×128 RGB）
 
-### 步骤 1.3 全量生成（各 300 张）
+### 步骤 1.3 标准生成（各 60 张，2026-08-18 新规不再 300）
 ```bash
-python scripts/pca_gen.py   --num_images 300 --seed 42
-python scripts/gmm_gen.py   --num_images 300 --seed 42
-python scripts/patch_gen.py --num_images 300 --seed 42
+python scripts/pca_gen.py   --num_images 60 --seed 42
+python scripts/gmm_gen.py   --num_images 60 --seed 42
+python scripts/patch_gen.py --num_images 60 --seed 42
 ```
-- [ ] 3 × 300 张产出，命名 `sample_0000.png`~`sample_0299.png`
+- [ ] 3 × 60 张产出，命名 `sample_0000.png`~`sample_0059.png`
 
 ### 步骤 1.4 通用层评估（根目录）
 ```bash
@@ -82,7 +82,7 @@ python eval/metrics_fundus.py --real eval_data/real --fake eval_data/patch/singl
 - [ ] `scripts/retinex_gen.py`：Retinex 光照交换（光照×反射分解，跨图交换 L 保留 R）
 
 ### 步骤 2.2-2.8 同阶段 1（冒烟 → 全量 → 评估 → 质检 → 打分 → 记录）
-- [ ] 各 300 张 → `eval_data/{poisson,retinex}/singles/`
+- [ ] 各 60 张（新规）→ `eval_data/{poisson,retinex}/singles/`
 - [ ] 评估（**含 C2ST**）+ 复制检测（组合方法**必须**重点验"相似但不相同"）
 - [ ] `MODEL_LABELS` 补显示名 → score_scheme + plot_metrics
 - [ ] 填 `docs/06-Records.md`（EX-004/005）

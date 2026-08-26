@@ -35,14 +35,12 @@ python -c "import cv2; print(cv2.__version__)"            # 泊松融合/Retinex
 ## 二、生成评估图（在 `generate_project/machine_learning/` 下执行）
 
 ```bash
-# 3 个确定性基线
-python scripts/pca_gen.py    --num_images 300 --seed 42    # → ../../eval_data/pca
-python scripts/gmm_gen.py    --num_images 300 --seed 42    # → ../../eval_data/gmm
-python scripts/patch_gen.py  --num_images 300 --seed 42    # → ../../eval_data/patch
-
-# 高价值组合（待建）
-python scripts/poisson_gen.py  --num_images 300 --seed 42  # → ../../eval_data/poisson
-python scripts/retinex_gen.py  --num_images 300 --seed 42  # → ../../eval_data/retinex
+# 标准生成（⚠️ 新规 2026-08-18：60 张即可，不再 300 全量）
+python scripts/pca_gen.py    --num_images 60 --seed 42    # → ../../eval_data/pca
+python scripts/gmm_gen.py    --num_images 60 --seed 42    # → ../../eval_data/gmm
+python scripts/patch_gen.py  --num_images 60 --seed 42    # → ../../eval_data/patch
+python scripts/poisson_gen.py  --num_images 60 --seed 42  # → ../../eval_data/poisson
+python scripts/retinex_gen.py  --num_images 60 --seed 42  # → ../../eval_data/retinex
 
 # 冒烟测试（先跑 5 张确认管线）
 python scripts/pca_gen.py --num_images 5
@@ -100,7 +98,7 @@ git push github main && git push gitee main
 | 坑 | 说明 |
 |:--|:--|
 | Windows GBK | 所有文件读取/JSON 写用 `encoding="utf-8"`；控制台 `python -X utf8` |
-| 冒烟先于全量 | 任何新脚本先 `--num_images 5` 验证，再跑 300（避免写错路径浪费几分钟） |
+| 冒烟先于生成 | 任何新脚本先 `--num_images 5` 验证，再跑标准 60 张（避免写错路径浪费几分钟） |
 | **C2ST 必跑** | ⚠️ 禁止 `--skip_c2st`！跳过会使 D2 口径不均 → 伪高分（patch 62.9 事件教训，见 REPORT_ML 2.7） |
 | 显示名漏改 | 新模型图里显示裸键名 → 记得改 MODEL_LABELS |
 | 记忆检测维度 | score_scheme 有 D6 记忆维度，复制率高的方法会在这里被惩罚（符合设计） |

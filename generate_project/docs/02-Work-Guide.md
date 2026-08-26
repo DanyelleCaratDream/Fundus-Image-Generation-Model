@@ -17,7 +17,7 @@ python -c "import sklearn; print(sklearn.__version__)"  # 传统 ML 用
 | 要做的事 | 去哪 | 命令示例 |
 |:--|:--|:--|
 | 深度模型生成评估图 | `generate_project/deep_learning/Fundus-*/` | 见各项目 STANDARDS.md |
-| **传统 ML 生成（当前重点）** | `generate_project/machine_learning/` | `python scripts/pca_gen.py --num_images 300` |
+| **传统 ML 生成（当前重点）** | `generate_project/machine_learning/` | `python scripts/pca_gen.py --num_images 60` |
 | 预训练探索（C3） | `generate_project/pretrained/` | 尚未开始（先读文献） |
 | 迁移学习（C） | `generate_project/transfer_learning/` | 尚未开始（先读文献） |
 
@@ -41,7 +41,7 @@ python eval/plot_metrics.py
 
 ## 四、新方法接入 checklist（任何方向）
 
-- [ ] 生成 300 张到 `eval_data/{model}/singles/`（128×128，`sample_0000.png` 起）
+- [ ] 生成 60 张到 `eval_data/{model}/singles/`（128×128，`sample_0000.png` 起；2026-08-18 新规，不再 300）
 - [ ] 通用层 + 专用层评估 JSON 产出
 - [ ] `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名
 - [ ] score_scheme + plot_metrics 出分入图
@@ -64,4 +64,4 @@ git push github main && git push gitee main
 | 显存 8GB | 评估脚本串行跑，不并行多个；必要时 `--skip_c2st` |
 | 路径层级 | 生成脚本在各自项目目录下执行：一层项目（如 `machine_learning/`）到 `eval_data` 是 `../../eval_data`；`deep_learning/*/` 子目录（如 `ddpm/`）到根目录是 4 层 `../../../../` |
 | 显示名 | 新模型忘了补 MODEL_LABELS → 图里显示裸键名 |
-| 评估口径 | 必须 128×128、300 张、命名 `sample_XXXX.png`，否则评估脚本不识别 |
+| 评估口径 | 必须 128×128、新方法 60 张（旧方法 300 张记录不变）、命名 `sample_XXXX.png`，否则评估脚本不识别 |

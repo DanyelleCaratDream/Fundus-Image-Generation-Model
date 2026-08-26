@@ -1,10 +1,11 @@
-# Continue Guide - 2026-08-03（v20 — 阶段1 基线 ✅ + C2ST 门控闭环 ✅ + REPORT_ML 生成 ✅ + 六段式流程已记文档，用户已确认）
+# Continue Guide - 2026-08-26（v22 — Phase C2 阶段 2 全部完成 ✅（EX-004 泊松 + EX-005 Retinex）+ REPORT_ML 第 7 章更新 ✅ + 06-Records EX-005 ✅，用户已确认）
 
-> **当前状态（2026-08-03，v21）**：上版（v20 为止）全部 ✅ → **Phase C2 阶段 1 完成 ✅**（PCA **20.0** / GMM **40.2** / 补丁 **42.1**，C2ST 门控闭环）→ **EX-004 泊松贴片重排完成 ✅ 87.5 分（全场第 1，用户确认有效）**（v1 近复制 96.7% 触发门控 → v6 增强重排复制率归零 0.3%；高分部分源于底图复用，min-max 相对分数如实标注；详情见 06-Records.md EX-004）→ REPORT_ML.docx 已生成（阶段 1 版本，第 7 章待 EX-005 后重跑更新）→ 六段式流程已记入 5 份文档 → **下一步 = EX-005 Retinex 光照交换**（`retinex_gen.py` 已建待跑，六段式汇报、用户确认后再继续）→ 等 330 标注 + KW 细节 → Phase D
+> **当前状态（2026-08-26，v22）**：上版（v21 为止）全部 ✅ → **Phase C2 阶段 2 完成 ✅**：**EX-004 泊松贴片重排 80.8 分（全场第 1）** + **EX-005 Retinex 光照交换 72.5 分（全场第 2）**。EX-005 关键：C2ST AUC **0.744 全场最佳**、**复制率 0%**（方案 3 近复制过滤 NN-SSIM>0.85 重采样后归零）、v0 亮度崩塌公式已修复（log 域插值 R_A·L_A^(1-α)·L_B^α）；min-max 相对分随 11 模型库平移，各分数以现版 `_scores.json` 为准（poisson 80.8 / retinex 72.5 / film_l1lpips 45.2 / pca 11.9 / gmm 22.6 / patch 31.0）；详情见 `06-Records.md` EX-005 → **REPORT_ML.docx 第 7 章已重跑更新**（【待实验】→ EX-004/EX-005 六段式完成结果 + 8 表 + 6 图 + 动态取分）→ 六段式流程继续生效 → **下一步 = 本次收尾 commit 推送双远端 → 等 330 标注 + KW 分级细节 → Phase D 下游分类器验证（TSTR/TRTR）**
 > **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令在各项目目录下执行，到根目录 `eval_data`/`fundus` 需 **4 层 `../../../../`**（Fundus-VAE 例外为 3 层 `../../../`）。旧位置已不存在。
 > **📋 实验汇报流程（六段式，强制）**：每个实验全程向用户汇报，写作顺序 = **是什么 → 怎么做（略写）→ 为什么 → 结果（图片/脚本评分/人眼评分【待人工评估】）→ 致命缺点 → 下一步**。做完先问用户有没有补充/修改，用户确认该实验 OK 后才进行下一步。此流程同时写入 `machine_learning/docs/04-Work-Guide.md`（〇节）与执行计划 05。
-> **compact 后第一步**：读本指引确认状态 → 按执行计划 05 阶段 2 执行 `scripts/retinex_gen.py`（EX-005 Retinex 光照交换，脚本已建待跑），六段式汇报、用户确认后再进行下一步。完成后重跑 `_build_report_ml.py` 更新 REPORT_ML 第 7 章。
-> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；**阶段 1 + EX-004 泊松产物 + REPORT_ML + 文档 v21 已随本次 commit 提交并推送双远端**；REPORT_ML 第 7 章待 EX-005 后重跑 `_build_report_ml.py` 更新。
+> **compact 后第一步**：读本指引确认状态 → 阶段 2（EX-004/EX-005）已完成、06-Records 已记 EX-005、REPORT_ML 第 7 章已更新 → 若工作区未提交则 git 提交推送双远端 → 之后进入等待期（330 标注 + KW 细节 → Phase D 分类器）。
+> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；**阶段 1 + EX-004/EX-005 + REPORT_ML（第 7 章已更新）+ 文档 v22 待本次 commit 提交并推送双远端**。
+> **⚠️ 样本量新规（2026-08-18，用户确认）**：**新方法统一 `--num_images 60`**（随机抽 60 张即可，不再跑 300 全量）；旧方法 300 张历史记录不变。已同步至 Technical-Standards/Work-Guide/Execution-Plan/Requirements/宏观 docs 等全部执行类文档。
 > **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
 > **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分**
 > **双远端：** GitHub + Gitee
@@ -62,6 +63,8 @@
 | **Phase C2 阶段 1 基线实验**（2026-08-03）：3 基线各 300 张（pca/gmm/patch_gen.py）+ 评估 + 打分入图；**C2ST 门控闭环**（patch 62.9 伪高分 → 补跑 C2ST → 42.1，教训写入执行计划：C2ST 必跑）→ 最终同口径：PCA 20.0 / GMM 40.2 / 补丁 42.1 | ✅ 2026-08-03 |
 | **REPORT_ML.docx 生成 + 用户确认**（2026-08-03）：`_build_report_ml.py`（python-docx，复用 _insert_metrics.py 表格样式）→ 9 章 6 表 4 图（原版骨架映射 + 六段式方法章 + 2.7 C2ST 踩坑教训 + 7 章组合待实验） | ✅ 2026-08-03 |
 | **六段式汇报流程记入 5 文档**（2026-08-03）：指引 v19→v20（📋 约定）/ 执行计划 05（C2ST 必跑 + 汇报门控）/ 工作说明 04（〇节强制流程）/ 记录 06（EX-001~003 ✅）/ ML README（分数更新） | ✅ 2026-08-03 |
+| **EX-005 Retinex 光照交换完成**（2026-08-26）：`retinex_gen.py` 60 张（新规）→ v0 亮度崩塌公式修复 → 方案3 近复制过滤（复制率 1.7%→0）→ 评估 72.5 分全场第 2（C2ST 0.744 全场最佳，BRISQUE 3.70≈真实）→ 06-Records 已记 EX-005 | ✅ 2026-08-26 |
+| **REPORT_ML 第 7 章更新 + 指引 v22**（2026-08-26）：`_build_report_ml.py` 重写第 7 章【待实验】→ EX-004/EX-005 六段式完成结果（8 表 6 图 9 章，总分动态取 min-max 现版值）；06-Records 登记表同步 11 模型现版分；CONTINUE_GUIDE v21→v22 | ✅ 2026-08-26 |
 
 ---
 
@@ -184,9 +187,9 @@
 - ⚠️ **门控发现**：补丁初测 62.9 伪高分 → 根因 = 跳过 C2ST 导致 D2 口径不均 → **已改：C2ST 必跑**（执行计划步骤 1.5 已更新）→ 补跑后 42.1，全 9 模型同口径
 - 复制检测三件套全部通过（接近复制占比 0）；REPORT_ML.docx 已按六段式记录（含 2.7 踩坑教训）
 
-**阶段 2（EX-004 ✅ 完成，EX-005 ⏳ 待做，按六段式汇报）**：EX-004 泊松贴片重排 **87.5**（v6 增强版，复制率 0.3%，详情见 06-Records.md）→ EX-005 Retinex 光照交换（`retinex_gen.py` 已建待跑）→ 评估（**含 C2ST**）→ 复制检测 → 打分入图 → 每方法完成后重跑 `_build_report_ml.py` 更新 REPORT_ML 第 7 章替换【待实验】
+**阶段 2（✅ 全部完成，2026-08-26）**：EX-004 泊松贴片重排 **80.8**（v6 增强版，复制率 0.3%，详情见 06-Records.md）→ EX-005 Retinex 光照交换 **72.5**（60 张，方案3 近复制过滤复制率 0%，C2ST 0.744 全场最佳，v0 亮度崩塌公式已修复，详情见 06-Records.md）→ 评估（**含 C2ST**）→ 复制检测 → 打分入图（11 模型）→ REPORT_ML 第 7 章已重跑更新（【待实验】→ EX-004/EX-005 六段式完成结果）
 
-**阶段 3（收尾）**：EX-005 完成 + REPORT_ML 第 7 章更新 → 更新指引 v22 → git 提交
+**阶段 3（收尾，进行中）**：EX-005 完成 ✅ + REPORT_ML 第 7 章更新 ✅ + 指引 v22 ✅ → **git 提交推送双远端（本次）** → 之后等 330 标注 + KW 分级细节 → Phase D 分类器验证
 
 **注意**：评估脚本走 cuda（8GB 串行）；**C2ST 必跑不得 `--skip_c2st`**（否则评分口径不均，见 2.7）；**新模型记得在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名**；复制检测必配（330 张小样本记忆风险）。
 
@@ -205,11 +208,11 @@
 | `research-report/` | REPORT（原版）.docx（+ _with_metrics 待替换版）/ 本指引 CONTINUE_GUIDE_NEW.md / **evaluation_report.md/.docx**（评估+调研合并版）/ interview-prep / 临时脚本 `_insert_metrics.py`（待删） |
 | `eval/` | **metrics_common.py**（通用层）+ **metrics_fundus.py**（专用层自设计）+ **plot_metrics.py**（可视化，自动扫描 JSON 可复用）+ **score_scheme.py**（综合评分：六维门控 0-100 总分 + 人工分校准）+ **README.md**（用法说明） |
 | `research-report/figures/` | 评估可视化四图（general_metrics / color_metrics / fundus_metrics / radar.png）+ scorecard.png（综合评分卡片）+ score_overview.png（综合评分总览，plot_metrics 自动补），已整合进 evaluation_report.md |
-| `eval_data/` | 评估图（real/ 330 张 + 每模型 300 张，**已 .gitignore 只提交 JSON**）+ 各模型 `*_metrics.json` / `*_fundus_metrics.json` + `_step_compare/`（50/100 步 DDIM 对比图）+ `_scores.json`（综合评分输出） |
+| `eval_data/` | 评估图（real/ 330 张 + 旧方法每模型 300 张 / 新方法 60 张，**已 .gitignore 只提交 JSON**）+ 各模型 `*_metrics.json` / `*_fundus_metrics.json` + `_step_compare/`（50/100 步 DDIM 对比图）+ `_scores.json`（综合评分输出） |
 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_film_l1lpips/` | 最佳模型结果（checkpoint: models/final_model.pth） |
 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/` | 330 张血管骨架 mask（条件+评估用） |
 | `generate_project/docs/` | **宏观文档 4 份**（00 导航 / 01 设计规范 / 02 工作说明 / 03 执行步骤，跨方向） |
-| `generate_project/machine_learning/` | **传统 ML 方向（当前）**：`report/`（5 篇文献报告）+ `docs/`（7 份工程规范）+ `scripts/`（pca/gmm/patch/make_comparison 已建；poisson_gen.py v6 已建并完成 EX-004；retinex_gen.py 已建待跑；memory_check.py 待建） |
+| `generate_project/machine_learning/` | **传统 ML 方向（阶段 1+2 已完成）**：`report/`（5 篇文献报告）+ `docs/`（7 份工程规范）+ `scripts/`（pca/gmm/patch/make_comparison；poisson_gen.py v6 完成 EX-004；retinex_gen.py 完成 EX-005；memory_check.py 待建） |
 | `generate_project/pretrained/` | 预训练方向（Phase C3 可选）：README + `report-pretrained-lit.md`（文献归档） |
 | `generate_project/transfer_learning/` | 迁移学习方向：README + `report-tl-lit.md`（文献归档） |
 | `generate_project/deep_learning/` | 深度学习方向（已完成）：README 总览 + 各项目 STANDARDS.md |

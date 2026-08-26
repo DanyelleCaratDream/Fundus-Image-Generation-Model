@@ -22,7 +22,7 @@
 | 项 | 规范 | 来源 |
 |:--|:--|:--|
 | 图像口径 | 128×128 RGB，输出 `eval_data/{model}/singles/sample_XXXX.png` | `eval/metrics_common.py` 的 `load_images` |
-| 每模型数量 | 300 张评估图（real 330 张） | Phase A 确立 |
+| 每模型数量 | 新方法 **60 张**评估图（real 330 张；旧方法 300 张记录不变） | Phase A 定 300，2026-08-18 新规改 60 |
 | 通用层指标 | FID/KID/MMD/IS/P&R/Density/Coverage/1-NN/MS-SSIM/LPIPS + 颜色 | `eval/metrics_common.py` |
 | 专用层指标 | 病灶/血管/记忆/C2ST/BRISQUE | `eval/metrics_fundus.py` |
 | 综合评分 | 六维门控 0-100（D1 病灶/D2 抗识破/D3 多样/D4 血管/D5 颜色/D6 记忆） | `eval/score_scheme.py` |

@@ -3,7 +3,7 @@
 > **方案 1**：与生成项目同仓库（保留记忆/文档/数据共享），独立目录做分类。
 
 ## 任务定位
-用生成数据（`eval_data/` 各模型 300 张）+ 真实图（`fundus/` 330 张）扩充训练 DR 分级分类器。
+用生成数据（`eval_data/` 各模型，旧方法 300 张、新方法 60 张）+ 真实图（`fundus/` 330 张）扩充训练 DR 分级分类器。
 
 ## 已确认的约束（老师反馈 2026-08-02）
 - **只做分级分类**（不框出/检测病灶，无需 YOLO，纯分类网络）
@@ -18,6 +18,6 @@
 
 ## 数据/工具入口
 - 真实图：根目录 `fundus/_all_images_ORIGINAL/`（330 张）
-- 生成图：根目录 `eval_data/{model}/singles/`（每模型 300 张）
+- 生成图：根目录 `eval_data/{model}/singles/`（旧方法 300 张；新方法 60 张，2026-08-18 起）
 - 血管骨架：`generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/`（330 张）
 - 评分体系：根目录 `eval/`（score_scheme 可评估生成质量与分类训练集构成）

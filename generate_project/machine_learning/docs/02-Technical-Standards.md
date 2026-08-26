@@ -12,7 +12,7 @@
 | 输入分辨率 | 读入后 Resize 到 **128×128** | 与 `eval_data/real/` 和评估脚本 `load_images` 一致 |
 | 值域 | PIL 读入 RGB uint8 [0,255]；生成后转回 0-255 存 PNG | 评估脚本内部转 [-1,1] |
 | 输出分辨率 | 128×128 PNG | 严格等于评估 `--img_size 128` |
-| 数量 | 每方法 **300 张** | 与现有深度方法一致，real 330 张 |
+| 数量 | 每方法 **60 张** | ⚠️ 2026-08-18 新规：不再跑 300 全量，随机抽 60 张即可；real 330 张 |
 
 > ⚠️ 原图分辨率各异（1900~2572 方形），直接 Resize 即可（方形→方形无形变）。
 
@@ -34,7 +34,7 @@ python scripts/<method>_gen.py \
     --data ../../fundus/_all_images_ORIGINAL \   # 素材/训练图
     --output ../../eval_data/<model> \            # 输出根目录
     --img_size 128 \                              # 分辨率（默认 128）
-    --num_images 300 \                            # 生成数量
+    --num_images 60 \                             # 生成数量（新规 60，不再 300）
     --seed 42 \                                   # 随机种子
     [--<method>_param ...]                        # 方法特定参数
 ```
@@ -44,7 +44,7 @@ python scripts/<method>_gen.py \
 | `--data` | str | `../../fundus/_all_images_ORIGINAL` | 素材图目录（脚本以 `python scripts/xx.py` 在 `machine_learning/` 下执行，相对执行目录两级上跳到根目录） |
 | `--output` | str | `../../eval_data/<model>` | 输出根目录（含 `singles/`） |
 | `--img_size` | int | 128 | 生成分辨率 |
-| `--num_images` | int | 300 | 生成数量 |
+| `--num_images` | int | 60 | 生成数量（新规 60，不再 300 全量） |
 | `--seed` | int | 42 | 随机种子 |
 | 方法特定 | — | — | 见各脚本 docstring |
 
@@ -66,7 +66,7 @@ generate_project/machine_learning/
     └── singles/
         ├── sample_0000.png
         ├── sample_0001.png
-        └── ...（300 张）
+        └── ...（60 张）
 ```
 
 **模型键名**（`<model>`，进 eval_data 和 MODEL_LABELS 的键）：
@@ -92,5 +92,6 @@ generate_project/machine_learning/
 |:--|:--|
 | Windows GBK 编码 | 所有文件读取/JSON 写用 `encoding="utf-8"`；控制台 `python -X utf8` |
 | 中文路径 | 数据路径含中文（`fundus/_all_images_ORIGINAL`）无问题，但避免在输出路径加中文 |
+| 样本量口径 | ⚠️ 新规 2026-08-18 起统一 60 张；旧方法 300 张记录不变。FID 小样本有偏，60 张噪声更大（KID 无偏更稳），横向对比时留意 |
 | seed 一致性 | numpy/sklearn 各自设置 seed；sklearn 某些算法有 `random_state` 参数需显式传 |
 | PCA 白化 | 用 `PCA(whiten=True)` 时 `inverse_transform` 会还原到原值域，需再 clip 0-255 |

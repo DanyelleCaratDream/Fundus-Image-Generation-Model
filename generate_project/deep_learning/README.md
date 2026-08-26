@@ -27,10 +27,11 @@
 
 ```bash
 cd generate_project/deep_learning/Fundus-Diffusion/ddpm
-python generate.py --checkpoint <ckpt> --num_images 300 --output_dir ../../../../eval_data/<model> \
+python generate.py --checkpoint <ckpt> --num_images 60 --output_dir ../../../../eval_data/<model> \
     --grid_size 0 --sampler ddim --sampling_steps 50 \
     --base_dim <64|128> --dim_mults 1 2 3 4 --attn_layers 2 \
     [--cond_path ./conditions] --seed 42
+# ⚠️ 样本量新规 2026-08-18：统一 --num_images 60（不再 300 全量）；旧模型 300 张记录不变
 ```
 
 完整命令与评估：根目录 `docs/08-Work-Guide.md` + `research-report/evaluation_report.md`。

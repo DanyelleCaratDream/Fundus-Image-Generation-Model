@@ -52,6 +52,7 @@ MODEL_LABELS = {
     "gmm": "GMM（传统ML）",
     "patch": "补丁拼接（传统ML）",
     "poisson": "泊松重排（传统ML）",
+    "retinex": "Retinex光照交换（传统ML）",
 }
 MODEL_COLORS = {
     "film_l1lpips": "#c0392b",  # 红（最佳，突出）
@@ -64,6 +65,7 @@ MODEL_COLORS = {
     "gmm": "#b7950b",           # 暗金
     "patch": "#9a7d0a",         # 暗金
     "poisson": "#2c6e49",       # 墨绿（组合方法组）
+    "retinex": "#148f77",       # 青绿（组合方法组）
 }
 # 人工评分（报告 5.4 综合排名；85-90 取中间值 87.5 画图，备注在报告里写清）
 # 传统 ML 基线暂无人评分（留给下游分类验证），缺省在图中以断线跳过。

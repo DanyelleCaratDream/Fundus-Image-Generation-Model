@@ -62,7 +62,7 @@
 1. 查 report/ 文献依据 → 判断属于哪层
 2. 按 docs/02 规范写 scripts/<method>_gen.py（CLI/输出对齐）
 3. 若复用现有层组件 → import；否则新建该层实现
-4. 冒烟 5 张 → 全量 300 张
+4. 冒烟 5 张 → 标准 60 张（2026-08-18 新规，不再 300 全量）
 5. 评估 + 复制检测三件套
 6. eval_data JSON → score_scheme + plot_metrics 入图
 7. 记录到 docs/06-Records + report/05 更新

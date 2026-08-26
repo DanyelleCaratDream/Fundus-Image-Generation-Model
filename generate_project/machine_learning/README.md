@@ -41,7 +41,7 @@
 | [scripts/gmm_gen.py](scripts/gmm_gen.py) | GMM 混合采样（确定性基线） | ✅ 已完成 | 40.2 |
 | [scripts/patch_gen.py](scripts/patch_gen.py) | 补丁拼接（确定性基线） | ✅ 已完成 | 42.1 |
 | [scripts/poisson_gen.py](scripts/poisson_gen.py) | 泊松贴片重排（高价值组合，v6 增强版） | ✅ 已完成 | **87.5** |
-| `scripts/retinex_gen.py` | Retinex 光照交换（高价值组合） | ⏳ 待建 | — |
+| `scripts/retinex_gen.py` | Retinex 光照交换（高价值组合） | 🟡 冒烟通过待评估 | — |
 | `scripts/memory_check.py` | 复制检测三件套（质检） | ⏳ 待建 | — |
 
 > 分数口径：**C2ST 必跑**（同口径才与深度方法可比）。3 基线已写入 `research-report/REPORT_ML.docx`（`_build_report_ml.py` 生成）。
@@ -57,10 +57,10 @@
 cd generate_project/machine_learning
 python scripts/pca_gen.py --num_images 5
 
-# 全量生成（各 300 张）
-python scripts/pca_gen.py --num_images 300 --seed 42
-python scripts/gmm_gen.py --num_images 300 --seed 42
-python scripts/patch_gen.py --num_images 300 --seed 42
+# 标准生成（各 60 张，⚠️ 2026-08-18 新规：不再 300 全量）
+python scripts/pca_gen.py --num_images 60 --seed 42
+python scripts/gmm_gen.py --num_images 60 --seed 42
+python scripts/patch_gen.py --num_images 60 --seed 42
 
 # 评估（项目根目录）+ 打分入图
 cd d:/AI_Model_Project_for_Fundus_Color_Images
