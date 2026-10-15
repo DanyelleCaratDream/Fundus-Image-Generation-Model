@@ -1,5 +1,9 @@
 # Fundus-VAE 项目规范
 
+> ⚠️ **现状更正（2026-10-15）**：上方列出的 `vanilla_vae/`、`beta_vae/` 两个子目录**从未建立**——
+> `train.py` / `generate.py` 就在本目录下，不同实验靠 `--output_dir` 区分；beta-VAE 当时未实际训练。
+> 下方 VAE 特有参数表**仍然准确**；实际命令见 `docs/08-Work-Guide.md`。
+
 ## 概述
 本项目实现 VAE（Variational Autoencoder）及其变体用于眼底彩照生成。
 

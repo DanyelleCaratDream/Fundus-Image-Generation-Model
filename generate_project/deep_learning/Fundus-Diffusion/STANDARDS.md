@@ -1,5 +1,10 @@
 # Fundus-Diffusion 项目规范
 
+> ⚠️ **现状更正（2026-10-15）**：上方列出的 `ddim/`、`cond_diffusion/` 两个目录**从未建立**——
+> 所有扩散实验都在 `ddpm/` 下，靠不同的 `--output_dir` 区分（`results_cond/`、`results_film/`、`results_film_l1lpips/` 等）；
+> DDIM 只是 `generate.py` 的一个采样开关（`--sampler ddim`），不是独立目录。
+> 下方扩散特有参数表**仍然准确**；实际路径与训练/生成命令见 `docs/08-Work-Guide.md`。
+
 ## 概述
 本项目实现扩散模型（Diffusion Models）用于眼底彩照生成。
 

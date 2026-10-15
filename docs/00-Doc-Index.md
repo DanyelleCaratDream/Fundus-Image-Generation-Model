@@ -1,7 +1,7 @@
 # 工程文档导航 + 文件路径索引
 
 > 这是项目的「文档地图」。新会话（或新成员）先读本文件定位所有关键文档与路径。
-> 更新日期：2026-08-01
+> 更新日期：2026-10-15
 
 ---
 
@@ -20,13 +20,13 @@
 | [00-Doc-Index.md](00-Doc-Index.md) | 本文档：导航 + 路径索引 | ✅ |
 | [01-Project-Overview.md](01-Project-Overview.md) | 项目需求与目标（新方向 + 老师反馈） | ✅ |
 | [02-Technical-Stack.md](02-Technical-Stack.md) | 技术栈、依赖、显存预算 | ✅ |
-| [03-Development-Standards.md](03-Development-Standards.md) | 工程规范：目录/CLI/代码风格 | ✅ |
-| [04-Training-Pipeline.md](04-Training-Pipeline.md) | 各模型训练管线设计 | ✅ |
-| [05-Research-Methodology.md](05-Research-Methodology.md) | 评估体系（两层指标：通用 + 专用） | ✅ |
+| [03-Development-Standards.md](03-Development-Standards.md) | 工程规范：CLI/代码风格（⚠️ 第1节的目录结构从未按此建立，见文首更正） | ⚠️ 部分过时 |
+| [04-Training-Pipeline.md](04-Training-Pipeline.md) | 各模型**初始**训练管线设计（⚠️ 缺最终方案 FiLM+L1+LPIPS，见文首更正） | ⚠️ 部分过时 |
+| [05-Research-Methodology.md](05-Research-Methodology.md) | 评估体系两层设计**立场**（⚠️ 文中标"未来"的专用层指标均已实现，见文首更正） | ⚠️ 部分过时 |
 | [06-Execution-Plan.md](06-Execution-Plan.md) | 执行路线图（Phase A/B/C/D + 状态） | ✅ |
 | [07-Model-Card-Template.md](07-Model-Card-Template.md) | 模型档案模板 | ✅ |
 | [08-Work-Guide.md](08-Work-Guide.md) | 工作说明手册（常用命令 + 已知坑） | ✅ |
-| [09-Score-Scheme-Design.md](09-Score-Scheme-Design.md) | 综合评分方案设计文档（为什么这么设计：决策链/权重理由/门控/归一化/指标去留/局限）（Word 版：09-Score-Scheme-Design.docx） | ✅ 2026-08-02 |
+| [09-Score-Scheme-Design.md](09-Score-Scheme-Design.md) | 综合评分方案设计文档（为什么这么设计：决策链/权重理由/门控/归一化/指标去留/局限） | ✅ 2026-08-02 |
 | [10-Score-Scheme-For-Beginners.md](10-Score-Scheme-For-Beginners.md) | 评分标准白话版（用故事+类比解释评分为什么这么设计，面向看不懂正式报告的人） | ✅ 2026-08-02 |
 
 ### research-report/（交付物 + 会话指引）
@@ -34,11 +34,13 @@
 | 文件 | 说明 |
 |------|------|
 | `CONTINUE_GUIDE_NEW.md` | ⭐ 会话续接指引（当前状态 + 下一步，compact 后先读它） |
-| `REPORT（原版）.docx` | 科研报告（用户精修终版） |
-| `眼底彩照生成模型.pptx` | 29 页答辩 PPT（用户排版中） |
-| `interview-prep.md` / `.docx` | 面试追问准备文档（Q1-Q14） |
-| `speaking_script.md` | 答辩讲稿大纲 |
+| `REPORT_DL.docx` | 深度学习生成研究报告（VAE / GAN / Diffusion 全记录） |
+| `REPORT_ML.docx` | 传统 ML 生成研究报告（Phase C2：基线 + 泊松/Retinex 组合） |
 | `evaluation_report.md` / `.docx` | 评估报告 + 评分标准调研合并版（Phase A 结果 + Phase B 结论） |
+| `interview-prep.docx` | 面试/答辩追问准备（Q1-Q14） |
+| `figures/` | 报告嵌入的结果图（6 张，由 `eval/plot_metrics.py` + `score_scheme.py --scorecard` 生成） |
+
+> 📦 2026-10-15 清理：早期 PPT、讲稿、以及被取代的 `CONTINUE.md` 已移入仓库内 `_archive/`（见 `_archive/ARCHIVE.md`）。
 
 ---
 

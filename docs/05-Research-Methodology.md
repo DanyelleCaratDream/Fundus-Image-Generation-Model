@@ -1,5 +1,15 @@
 # 科研方法论 — 评估指标体系
 
+> ⚠️ **本文档已过时，请勿据此判断项目做过什么（2026-10-15 更正）**
+>
+> 下文「2026-08-01 裁剪决定」中标记为 **⏸ 未来** 的专用层指标——
+> **C2ST 真伪分类、病灶检测 P/R、病灶面积 Wasserstein、Vessel Dice、BRISQUE、记忆检测**——
+> **后来全部实现并跑完了**。代码在 `eval/metrics_fundus.py`，
+> 结果在 `eval_data/*_fundus_metrics.json` 与 `eval_data/_scores.json`。
+>
+> 本文只剩「通用层保可比性、专用层承担医学意义」这一设计立场仍有参考价值。
+> **权威版本请看 `research-report/evaluation_report.md`（第四、十节）与 `docs/09-Score-Scheme-Design.md`。**
+
 > 更新日期：2026-08-01 ｜ 回应老师 Bug 1：通用指标 + 专用指标，两层都要
 
 ---

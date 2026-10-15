@@ -1,5 +1,9 @@
 # 开发规范
 
+> ⚠️ **现状更正（2026-10-15）**：本文第 1 节描述的 `model/`、`utils/`、`requirements.txt` 目录结构**从未按此建立**——实际每个实验只有 `train.py` + `generate.py` 两个入口，模型定义（UNet/Generator/Encoder 等）直接写在 `train.py` 里。
+> **第 2、3 节的 CLI 参数规范与输出目录结构仍然有效**，各脚本确实遵循。
+> 当前实际结构与命令以 `docs/08-Work-Guide.md` 和 `generate_project/deep_learning/README.md` 为准。
+
 ## 1. 目录结构规范
 
 每个模型项目（Fundus-VAE、Fundus-GAN 等）内部结构：

@@ -1,0 +1,154 @@
+# FundusGen 项目 — 会话恢复指南
+
+> ⚠️ **已过时（2026-08-02）**：本文是项目早期（Phase 0 探索期）的恢复指南，内容（Flow Matching、优先级 1-6、已删除的 evaluate.py 等）已严重落后。
+> **主恢复文档 = `research-report/CONTINUE_GUIDE_NEW.md`**（当前状态/任务/命令速查），**操作手册 = `docs/08-Work-Guide.md`**。
+> 路径前缀已更新为 `generate_project/deep_learning/`；下方历史训练命令仅存档参考。
+
+如果你正在看这个文件，说明会话上下文被 compact 了。
+请仔细阅读以下内容，这是恢复项目工作的全部上下文。
+
+---
+
+## 项目概述
+
+眼底彩照生成项目。老师提供了 330 张严重症状眼底彩照，要求探索
+VAE -> GAN (DCGAN/WGAN-GP/StyleGAN2) -> Diffusion (DDPM/DDIM) -> Flow Matching
+四个模型家族，先跑预测再训练。最后产出结果文件夹和科研报告。
+
+## 已完成的工作
+
+### Docs 规范体系
+docs/ 下有 7 份规范文档 (01~07)，定义了统一 CLI、目录结构、科研规范等。
+
+### VAE 实现 (generate_project/deep_learning/Fundus-VAE/)
+- train.py + generate.py ✅ 已验证导入
+- 支持 --beta 参数（beta-VAE），支持 mixed precision AMP
+- 参数: latent_dim=128, dim=32
+- 用途: 最稳定的模型，用于热手
+
+### DCGAN 实现 (generate_project/deep_learning/Fundus-GAN/dcgan/)
+- train.py + generate.py ✅ 已验证导入
+- 包含 Instance Noise, R1 Penalty, Label Noise, 数据增强等稳定技巧
+- D 可缩减通道 (--d_reduction) + Dropout (--d_dropout)
+
+### WGAN-GP 实现 (generate_project/deep_learning/Fundus-GAN/wgan_gp/)
+- train.py + generate.py ✅ 已验证导入
+- 支持 n_critic, lambda_gp, instance_noise
+- 相比 DCGAN 更稳定
+
+### StyleGAN2 包装 (generate_project/deep_learning/Fundus-GAN/stylegan2/)
+- train.py + generate.py（包装器，调用 stylegan2_ada/ 原始代码）
+- 原始 NVIDIA 代码在 stylegan2_ada/
+
+### DDPM 实现 (generate_project/deep_learning/Fundus-Diffusion/ddpm/)
+- train.py + generate.py ✅ 已验证导入
+- UNet: 31.87M 参数, base_dim=64
+- 支持 DDPM 和 DDIM 两种采样方式
+- Cosine noise schedule
+
+### DDIM 包装 (generate_project/deep_learning/Fundus-Diffusion/ddim/)
+- train.py + generate.py ✅ 已验证
+- train.py 引用 ddpm/train.py（训练完全相同）
+- generate.py 用 DDIM 采样（50步）
+
+### 科研报告
+- research-report/report.md 已建立模板
+- research-report/evaluate.py FID 评估脚本 ✅ 已验证
+
+### 旧项目整理
+- 所有旧代码已重命名并移动到 _ref_ 目录下作为参考
+
+## 下一步要做的事（按优先级）
+
+### 优先级1：先验证代码能跑通 (非常重要！)
+对每个模型先跑一个**迷你测试**（5-10 epoch, img_size=64, batch_size=8），
+确认代码能正常运行、生成图片：
+
+```bash
+# 从项目根目录运行
+cd d:\AI_Model_Project_for_Fundus_Color_Images
+
+# 测试 VAE
+python generate_project/deep_learning/Fundus-VAE/train.py --epochs 5 --batch_size 4 --img_size 64 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-VAE/results/test"
+
+# 测试 DCGAN
+python generate_project/deep_learning/Fundus-GAN/dcgan/train.py --epochs 5 --batch_size 4 --img_size 64 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-GAN/dcgan/results/test"
+
+# 测试 DDPM
+python generate_project/deep_learning/Fundus-Diffusion/ddpm/train.py --epochs 3 --batch_size 2 --img_size 64 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-Diffusion/ddpm/results/test"
+```
+
+### 优先级2：正式训练 VAE
+```bash
+python generate_project/deep_learning/Fundus-VAE/train.py --epochs 500 --batch_size 32 --img_size 128 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-VAE/results/vanilla_vae" --beta 1.0
+
+python generate_project/deep_learning/Fundus-VAE/train.py --epochs 500 --batch_size 32 --img_size 128 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-VAE/results/beta_vae" --beta 4.0
+```
+
+### 优先级3：正式训练 GAN
+```bash
+# DCGAN
+python generate_project/deep_learning/Fundus-GAN/dcgan/train.py --epochs 800 --batch_size 16 --img_size 128 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-GAN/dcgan/results" --instance_noise 0.1 --r1_gamma 10 --augment
+
+# WGAN-GP
+python generate_project/deep_learning/Fundus-GAN/wgan_gp/train.py --epochs 800 --batch_size 16 --img_size 128 \
+    --lr 0.0001 --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-GAN/wgan_gp/results"
+```
+
+### 优先级4：正式训练 Diffusion
+```bash
+python generate_project/deep_learning/Fundus-Diffusion/ddpm/train.py --epochs 500 --batch_size 16 --img_size 128 \
+    --dataset_path "fundus/_all_images_ORIGINAL" \
+    --output_dir "generate_project/deep_learning/Fundus-Diffusion/ddpm/results"
+```
+
+### 优先级5：评估 + 填写报告
+每个模型训练完后：
+1. 用 generate.py 生成 100 张图
+2. 用 evaluate.py 计算 FID 分数
+3. 填写报告中的结果对比表
+4. 填写 docs/07-Model-Card-Template.md 模型档案
+
+### 优先级6：Flow Matching（如有余力）
+目前在 Fundus-Flow/ 下只有 STANDARDS.md，需要从零实现。
+
+## 训练后评估命令
+```bash
+# 生成图片
+python generate_project/deep_learning/Fundus-VAE/generate.py --checkpoint "generate_project/deep_learning/Fundus-VAE/results/vanilla_vae/models/final_model.pth" \
+    --num_images 100 --output_dir "generate_project/deep_learning/Fundus-VAE/results/vanilla_vae/generated"
+
+# 计算 FID
+python research-report/evaluate.py \
+    --real_path "fundus/_all_images_ORIGINAL" \
+    --fake_path "generate_project/deep_learning/Fundus-VAE/results/vanilla_vae/generated/singles"
+```
+
+## 关键决策记录
+- 项目分 4 个独立子项目：Fundus-VAE, Fundus-GAN, Fundus-Diffusion, Fundus-Flow
+- 所有 train.py 和 generate.py 使用统一 CLI 参数命名
+- 模型参数量：VAE 4M, DCGAN 2.4M/11M, DDPM 32M
+- GPU: RTX 4060 Laptop 8GB, PyTorch 2.11.0+cu130
+- 数据集: 330 张原始眼底图，可增强到 1320 张
+- 旧项目已重命名并移至 _ref_ 目录
+- 科研报告主文件：research-report/眼底彩照生成模型研究报告.docx（Word 版），每训练完一类模型直接打开编辑更新
+- 所有 train.py 和 generate.py 新增 --timestamp 参数，自动追加时间戳防覆盖
+
+## 老师要求
+- "先跑预测、再做训练" —— 对每个模型先跑 inference 看效果再训练
+- "从后往前研究" —— VAE -> GAN -> Diffusion -> Flow Matching
+- 结果要打包成文件夹给老师检查
+- 需要科研报告

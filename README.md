@@ -57,7 +57,8 @@ AI_Model_Project_for_Fundus_Color_Images/
 ├── fundus/                         # 数据集（git 排除，需单独获取）
 ├── docs/                           # 规范文档（项目概述、技术栈、开发标准等）
 ├── research-report/                # 科研报告
-│   ├── REPORT.docx                 #   完整实验报告（含结论章）
+│   ├── REPORT_DL.docx              #   深度学习实验报告（VAE/GAN/Diffusion）
+│   ├── REPORT_ML.docx              #   传统 ML 实验报告（Phase C2）
 │   ├── evaluation_report.md/.docx  #   评估报告（Phase A/B + 综合评分）
 │   ├── CONTINUE_GUIDE_NEW.md       #   实验继续指引（主恢复文档）
 │   └── *.png / figures/            #   报告嵌入结果图
@@ -145,7 +146,7 @@ python train.py --epochs 780 --batch_size 16 --img_size 128 \
 
 ```bash
 python generate.py \
-    --checkpoint "./results_film_l1lpips/models/checkpoint_epoch_000700.pth" \
+    --checkpoint "./results_film_l1lpips/models/final_model.pth" \
     --num_images 64 --output_dir "./results_film_l1lpips/generated"
 ```
 
@@ -191,15 +192,21 @@ python train.py --epochs 500 --batch_size 16 --img_size 128 \
 
 ## 📖 科研报告
 
-完整实验报告位于 [`research-report/REPORT.docx`](research-report/REPORT.docx)（9MB），包含：
+完整实验报告位于 `research-report/`，**两份互补**：
 
-- **第 1 章**：摘要与项目背景
-- **第 2 章**：数据集与预处理（330 张严重症状眼底彩照）
-- **第 3 章**：VAE（第 3 章）与 GAN（第 4 章）实验全记录
-- **第 4 章**：扩散模型详细实验（无条件/条件/Palette/FiLM/L1+LPIPS）
-- **第 5 章**：结论与展望（含 5.5 学到的经验）
+**[`REPORT_DL.docx`](research-report/REPORT_DL.docx)（9MB）—— 深度学习路线**
+- **第 1 章**：数据集（330 张严重症状眼底彩照及派生版本）
+- **第 2 章**：评估指标体系与评分标准（两层指标 + 六维加权）
+- **第 3 章**：VAE 实验（含 EX-001~EX-004）
+- **第 4 章**：GAN 实验（DCGAN / WGAN-GP / StyleGAN2-ADA，含 EX-005~EX-009）
+- **第 5 章**：Diffusion 实验（DDPM → 条件扩散 → Palette → FiLM → L1+LPIPS，含 EX-010~EX-011）
+- **第 6 章**：结论（最佳方案 / 核心发现 / 局限与展望 / 学到的经验）
 
-报告由 `generate_docx.py` 脚本生成，修改结构后重新运行即可更新。
+**[`REPORT_ML.docx`](research-report/REPORT_ML.docx)（3MB）—— 传统机器学习路线（Phase C2）**
+- PCA 线性重建、GMM 混合采样、补丁拼接三个基线 + 泊松病变重排、Retinex 光照交换两个组合方法
+
+> `REPORT_ML.docx` 由 `research-report/_build_report_ml.py` 生成，修改结构后重新运行即可更新；
+> `REPORT_DL.docx` 的指标表由 `research-report/_insert_metrics.py` 注入。
 
 ---
 

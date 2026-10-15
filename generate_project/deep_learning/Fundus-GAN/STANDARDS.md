@@ -1,5 +1,9 @@
 # Fundus-GAN 项目规范
 
+> ⚠️ **现状更正（2026-10-15）**：下方示例里的相对路径（`./fundus/...`、`./results/...`）**与实际不符**——
+> 这些脚本在子目录下运行，真实路径要逐层回退（`dcgan/`、`wgan_gp/` 下是 4 层 `../../../../`），输出目录也不是 `./results/dcgan` 而是带时间戳的 `results_<MMDDYY>_<HHMMSS>/`。
+> 各模型的超参表（`--instance_noise`、`--r1_gamma`、`--n_critic`、`--lambda_gp`）**仍然准确**；实际命令见 `docs/08-Work-Guide.md`。
+
 ## 概述
 本项目实现 GAN（Generative Adversarial Networks）及其变体用于眼底彩照生成。
 
