@@ -1,7 +1,18 @@
-# deep_learning/ —— 深度学习从零训练（已完成）
+# deep_learning/ —— 深度学习从零训练
 
-> Phase A/B 全部完成：6 个深度模型已训练并评估。本目录是历史成果存档 + 复现入口。
-> 更新日期：2026-08-03
+> Phase A/B 已全部完成（6 个深度模型训练并评估）。2026-10 起转向 **Phase D**：
+> 在老师提供的 DR 分级数据集上训练生成器，产出可替换其 severe 类翻转副本的合成图。
+> 更新日期：2026-10-16
+
+---
+
+## 📋 实验登记表
+
+**[EXPERIMENTS.md](EXPERIMENTS.md)** —— 所有深度学习实验的编号、配置、结果与结论。
+**写报告/论文时从这里取数**，不要另处手写。
+
+> ⚠️ 编号用 **`DL-EX-xxx`** 前缀，与传统 ML 侧的 `EX-xxx`（`machine_learning/docs/06-Records.md`）区分——
+> 两边原本都用 `EX-xxx` 且已撞车。
 
 ---
 
@@ -38,4 +49,4 @@ python generate.py --checkpoint <ckpt> --num_images 60 --output_dir ../../../../
 
 ## 边界
 
-本目录已完成，**不再新增训练**。后续新方法探索转到 `machine_learning/`（当前）、`pretrained/`、`transfer_learning/`。综合评估体系见根目录 `eval/`。
+Phase A/B（6 模型训练评估）已完成。**当前唯一在跑的新训练是 Phase D 系列**（`Fundus-Diffusion/ddpm/` 下 D1/D2 及后续，见 EXPERIMENTS.md DL-EX-019/020）。方法探索的文献调研在 `machine_learning/`、`pretrained/`、`transfer_learning/`；综合评估体系见根目录 `eval/`。

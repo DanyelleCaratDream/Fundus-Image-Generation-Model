@@ -1,69 +1,76 @@
 # 执行路线图
 
-> 更新日期：2026-08-01 ｜ 已批准计划：C:\Users\Yelle\.claude\plans\ai-fundus-sparkling-feather.md
+> 更新日期：2026-10-16（v3，全面刷新；此前版本停在 2026-08-01）
+> 数字唯一来源 → `generate_project/deep_learning/EXPERIMENTS.md` 与 `machine_learning/docs/06-Records.md`；当前任务位置 → `research-report/CONTINUE_GUIDE_NEW.md`（v24）
 
 ---
 
-## 总体路线
+## 总体路线（实况）
 
 ```
-Phase A 评估体系（老师 Bug 1 第一半，最高优先）
-   ↓
-Phase C1 经典增广（老师 Bug 2，便宜可靠）
-   ↓
-Phase B 指标调研（Bug 1 第二半，可并行）
-   ↓
-Phase C3 Stable Diffusion（可选探索，靠后）
-   ↓
-Phase D 下游分类器验证（终极目标）
+Phase A 评估体系（老师 Bug 1 前半）            ✅ 2026-08-01
+Phase B 评分标准调研（老师 Bug 1 后半）        ✅ 2026-08-02
+Phase C1 经典增广                              ⛔ 用户 2026-08-02 表态不做
+Phase C2 传统 ML + 组合方法（老师 Bug 2）      ✅ 2026-08-26（EX-001~005）
+Phase C3 预训练 / 迁移学习                     ✅ 调研完成（报告 07：SD-LoRA 主路线）→ 落地待定
+Phase D 下游分类器验证（老师数据集）           🏃 进行中（2026-10）
+────────────────────────────────────────────
+论文路线 A《小样本眼底生成：失效机理与评估方法》→ 路线 B（+Phase D 证据）→ 投稿
 ```
 
 ---
 
-## Phase A：评估指标体系 + 历史模型重算 🔴 最高优先
+## Phase A：评估体系 + 历史模型重算 ✅ 2026-08-01
 
-| 步骤 | 任务 | 说明 |
-|:--|:--|:--|
-| A1 | 生成评估图 | 6 个有 checkpoint 的模型各生成 300 张单张图到 `eval_data/{model}/singles/`；真实基准集 = 330 张 ORIGINAL resize 128 |
-| A2 | 通用层指标 | `metrics_common.py`：FID/IS/KID/P&R/Density/Coverage/1-NN/MS-SSIM/BRISQUE |
-| A3 | 专用层指标 | `metrics_fundus.py`：Vessel Dice/血管分布/病灶P-R/面积分布/颜色距离/C2ST/记忆检测 |
-| A4 | 产出报告 | `research-report/evaluation_report.md`：6 模型 × 全部指标对比表 |
+6 个有 checkpoint 的深度模型各 300 张 → 通用层（FID/IS/KID/P&R/Density/Coverage/1-NN/MS-SSIM）+ 专用层自设计（病灶保留率/血管/C2ST/记忆检测/BRISQUE/Vessel Dice）→ `evaluation_report.md`。
+产出物：`eval/` 四脚本 + `eval_data/*.json` + figures。**结论**：扩散集体胜出；L1+LPIPS 抗病灶溶解（1.137 vs 0.254）。
 
-**可评估模型**（有 checkpoint）：FiLM+L1+LPIPS（最佳）、FiLM MSE、条件扩散、基础 DDPM、DCGAN、VAE Large 800。
-**跳过**：WGAN-GP / StyleGAN2 / VAE 1200（权重已丢失，用户确认）。
+## Phase B：评分标准调研 ✅ 2026-08-02
 
-**⚠️ 已知障碍（下个会话先处理）：**
-1. 条件扩散 / 基础 DDPM 的 checkpoint 加载出现 size mismatch，架构参数需确认（诊断：cond 用 bd=64 ssn=False 接近但 miss=88/unexp=90，可能 attn_layers/cond_channels/EMA 格式问题）
-2. DCGAN / VAE 的 generate.py 需给 `torch.load` 加 `weights_only=False`（第 64 / 68 行）
+结论并入 evaluation_report.md 第二部分：保留两层指标；**TSTR/TRTR 定为终极金标准**；记忆检测升为必报；FID 补小样本偏差说明。
+综合评分落地：`eval/score_scheme.py` 六维门控 0-100（设计文档 docs/09）。
 
-## Phase B：评分标准调研（Bug 1 第二半）✅ 已完成 2026-08-02
-
-文献调研医学图像生成评估 / 眼底图专用指标。考察：领域适配 FID（眼底特征提取器）、结构保持、下游效用（TSTR/TRTR）、小样本友好指标。结论已并入 `research-report/evaluation_report.md` 第二部分。核心：保留两层指标 + TSTR/TRTR 为终极金标准 + RETFound-FD 可选探索。
-
-## Phase C：新方法探索（Bug 2）
+## Phase C：新方法探索
 
 | 子项 | 内容 | 状态 |
 |:--|:--|:--|
-| C1 经典增广 | OpenCV 弹性形变/几何/轻微颜色扰动，从 330 张扩 3~5 倍；严格避免重 ColorJitter（医学颜色有生理意义） | 🔴 必做 |
-| C2 传统 ML | PCA/GMM/补丁合成快速实验，预期否决（难以产出真实眼底纹理），确证则作为否定性结论写入报告 | 🟡 1 次实验 |
-| C3 Stable Diffusion | 先调研可行性（8GB VRAM，LoRA 512 输出 vs 128 评估体系对接），可行再跑 | 🟢 可选 |
+| C1 经典增广 | OpenCV 几何/颜色扰动 | ⛔ 不做（用户 2026-08-02） |
+| C2 传统 ML | PCA 20.0 / GMM 40.2 / 补丁 42.1（门控同口径，C2ST 必跑教训）+ **泊松 80.8 / Retinex 72.5** | ✅ 2026-08-26，REPORT_ML 闭环 |
+| C3 预训练 | 报告 07（通用→眼底两遍调研，推荐 SD-LoRA 主路线，8GB 约束已评估） | ✅ 调研 / ⏳ 落地待定（视 D1/D2 结果决定是否需要） |
 
-## Phase D：下游分类器验证（终极目标）
+## Phase D：severe 生成 + 下游验证 🏃 进行中
 
-1. 下载公开 DR 数据集（优先 APTOS 2019，需 Kaggle 账号；或 EyePACS 子集），老师后续提供真实数据
-2. ResNet/EfficientNet 小模型做 DR 0-4 分级
-3. TSTR vs TRTR：真实图 vs 真实图+合成重度图，重点看 4 级类 Recall/F1/平衡准确率
-4. 终极验收：合成重度图显著提升分类器对重度类的性能
+**方案定稿**：[classify_project/README.md](../classify_project/README.md)（2026-10-15 重写：老师意图 = 生成 → 审核 → **替换 76 张翻转副本**，非简单增强）。
+
+| 步骤 | 任务 | 状态 |
+|:--|:--|:--|
+| D0 | 数据卫生三连查 + combined_sq256 去重去泄漏（239→193） | ✅ 2026-10-16（docs/15） |
+| D1 | combined 193张@256 bd64 500轮（验证**数据量**假说，与 DL-EX-015 单变量对照） | ⏳ 预登记，待启动 |
+| D2 | combined 193张@256 bd128 300轮（验证**容量**假说） | ⏳ 同上 |
+| D3 | 路线决策：combined 模型 vs B 微调 vs 预训练+LoRA（报告 07） | ⏳ 依 D1/D2 |
+| D4 | 正式生成替换图（256px，论文规格出图，手工挑图）→ 老师审核 → 替换 76 张 | ⏳ |
+| D5 | 专家盲评（docs/13 协议） | ⏳ 评分表模板未做 |
+| D6 | TSTR：扩充数据集训分类器 vs 基线 QWK 0.747@256 | ⏳ 依赖 D4 |
+
+> ⚠️ **口径修正（2026-10-15/16）**：① "train severe 152 已最多"是文件数假象，唯一底图 76 实为最少；② 分辨率 512→**256**（用户 2026-10-16 选定）；③ 基线 QWK 0.747 含跨 split 泄漏乐观偏差（docs/15 §2.3）。
 
 ---
 
-## 当前状态（2026-08-01）
+## 论文线（2026-10-16 起，与 Phase D 并行）
+
+| 步骤 | 任务 | 状态 |
+|:--|:--|:--|
+| P1 | 就绪度盘点 + 文献定位 + 盲评协议 | ✅ docs/11/12/13（10-15） |
+| P2 | 论文脊柱：主张→证据映射 + 口径统一表 + 术语对照 | ✅ docs/14（10-16） |
+| P3 | 数据权威文档 | ✅ docs/15（10-16） |
+| P4 | .bib 文献库 + 引用录入 | ⏳ |
+| P5 | 路线 A 动笔（Related Work / Method 可先行） | ⏳ |
+
+## 当前状态（2026-10-16）
 
 | 任务 | 状态 |
-|------|:--:|
-| 工程前置文档完善 | ✅ 完成 |
-| CONTINUE_GUIDE 迁移 + 更新 | ✅ 完成 |
-| Phase A：评估图生成 | ⏳ 未开始（依赖解决上述 2 个障碍） |
-| Phase B/C/D | ⏳ 未开始 |
-
-> 详细执行命令见 [08-Work-Guide.md](08-Work-Guide.md)；当前进度与下一步见 `research-report/CONTINUE_GUIDE_NEW.md`。
+|:--|:--:|
+| 文档体系论文向重整（本轮） | 🏃 |
+| D1/D2 启动 | ⏳ 等用户下令（GPU 空闲） |
+| 转告老师泄漏两事 | ⏳ 长期挂起 |
+| `_all_images_ORIGINAL` 299 vs 330 差异确认 | 🔴 待作者确认（docs/15 §四） |

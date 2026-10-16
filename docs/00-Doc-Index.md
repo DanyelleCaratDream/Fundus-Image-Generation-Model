@@ -1,83 +1,112 @@
 # 工程文档导航 + 文件路径索引
 
 > 这是项目的「文档地图」。新会话（或新成员）先读本文件定位所有关键文档与路径。
-> 更新日期：2026-10-15
+> 更新日期：2026-10-16（v3：补 11-15 号文档 + 路径全面核对；2026-10-16 文档体系已按**论文第一**重整，见 [14-Paper-Spine](14-Paper-Spine.md)）
 
 ---
 
 ## 一、项目一句话
 
-**FundusGen** — 用 330 张严重症状眼底彩照，训练生成模型产出「相似但不相同」的重度眼底图，用于**扩充数据集、训练 DR 分级分类器**（可能也做病灶类型判断）。
+**FundusGen** — 小样本眼底彩照生成研究：失效机理（failure mechanisms）与医学语义评估（evaluation），
+并以可控 severe 图生成完成 DR 分级数据扩充与下游验证（TSTR）。**论文第一、实用性第二**（2026-10-16 定位）。
 
 ---
 
 ## 二、文档地图
 
-### docs/（工程规范中心）
+### docs/（规范文档中心）
 
 | 文档 | 内容 | 状态 |
 |------|------|:--:|
-| [00-Doc-Index.md](00-Doc-Index.md) | 本文档：导航 + 路径索引 | ✅ |
-| [01-Project-Overview.md](01-Project-Overview.md) | 项目需求与目标（新方向 + 老师反馈） | ✅ |
+| [00-Doc-Index.md](00-Doc-Index.md) | 本文档：导航 + 路径索引 | ✅ 2026-10-16 |
+| [01-Project-Overview.md](01-Project-Overview.md) | 项目需求与目标（v7：论文第一 + Phase D 实况） | ✅ 2026-10-16 |
 | [02-Technical-Stack.md](02-Technical-Stack.md) | 技术栈、依赖、显存预算 | ✅ |
-| [03-Development-Standards.md](03-Development-Standards.md) | 工程规范：CLI/代码风格（⚠️ 第1节的目录结构从未按此建立，见文首更正） | ⚠️ 部分过时 |
-| [04-Training-Pipeline.md](04-Training-Pipeline.md) | 各模型**初始**训练管线设计（⚠️ 缺最终方案 FiLM+L1+LPIPS，见文首更正） | ⚠️ 部分过时 |
-| [05-Research-Methodology.md](05-Research-Methodology.md) | 评估体系两层设计**立场**（⚠️ 文中标"未来"的专用层指标均已实现，见文首更正） | ⚠️ 部分过时 |
-| [06-Execution-Plan.md](06-Execution-Plan.md) | 执行路线图（Phase A/B/C/D + 状态） | ✅ |
+| ~~03-Development-Standards.md~~ | 已归档 → `_archive/docs/`（内容被 REPORT + Work-Guide 覆盖，路径失效） | 📦 2026-10-16 |
+| ~~04-Training-Pipeline.md~~ | 已归档 → `_archive/docs/`（同上） | 📦 2026-10-16 |
+| ~~05-Research-Methodology.md~~ | 已归档 → `_archive/docs/`（被 evaluation_report.md 覆盖） | 📦 2026-10-16 |
+| [06-Execution-Plan.md](06-Execution-Plan.md) | 执行路线图（v3 实况：A/B/C 完成，D 进行中 + 论文线） | ✅ 2026-10-16 |
 | [07-Model-Card-Template.md](07-Model-Card-Template.md) | 模型档案模板 | ✅ |
 | [08-Work-Guide.md](08-Work-Guide.md) | 工作说明手册（常用命令 + 已知坑） | ✅ |
-| [09-Score-Scheme-Design.md](09-Score-Scheme-Design.md) | 综合评分方案设计文档（为什么这么设计：决策链/权重理由/门控/归一化/指标去留/局限） | ✅ 2026-08-02 |
-| [10-Score-Scheme-For-Beginners.md](10-Score-Scheme-For-Beginners.md) | 评分标准白话版（用故事+类比解释评分为什么这么设计，面向看不懂正式报告的人） | ✅ 2026-08-02 |
+| [09-Score-Scheme-Design.md](09-Score-Scheme-Design.md) | 综合评分方案设计（决策链/权重理由/门控） | ✅ 2026-08-02 |
+| [10-Score-Scheme-For-Beginners.md](10-Score-Scheme-For-Beginners.md) | 评分标准白话版（故事+类比） | ✅ 2026-08-02 |
+| [11-Paper-Readiness.md](11-Paper-Readiness.md) | 论文就绪度盘点（证据家底 / 缺口 / 报告诊断 / 路线 A+B） | ✅ 2026-10-15 |
+| [12-Literature-Survey-and-Positioning.md](12-Literature-Survey-and-Positioning.md) | 范文调研与论文定位（30+ 篇：哪些贡献已有前人、真正的空白） | ✅ 2026-10-15 |
+| [13-Expert-Evaluation-Protocol.md](13-Expert-Evaluation-Protocol.md) | 眼科医生盲评方案（草案，待导师/医生确认） | 🟡 草案 |
+| **[14-Paper-Spine.md](14-Paper-Spine.md)** | ⭐ **论文脊柱**：主张→证据映射 + 口径统一表 + 术语中英对照——写作宪法 | ✅ 2026-10-16 |
+| **[15-Data-Documentation.md](15-Data-Documentation.md)** | ⭐ **数据权威文档**：全部数据池 + 卫生结论 + 泄漏清单 + 转告老师事项 | ✅ 2026-10-16 |
 
-### research-report/（交付物 + 会话指引）
+### 实验与状态（数字唯一来源）
 
 | 文件 | 说明 |
 |------|------|
-| `CONTINUE_GUIDE_NEW.md` | ⭐ 会话续接指引（当前状态 + 下一步，compact 后先读它） |
-| `REPORT_DL.docx` | 深度学习生成研究报告（VAE / GAN / Diffusion 全记录） |
-| `REPORT_ML.docx` | 传统 ML 生成研究报告（Phase C2：基线 + 泊松/Retinex 组合） |
+| `generate_project/deep_learning/EXPERIMENTS.md` | ⭐ 深度学习实验登记表（DL-EX-001~020），**所有数字从这里取** |
+| `generate_project/machine_learning/docs/06-Records.md` | 传统 ML 实验登记表（EX-001~005） |
+| `research-report/CONTINUE_GUIDE_NEW.md` | 会话续接指引（v24：只记位置+下一步+纪律，不复制数字） |
+
+### research-report/（交付物）
+
+| 文件 | 说明 |
+|------|------|
+| `REPORT_DL.docx` | 深度学习生成研究报告（VAE / GAN / Diffusion 全记录；实验日志体裁，论文按 docs/14 重组） |
+| `REPORT_ML.docx` | 传统 ML 生成研究报告（Phase C2） |
 | `evaluation_report.md` / `.docx` | 评估报告 + 评分标准调研合并版（Phase A 结果 + Phase B 结论） |
 | `interview-prep.docx` | 面试/答辩追问准备（Q1-Q14） |
-| `figures/` | 报告嵌入的结果图（6 张，由 `eval/plot_metrics.py` + `score_scheme.py --scorecard` 生成） |
+| `figures/` | 报告嵌入结果图（`eval/plot_metrics.py` + `score_scheme.py --scorecard` 生成） |
 
-> 📦 2026-10-15 清理：早期 PPT、讲稿、以及被取代的 `CONTINUE.md` 已移入仓库内 `_archive/`（见 `_archive/ARCHIVE.md`）。
+### 其他入口
+
+| 位置 | 说明 |
+|------|------|
+| `classify_project/README.md` | Phase D 方案（替换 76 张翻转副本 + TSTR 协议 + 硬约束） |
+| `literature/` | 文献管理（links.md + pdf/） |
+| `generate_project/docs/` | 生成方法库宏观文档 4 份（00 导航 / 01 设计规范 / 02 工作说明 / 03 执行步骤） |
+| `generate_project/pretrained/report-pretrained-lit.md` 等 | 预训练/迁移文献归档；深度学习报告 07 = SD-LoRA 调研（在 `deep_learning/` 内） |
+| `_archive/ARCHIVE.md` | 归档登记（2026-10-15 瘦身 + 2026-10-16 文档归档） |
 
 ---
 
 ## 三、关键路径索引
 
-### 数据集
+> 完整数据池描述（含卫生状态）→ **[15-Data-Documentation.md](15-Data-Documentation.md)**
+
+### 数据集（git 排除）
 | 路径 | 内容 |
 |------|------|
-| `fundus/_all_images_ORIGINAL/` | **330 张严重症状眼底图**（方形 JPG，训练基准集） |
-| `fundus/_all_images_raw/` | 330 张原始采集图（未裁剪，分辨率各异） |
-| `fundus/_all_images_256/` | 1320 张 256×256（每张 4 几何变体） |
-| `fundus/_all_images_much/` | 1320 张原分辨率增强版 |
+| `fundus/_all_images_ORIGINAL/` | A 域网络图（方形 JPG）——**现存 299 张**（评估快照 `eval_data/real` 330 张，差异待确认） |
+| `fundus/all_ORIGINAL_sq256/` | 163 张手挑池（153 唯一） |
+| `fundus/combined_sq256/` | **193 张**合并训练池（D1/D2 与正式生成用）+ `conditions_combined/` 193 mask |
+| `fundus/HRSG_4_758_v0.3.4/` | 老师官方数据集 758 张（train 552/val 135/test 71）——**只读** |
+| `fundus/severe_train_sq256/` `sq128/` | train severe 唯一底图 76 张（派生） |
+| `fundus/_removed_dups_sq256/` | 墓园（清理移出文件 + MANIFEST.md，可回滚） |
+| ~~`fundus/_all_images_raw/_256/_much`~~ | 已移出磁盘（2026-10 瘦身）——旧文档引用以此为准 |
 
 ### 条件图 / 骨架
 | 路径 | 内容 |
 |------|------|
-| `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/` | 330 张 128×128 血管骨架 mask（条件扩散用 + 评估 Vessel Dice 用） |
-| `generate_project/deep_learning/Fundus-Diffusion/ddpm/prep_conditions.py` | 血管骨架提取脚本（绿通道+CLAHE+Top-hat+自适应阈值+骨架化） |
+| `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/` | 330 张血管骨架 mask（A 域条件扩散 + Vessel Dice 用） |
+| `generate_project/deep_learning/Fundus-Diffusion/ddpm/prep_conditions.py` | 血管骨架提取脚本 |
 
-### 模型结果与 checkpoint（可评估的 6 个）
-| 模型 | 评分 | checkpoint 路径 | 架构要点 |
-|------|:--:|------|------|
-| FiLM+L1+LPIPS（最佳） | 85~90 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_film_l1lpips/models/final_model.pth` | base_dim=128, FiLM, 条件 |
-| FiLM DDPM MSE | 85 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_film/models/final_model.pth` | base_dim=128, FiLM, 条件 |
-| 条件扩散 | 70 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_cond/models/final_model.pth` | base_dim=64, 条件 |
-| 基础 DDPM（去 CJ） | 75 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_去掉ColorJitter版/models/final_model.pth` | base_dim=64, 无条件 |
-| DCGAN | 20 | `generate_project/deep_learning/Fundus-GAN/dcgan/results_220726_020708/models/checkpoint_epoch_001500.pth` | latent_dim=100 |
-| VAE Large 800 | 10 | `generate_project/deep_learning/Fundus-VAE/results/vanilla_vae_large_210726_212102/models/final_model.pth` | latent_dim=256, dim=64 |
+### 模型 checkpoint（可评估的 6 个）
+| 模型 | 人工分 | 六维分 | checkpoint 路径 |
+|------|:--:|:--:|------|
+| FiLM+L1+LPIPS（最佳） | 87.5 | 72.9 | `ddpm/results_film_l1lpips/models/final_model.pth` |
+| FiLM DDPM MSE | 85 | 44.0 | `ddpm/results_film/models/final_model.pth` |
+| 条件扩散 | 70 | 44.0 | `ddpm/results_cond/models/final_model.pth` |
+| 基础 DDPM（去 CJ） | 75 | 44.2 | `ddpm/results_去掉ColorJitter版/models/final_model.pth` |
+| DCGAN | 20 | 7.0 | `Fundus-GAN/dcgan/results_220726_020708/models/checkpoint_epoch_001500.pth` |
+| VAE Large 800 | 10 | 25.7 | `Fundus-VAE/results/vanilla_vae_large_210726_212102/models/final_model.pth` |
 
-> ⚠️ **无 checkpoint 无法评估**：WGAN-GP、StyleGAN2、VAE Large 1200（权重已丢失，用户确认跳过）
+> ⚠️ 两套分数定义见 [14-Paper-Spine.md](14-Paper-Spine.md) 口径表 #2，不可混排。
+> WGAN-GP / StyleGAN2 / VAE 1200 无 checkpoint（用户确认跳过）。
 
 ### 评估
 | 路径 | 内容 |
 |------|------|
-| `eval_data/` | 评估结果（real/ + 每模型 300 张生成图已产出；图片 .gitignore 只提交 `*_metrics.json` + `_scores.json`） |
-| `eval/metrics_common.py` / `metrics_fundus.py` | 两层指标脚本（通用层 + 专用层），用法见 `eval/README.md` |
-| `eval/score_scheme.py` | 综合评分（人工分校准 + 六维门控 0-100 总分），设计动机见 `docs/09`，报告 5.6/5.7/5.8 |
+| `eval_data/` | real 快照（330）+ 各模型生成图（JSON 已提交，图片 gitignore）+ `_scores.json` |
+| `eval/metrics_common.py` / `metrics_fundus.py` | 两层指标脚本，用法见 `eval/README.md` |
+| `eval/score_scheme.py` | 综合评分（六维门控），设计动机 docs/09 |
+| `eval/plot_metrics.py` + `score_scheme.py --scorecard` | 可视化（自动扫 JSON，新方法重跑即入图） |
+| `eval/human_scores.csv` | ⭐ 人工分唯一来源（2026-10-16 起替代硬编码） |
 
 ### 环境
 | 路径 | 内容 |
@@ -88,6 +117,7 @@
 
 ## 四、更新约定
 
-- **每次任务结束**：更新 `research-report/CONTINUE_GUIDE_NEW.md`（当前状态 + 下一步）
-- **doc 增删**：同步更新本文件的「文档地图」
-- **路径变动**：同步更新「关键路径索引」
+- **数字**：只在 EXPERIMENTS.md / 06-Records / eval_data JSON / human_scores.csv 维护，其他文档引用不复制
+- **每轮工作结束**：更新 `research-report/CONTINUE_GUIDE_NEW.md`（版本号 + 日期 + 当前位置）
+- **doc 增删**：同步更新本文件「文档地图」；**路径变动**：同步「关键路径索引」
+- **口径**：拿不准的口径查 [14-Paper-Spine.md](14-Paper-Spine.md) 第三节；新口径先入表再使用

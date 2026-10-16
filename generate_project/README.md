@@ -6,10 +6,10 @@
 
 | 目录 | 方法族 | 状态 |
 |:--|:--|:--|
-| [deep_learning/](deep_learning/) | 深度学习从零训练：Diffusion（主力）/ GAN / VAE | ✅ 已完成（Phase A/B） |
-| [pretrained/](pretrained/) | 预训练模型（Stable Diffusion LoRA 等） | 📌 Phase C3 可选探索 |
-| [machine_learning/](machine_learning/) | 传统机器学习 / OpenCV（非深度学习，老师 Bug 2） | 🔴 **当前**（Phase C2） |
-| [transfer_learning/](transfer_learning/) | 迁移学习 | 📌 Phase C |
+| [deep_learning/](deep_learning/) | 深度学习从零训练：Diffusion（主力）/ GAN / VAE | ✅ Phase A/B 完成 · 🔴 **Phase D 主力进行中**（D1/D2） |
+| [pretrained/](pretrained/) | 预训练模型（Stable Diffusion LoRA 等） | ✅ 调研完成（报告 07）· ⏳ 落地待定 |
+| [machine_learning/](machine_learning/) | 传统机器学习 / OpenCV（非深度学习，老师 Bug 2） | ✅ 完成（Phase C2：EX-001~005） |
+| [transfer_learning/](transfer_learning/) | 迁移学习 | ✅ 文献归档 |
 
 ## 宏观文档（跨方向）
 
@@ -25,6 +25,7 @@
 
 - 宏观规范 → [`docs/00-Index.md`](docs/00-Index.md)
 - 生成/评估命令 → 根目录 `docs/08-Work-Guide.md`（操作手册）+ `docs/02-Work-Guide.md`（本库宏观）
-- 项目指引/状态 → `research-report/CONTINUE_GUIDE_NEW.md`
+- 项目指引/状态 → `research-report/CONTINUE_GUIDE_NEW.md`（v24）
+- **实验数字唯一来源** → `deep_learning/EXPERIMENTS.md`（DL-EX）+ `machine_learning/docs/06-Records.md`（EX）
 - 评估体系 → `eval/`（metrics_common / metrics_fundus / plot_metrics / score_scheme）
 - 综合评分设计 → `docs/09-Score-Scheme-Design.md`

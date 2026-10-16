@@ -1,266 +1,83 @@
-# Continue Guide - 2026-08-26（v23 — Phase C2 全部完成 ✅ + 老师数据集到位 ✅ + Phase D 方案定稿：severe 增广 + TSTR/TRTR 对比 + 预训练调研启动）
+# Continue Guide - 2026-10-16（v24 — Phase D 进行中：数据卫生三连查完成 + D1/D2 预登记待跑 + 文档体系论文向重整）
 
-> **当前状态（2026-08-26，v23）**：上版（v22 为止）全部 ✅ → **老师数据集到位，Phase D 不再等 330 标注**：`fundus/HRSG_4_758_v0.3.4`（4 类 normal/mild/moderate/severe × 3 split，745 张，带分级标签，全 jpg）。**330 张只是我们网络下载用来训练生成器的图，与老师数据集无关**。老师指示：把生成的 severe 图补进各 split 的 severe 文件夹，平衡类别分布后拿去训练分类。
-> **数据集实测**：train normal120/mild140/moderate140/**severe152**（train 里 severe 已最多）；val 34/40/40/**21**；test 18/20/20/**13**。severe 类分辨率系统性偏低（238-800px 居多，其他类普遍 1600-3456px）。文件名已有 `_aug_1` 后缀（数据集自带一次几何增广）。
-> **Phase D 已锁定决策（用户 2026-08-26 确认）**：① 补图范围 = **train + val，test 保留真实**（防合成图刷 test 分，TSTR/TRTR 严谨性）；② 平衡目标 = severe 补齐到 mild/moderate 数 → **train +0（152>140 已够）、val +19、test +0**；③ 生成图分辨率 = **重新生成 512×512 原生图**（poisson/retinex 原生工作在 512，128 只是评估输出）；④ **生成器待定**——先试所有生成器（含未来预训练模型）再决定用哪个。
-> **下一步**：① 搭 **Phase D TSTR/TRTR 对比脚手架**（真实 severe + 合成 severe 混合训练 → 真实 test 评估 → 每个生成器对 severe 增广的 Recall/F1/平衡准确率对比表）；② **调研预训练生成模型**（先通用后眼底，GitHub+权威源）→ 整理为 report；③ 预训练模型（SD LoRA 等）落地后进同一对比。
-> **⚠️ 目录重组影响所有路径**：凡文档出现 `Fundus-Diffusion/GAN/VAE` 均指 `generate_project/deep_learning/` 下；生成命令在各项目目录下执行，到根目录 `eval_data`/`fundus` 需 **4 层 `../../../../`**（Fundus-VAE 例外为 3 层 `../../../`）。旧位置已不存在。
-> **📋 实验汇报流程（六段式，强制）**：每个实验全程向用户汇报，写作顺序 = **是什么 → 怎么做（略写）→ 为什么 → 结果（图片/脚本评分/人眼评分【待人工评估】）→ 致命缺点 → 下一步**。做完先问用户有没有补充/修改，用户确认该实验 OK 后才进行下一步。此流程同时写入 `machine_learning/docs/04-Work-Guide.md`（〇节）与执行计划 05。
-> **compact 后第一步**：读本指引确认状态 → Phase C2 已完成、老师数据集已到位（`fundus/HRSG_4_758_v0.3.4`）、Phase D 方案已锁定（train+val 补 severe、test 真实、512 原生、生成器待定）→ 若工作区未提交则 git 提交推送双远端 → 下一步 = TSTR/TRTR 脚手架 + 预训练模型调研。
-> **⚠️ 遗留**：REPORT（原版）.docx 替换由用户自己做（改好排版后替换原文件 + 删 `_insert_metrics.py`）；颜色统计表措辞确认待用户点头；ML 方法人眼评分【待人工评估】；Retinex 60 张 vs 泊松 300 张样本量对齐待补（答辩手册 Q4-2 标了 Phase D 前待办）。
-> **⚠️ 样本量新规（2026-08-18，用户确认）**：**新方法统一 `--num_images 60`**（随机抽 60 张即可，不再跑 300 全量）；旧方法 300 张历史记录不变。已同步至 Technical-Standards/Work-Guide/Execution-Plan/Requirements/宏观 docs 等全部执行类文档。
-> **项目方向（v6 转向）：生成"相似但不相同"的重度眼底图，扩充 DR 分级分类器训练集**
-> **模型最佳方案：FiLM DDPM + L1 + LPIPS 780 轮，85~90/100 分；组合方法：泊松 80.8 / Retinex 72.5（min-max 相对分）**
-> **双远端：** GitHub + Gitee
+> **⚠️ 反失步纪律（2026-10-16 起）**：本文件只记「**当前位置 + 下一步 + 既定纪律**」。
+> **所有实验数字一律以 `generate_project/deep_learning/EXPERIMENTS.md`（DL-EX-xxx）和 `machine_learning/docs/06-Records.md`（EX-xxx）为唯一来源**，本文件不复制数字。每轮工作结束更新本文件的日期、版本与「当前位置」。
+> **当前任务（2026-10-16）**：① 文档体系论文向重整（本轮，README/docs/14 脊柱/docs/15 数据文档/01、06 刷新/03、04、05 归档）；② **D1/D2 待用户下令启动**（`bash run_D1_D2.sh`，193 张，GPU 空闲中，用户明言"先不急"）。
 
 ---
 
-## 一、项目方向与老师反馈（2026-08-01 确认）
+## 一、当前位置：Phase D —— 在老师数据集上做 severe 生成
 
-**新目标：** 利用 330 张严重症状眼底彩照，生成「相似但不跟原图一样」的图片，扩充 DR 分级分类器训练集（可能也做病灶类型判断）。现实里重度眼底图稀缺 → 分类器对重度类偏颇 → 需合成重度图补足。
+**总目标（= 项目最终目的）：产出一篇优秀的 paper。** 论文第一、实用性第二（2026-10-16 用户明确）。
+论文路线：**A《小样本眼底生成：失效机理与评估方法》先行 → B（+Phase D 下游验证 TSTR）叠加**。
+论文写作宪法：`docs/14-Paper-Spine.md`（主张→证据映射 + 口径统一表 + 术语中英对照）。数据权威描述：`docs/15-Data-Documentation.md`。
 
-**老师两个 Bug 反馈：**
-1. **Bug 1 评分标准必须全**：通用指标（FID/召回率/IS/KID 等）+ 自设计指标全部要算，先用历史结果重算，再调研更适合眼底图的
-2. **Bug 2 方法不限于深度学习**：OpenCV+ML、预训练、迁移学习（Stable Diffusion）都可以试
+**Phase D 链路**：老师数据集 `fundus/HRSG_4_758_v0.3.4`（758 张 = train 552/val 135/test 71，四分类）
+→ 生成 severe 新图（train 侧数据训练，不碰 val/test）→ 老师审核 → **替换 train 里 76 张数据集自带的垂直翻转 `_aug_1` 副本**
+→ 扩充后数据集训分类器（TSTR，对比基线 QWK 0.747@256）。
 
-**数据现实：** 330 张全重度（KW IV 级）、无标签、无病灶 mask；有 330 张血管骨架 mask（`generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/`）。下游分类器验证需有标签数据 —— 分级标准 = **KW（Keith-Wagener）高血压视网膜病变 I-IV 级**（老师此前说的"HR"即此，用户 2026-08-02 确认，IV 级最重含视乳头水肿）；330 张由老师/医生标注等级；其他程度数据在别的同学手里（小组汇总由老师协调，不担心分布）。
+**实验链条**（数字见 EXPERIMENTS.md）：
+- DL-EX-015（76张@256 从零）❌ / 016（76张@128）❌：loss 正常收敛但生成全糊 → 主假说「数据量不足」
+- DL-EX-017（容量对照）⛔ 搁置（设计与 015 双变量不干净）
+- DL-EX-018（微调 A 域模型）⚠️ 部分成功：干净样本 ~25% 与 014 常态持平，但失败样本崩得更狠、128px 与 Phase D 不符
+- **DL-EX-019（D1：combined 193张@256 bd64 500轮）/ 020（D2：bd128 300轮）⏳ 预登记完毕，待启动**
+  - 判定（预注册）：**不看 loss 只看 `--use_raw` 出图**；多数样本可辨认眼底结构 = 成功（对比 015 的 0/8）；300 轮仍无结构即可判失败
+  - D1 与 015 只差数据量（76→193）= 干净单变量对照；D2 加容量做二次检验
+- 数据：`fundus/combined_sq256` 193 张 + `conditions_combined` 193 mask（一一对应）
 
-### 老师最新沟通（2026-08-01 下午）
-- **老师要求**：总结昨天会议（讨论内容 / 存在问题 / 下一步安排）；并重申方向——①寻找好的评分标准；②拓展思路找非从零训练的生成方法（预训练模型 / 传统 ML+CV / 迁移学习）；③让同学们先看后面的分类模型内容，为分类训练打基础
-- **已回复**：起草并发了微信会议总结（约 600 字），内容含：讨论内容（模型对比结论）、存在问题（指标偏通用 / 30~40% 生成图有伪影）、下一步（评分标准 → 已备好简单评估文档/表格发同学参考 + 拓展方法 + 分类基础）、以及两个提问（见下）
-- **发问 → 老师已答复（2026-08-02）**：
-  1. **只做 DR 分级分类**（不做病灶框出/检测 → 无需 YOLO，纯分类网络即可）
-  2. **330 张需提前标注等级**（由老师/医生标注；330 张全重度，其他程度在别的同学手里，小组汇总由老师协调）
-  3. **分级用 HR 标准**（非 APTOS/ICDR 的 0-4）→ **2026-08-02 用户确认 = KW（Keith-Wagener）高血压视网膜病变 I-IV 级**，本项目生成 IV 级（最重）；病灶重点 = 火焰状出血/硬性渗出/棉絮斑/血管改变
-- **迁移学习说明（用户曾问）**：没有被排掉。报告 4.8 分析过"医学图像生成从零训练是常态、预训练帮助有限"，但老师 Bug 2 已重新放开；Phase C3（SD LoRA）在指引里列为可选探索
-- **可发同学的文件已就绪**：`research-report/evaluation_report.docx`（2026-08-02 已把原 evaluation_metrics.csv/.xlsx 数据并入，三份合成一份）
+## 二、下一步（依序）
 
----
+1. **启动 D1/D2**（等用户下令）：`bash run_D1_D2.sh`（在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/`，自动等 GPU，D1 ~4-5h + D2 ~5-6h，D2 显存溢出会慢）
+2. 出图判定 → 填 EXPERIMENTS.md DL-EX-019/020 → **定正式生成路线**（combined 模型 vs B 微调 vs 预训练+LoRA [报告 07]）
+3. 正式生成替换图（256px，300 DPI 论文规格同步出图，手工挑图并注明筛选事实）→ 老师审核 → 替换 76 张
+4. 专家盲评（docs/13 协议；评分表模板未做）
+5. TSTR：扩充数据集训分类器 vs 基线 QWK 0.747@256
+6. 论文路线 A 动笔（docs/14 脊柱 → 逐节素材指针）
 
-## 二、已完成（截至 2026-08-01 晚）
+## 三、数据卫生（2026-10-16 三连查，全部肉眼复核）
 
-| 项 | 状态 |
-|------|:--:|
-| 工程前置文档（docs/ 9 份） | ✅ |
-| 答辩 PPTX（29 页）+ interview-prep（Q1-Q14）+ REPORT.docx | ✅ 用户精修 |
-| 最佳模型 FiLM+L1+LPIPS 训练 | ✅ 85~90/100 |
-| **Phase A 两个障碍解决**（weights_only + 旧版 UNet 兼容） | ✅ |
-| **Phase A 评估图生成**（6 模型 × 300 张 → eval_data/） | ✅ |
-| **Phase A 评估脚本** eval/metrics_common.py（9 项 + 颜色统计） | ✅ |
-| **Phase A 6 模型评估完成**（JSON + CSV + evaluation_report.md） | ✅ |
-| **Phase A 专用层自设计指标** eval/metrics_fundus.py（病灶/血管/记忆检测/C2ST/BRISQUE/Vessel Dice） | ✅ 2026-08-01 晚补齐 |
-| 报告/表格转档 + 文件整合（evaluation_report.docx；原 evaluation_metrics.csv/.xlsx + metrics_research.md 并入合并版） | ✅ 2026-08-02 |
-| **Phase B 评分标准调研**（结论并入 evaluation_report.md 第二部分） | ✅ 2026-08-02 |
-| **第五节收尾**（2026-08-02）：eval_data .gitignore、命令沉淀 Work-Guide、eval/README.md、排名#3措辞修正、50/100步DDIM实测、VAE颜色假象确认、评估图全量扫描 | ✅ 详见第五节 |
-| **数据提纯工具**（2026-08-02）：fundus/rotate_augment_check.py（旋转45/90/135/180合成2×2对比图）+ 使用说明.txt，同学筛选旋转安全图 | ✅ |
-| **评估可视化图表**（2026-08-02）：eval/plot_metrics.py（可复用，新增方法重跑即入图）→ research-report/figures/ 四图，已整合进 evaluation_report.md | ✅ 详见第五节 |
-| **REPORT（原版）.docx 插入评估章节**（新「2.评估指标与评分标准」+ 原章节重编号 +1 → REPORT（原版）_with_metrics.docx，原文件未动） | 🟡 用户 2026-08-02 将自行改排版，待替换 |
-| **综合评分方案：需求确认 + 文献调研 + 公式设计 + 实现（score_scheme.py 六维门控 0-100 总分 + 校准表 + scorecard 图，见第五节 5）** | ✅ 2026-08-02 |
-| **文档转 Word**：evaluation_report.md/.docx（含 5.6/5.7/5.8 + 5 图）+ docs/09-Score-Scheme-Design.docx（pandoc 3.8 直转，无需样式模板） | ✅ 2026-08-02 |
-| **目录重组**：Fundus-* 搬入 generate_project/deep_learning/（git mv 719 文件）+ 新建 pretrained/machine_learning/transfer_learning + classify/ 占位，7 文档路径更新 | ✅ 2026-08-02 |
-| **git 提交**：0b9a912（重组 + 评估体系 + 综合评分 + 文档，798 文件） | ✅ 工作区干净 |
-| **REPORT.docx 排版修复**（2026-08-02 深夜）：_insert_metrics.py make_table 支持固定列宽+字号+noWrap → 重新生成 _with_metrics.docx，13/9 列大表拆词全部修复（转 PDF 逐词验证 1-NN(0.5)/MS-SSIM↓/FiLM+L1+LPIPS/178.8 完整）；原文件替换留用户自己处理 | ✅ 排版已修，替换待用户 |
-| **docs/10 评分标准白话版**（2026-08-02 深夜）：docs/10-Score-Scheme-For-Beginners.md（故事化解释人工分校准/六维权重/门控/用法/局限，面向非技术读者）+ 00-Doc-Index 收录 | ✅ |
-| **git 提交**：a3e90b7（REPORT 排版修复 + 白话版 + 补交 interview-prep.docx，5 文件）→ 双远端推送成功，工作区干净 | ✅ |
-| **generate_project 文档体系整合**（2026-08-03）：三路文献调研（传统ML 18法/眼底新奇组合/经典增广证据）→ machine_learning/ report 5篇 + docs 7份 + scripts 3基线脚本重写冒烟通过 + pretrained/transfer_learning 文献归档 + generate_project/docs 宏观4份 + deep_learning/README 补写 | ✅ 2026-08-03（git 未提交，待用户确认后 commit） |
-| **Phase C2 阶段 1 基线实验**（2026-08-03）：3 基线各 300 张（pca/gmm/patch_gen.py）+ 评估 + 打分入图；**C2ST 门控闭环**（patch 62.9 伪高分 → 补跑 C2ST → 42.1，教训写入执行计划：C2ST 必跑）→ 最终同口径：PCA 20.0 / GMM 40.2 / 补丁 42.1 | ✅ 2026-08-03 |
-| **REPORT_ML.docx 生成 + 用户确认**（2026-08-03）：`_build_report_ml.py`（python-docx，复用 _insert_metrics.py 表格样式）→ 9 章 6 表 4 图（原版骨架映射 + 六段式方法章 + 2.7 C2ST 踩坑教训 + 7 章组合待实验） | ✅ 2026-08-03 |
-| **六段式汇报流程记入 5 文档**（2026-08-03）：指引 v19→v20（📋 约定）/ 执行计划 05（C2ST 必跑 + 汇报门控）/ 工作说明 04（〇节强制流程）/ 记录 06（EX-001~003 ✅）/ ML README（分数更新） | ✅ 2026-08-03 |
-| **EX-005 Retinex 光照交换完成**（2026-08-26）：`retinex_gen.py` 60 张（新规）→ v0 亮度崩塌公式修复 → 方案3 近复制过滤（复制率 1.7%→0）→ 评估 72.5 分全场第 2（C2ST 0.744 全场最佳，BRISQUE 3.70≈真实）→ 06-Records 已记 EX-005 | ✅ 2026-08-26 |
-| **REPORT_ML 第 7 章更新 + 指引 v22**（2026-08-26）：`_build_report_ml.py` 重写第 7 章【待实验】→ EX-004/EX-005 六段式完成结果（8 表 6 图 9 章，总分动态取 min-max 现版值）；06-Records 登记表同步 11 模型现版分；CONTINUE_GUIDE v21→v22 | ✅ 2026-08-26 |
+详见 **`docs/15-Data-Documentation.md`**。一句话版：
+- 旋转副本 **0**（旧派生集才有几何增强，已移出磁盘；v1 误报 74 对已修正）
+- 池内重复：网络 163→153 唯一；老师 severe 76→**67** 唯一；跨池同图 16 对
+- **跨 split 泄漏**：老师官方 split train↔val/test 有像素级同图（severe 3 对 MSE=0 + moderate 16794≡16788/16796 + 网络图撞 val/test 5 对）；全树 113 对相似 → 数据集按图非按眼划分
+- 处置：combined_sq256 两批清理 239→**193**，移出文件进 `fundus/_removed_dups_sq256/`（MANIFEST 可回滚）；**官方数据集未动**
+- ⚠️ `_all_images_ORIGINAL` 现存 **299** vs 评估快照 330——差 31 张待作者确认（docs/15 第四节）
 
----
+## 四、📣 转告老师两件事（长期挂起直至传达）
 
-## 三、Phase A 评估结果（已全部跑完）
+1. 官方 split 存在跨 split 同图 → 分类器基线 QWK 0.747@256 含乐观偏差（清单在 docs/15 §2.3）
+2. 建议按眼/序列分组重划分（老师决定；我们不擅自改官方数据）
 
-### 总表（真实 330 张 vs 每模型 300 张，DDIM 50 步，seed 42）
+## 五、既定纪律（standing rules，持续有效）
 
-| 模型 | FID↓ | KID↓ | MMD↓ | IS↑ | Precision↑ | Recall↑ | Density↑ | Coverage↑ | 1-NN(0.5) | MS-SSIM↓ | LPIPS↓ | 人工分 |
-|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| **FiLM+L1+LPIPS** | **178.8** | **0.107** | **0.001** | **2.46** | 0.030 | 0.442 | 0.008 | 0.030 | **0.984** | 0.201 | 0.663 | 85-90 |
-| FiLM MSE | 200.2 | 0.126 | 0.006 | 2.26 | 0.007 | **0.742** | 0.001 | 0.006 | 0.975 | **0.187** | 0.791 | 85 |
-| 条件扩散 | 187.2 | 0.133 | 0.003 | 2.34 | 0.033 | 0.567 | 0.009 | 0.030 | 0.983 | 0.251 | 0.721 | 70 |
-| 基础 DDPM | 188.2 | 0.139 | 0.003 | 2.14 | **0.053** | 0.473 | **0.013** | **0.036** | 0.979 | 0.270 | 0.710 | 75 |
-| DCGAN | 229.8 | 0.204 | 0.007 | 1.18 | 0.000 | 0.000 | 0.000 | 0.000 | 1.000 | 0.652 | 0.726 | 20 |
-| VAE Large | 188.4 | 0.189 | 0.004 | 2.30 | 0.013 | 0.000 | 0.003 | 0.009 | 1.000 | 0.361 | **0.455** | 10 |
+- **必须看图，不能只看统计量**（DL-EX-015 排查教训：统计量正常但图是糊块）
+- 出图判定用 `generate.py --use_raw`（EMA 在续训 checkpoint 上可能退化）
+- **六段式汇报流程（强制）**：是什么 → 怎么做（略写）→ 为什么 → 结果（图/脚本分/人眼分）→ 致命缺点 → 下一步；每实验做完先问用户有无补充，确认后才进行下一步
+- 评估新方法统一 `--num_images 60`；**C2ST 必跑**不得 `--skip_c2st`（口径不均教训）；复制检测必配
+- Phase D：**test 保持全真实**；生成器训练数据不含 val/test；分辨率 256×256（2026-10-16 定，取代 512 旧决策）
+- 人工分 vs 六维分两套口径**永不混排**（docs/14 口径表 #2）
+- 笔记本 GPU：`--cool_sleep -0.5`；长任务前 `nvidia-smi` 看温度；数据先预缩到目标分辨率（否则慢 15 倍）
+- 归档惯例：**先归档不销毁**，进 `_archive/` 并在 ARCHIVE.md 登记
+- 双远端：`git push github main && git push gitee main`
 
-### 核心结论
-1. **评估体系验证有效**：film_l1lpips 分布指标最优、DCGAN 全面最差，与人工评分方向一致。
-2. **扩散方法集体胜出**：4 个扩散模型 Recall 0.44-0.74 vs GAN/VAE 全 0 → 验证转向扩散决策正确。
-3. **损失权衡量化**：FiLM MSE 更"自由发散"（Recall 0.742 最高、MS-SSIM 最低）、L1+LPIPS 更"收敛保真"（FID/KID/MMD 最优）。
-4. **系统色偏发现**：所有扩散模型 B 通道偏正（真实 B=-0.71）→ color_correct 有改进空间。
-
-### 专用层补充（2026-08-01 晚，自设计指标，回应老师 Bug 1 的"自设计"）
-- **L1+LPIPS 显著抗病灶溶解**：出血保留率 1.137（病灶全保留）vs MSE 版 0.254（丢 76%）
-- **C2ST**：film_l1lpips AUC=0.915 最低（最难被识破）→ 与 FID/1-NN 排序自洽
-- **"相似但不相同"强验证**：所有生成模型复制率 0%、最近邻 SSIM 0.07~0.33（真实-真实自身 0.548/16.4%）→ 生成图不复制训练图
-- 详细表 + 解读见 evaluation_report.md 第「二·补」节
-
----
-
-## 四、Phase A 已解决的技术点（复现/扩展用）
-
-1. **DCGAN/VAE `weights_only`**：generate.py 的 `torch.load` 已加 `weights_only=False`（DCGAN:64、VAE:68）。VAE large 还需 `--dim 64 --latent_dim 256`。
-2. **cond/base_cj 旧版 UNet 兼容**：generate.py 已内置自动检测（`block2.0.` 键）→ 禁用 FiLM + key 重映射（`block2.0→norm2`、`block2.3→conv2`），`base_dim=64`。验证 missing=0/unexp=0。
-3. **Inception/LPIPS/torchvision 权重**：已下载到 `~/.cache/torch/hub/checkpoints/`（需 VPN 从 GitHub 下载 FID 权重）。`pytorch-fid` 无 IS（1008 维），IS 用 torchvision InceptionV3。
-4. **MS-SSIM 需 ≥160px**：128px 输入内部 resize 256 再算。
-5. **prdc 会污染 stdout**：json 模式下已用 redirect_stdout 抑制。
-
----
-
-## 五、⚠️ 待改 / 待完善（compact 后第一步，按用户指示）
-
-> 用户明确提示："任务还没完全结束，还有一些内容需要改改的"。
-
-### 1. 评估报告待完善
-- [x] **综合排名第 3 名措辞**（2026-08-02 已修正）：evaluation_report.md 5.4 改为"基础 DDPM / 条件扩散 并列接近——分布/保真指标 cond 略优（FID 187 vs 188、KID/IS/Recall 更优），人工评分 base_cj 略优（75 vs 70），按人工列 base_cj 前"
-- [x] **base_cj 画像核对**（2026-08-02）：数据属实（P/D/C 确实全场最高 0.053/0.013/0.036、Recall 0.473 低于 cond/film），无需改
-- [x] **可视化图表**（2026-08-02）：`eval/plot_metrics.py`（自动扫描 eval_data/ JSON，可复用，新增方法重跑即入图）生成四图 → `research-report/figures/`（general/color/fundus/radar），已整合进 evaluation_report.md（总表后/颜色后/专用层后 + 5.5 雷达图小节）
-- [ ] 确认颜色统计表的解读措辞是否合适
-- [x] **evaluation_report.docx 与 md 同步**（2026-08-02）：pandoc 3.8 直接重转（无需样式模板），含 5.6/5.7/5.8 全部新章节 + 5 张图（9 表格 160 段落已验证）；设计文档 docs/09 同步转 09-Score-Scheme-Design.docx
-
-### 2. 潜在遗留问题（compact 前未能验证）
-- [x] **50 vs 100 步 DDIM 对比**（2026-08-02 已实测）：同 seed 生成 8 张×2 模型×2 步数 → base_cj SSIM 0.957 / cond 0.977 → **50 步已收敛**，Phase A 评估有效；对比图在 `eval_data/_step_compare/`（gitignore 内）
-- [x] **VAE 颜色"假象"确认**（2026-08-02）：解释有数据支撑（颜色三指标全场最优 0.024/0.040/0.0018 + Recall=0 + 记忆 NN-SSIM 0.329 最高"平均脸"），准确
-- [x] **评估图肉眼异常抽查**（2026-08-02 全量扫描 1800+ 张）：仅 DCGAN 21 张近空白（std<3，符合其退化画像），其余模型 0 异常、亮度正常
-
-### 3. 工程整理
-- [x] **eval_data .gitignore**（2026-08-02）：已加 `eval_data/*/`，git 只跟踪根目录 JSON/CSV（验证 check-ignore 生效）
-- [x] **命令沉淀**（2026-08-02）：生成（三/节，DDIM 50 步）+ 评估（四节 metrics_common/metrics_fundus）已写入 docs/08-Work-Guide.md
-- [x] **metrics_common.py 放置**（2026-08-02）：保持 eval/ 不动（多处文档引用，挪动纯churn），新增 `eval/README.md` 说明两脚本用法
-
-### 3.5 REPORT.docx 评估章节增强（2026-08-02 排版已修复 ✅，替换留用户）
-- [x] **排版修复**（2026-08-02 深夜）：_insert_metrics.py make_table 支持固定列宽+字号+noWrap → 重新生成 _with_metrics.docx（682 段/11 表），13 列通用层/9 列专用层大表拆词全部修复（转 PDF 逐词验证完整），新章节表格零溢出
-- [ ] **替换原文件**（用户自己做）：用户确认排版 OK 后，将 `REPORT（原版）_with_metrics.docx` 重命名替换 `REPORT（原版）.docx`（原文件至今未动）
-- [ ] 替换后删除临时脚本 `research-report/_insert_metrics.py`（届时 _with_metrics.docx 的表格修复逻辑已固化在 docx 本身）
-
-### 5. ⭐ 综合评分方案（✅ 已完成 2026-08-02，实现见 `eval/score_scheme.py` + 报告 5.6/5.7）
-
-**背景**：两层 ~30 指标全测一遍就完，没有综合评分；5.4「加权各维度」只是标题无公式；人工分是单人不规范肉眼估分。已实现：用人工分做"金标准"校准指标（哪些合适/哪些有偏可去除）→ **纯自动**六维门控加权评分（0-100 总分 + 维度画像），新方法（含传统 ML）丢 JSON 重跑即打分。
-
-**用户已确认**：KW I-IV 级（病灶保留为权重重点）；总分+维度画像；现有人工分直接用+标注 N=6 局限；纯自动（新方法无需人工分）。
-
-**实现要点**：
-- 六维：D1 病灶保留 0.30 / D2 抗识破+分布 0.25 / D3 多样性 0.20 / D4 血管 0.10 / D5 颜色 0.08 / D6 记忆 0.07；公式本体 = `SCHEME` dict（报告逐字引用）
-- 门控 `R=D2`：D1/D4/D5 乘 R；缺失键容错（维内归一 / 整维重归一，只跑通用层的新方法也能出分）；人工分缺失不影响打分仅不参与校准
-- 接口：`python eval/score_scheme.py [--no-gate] [--models a,b] [--scorecard] [--datadir <dir>]` → 校准表 + 评分表 + `eval_data/_scores.json`（formula_version/weights/gate/tau/n_models）+ `--scorecard` 出 `figures/scorecard.png`；`plot_metrics.py` 有 `_scores.json` 时自动补第五张 `score_overview.png`
-- 报告整合：5.6 指标-人工分校准分析（23 项 ρ 表 + 五矛盾解读 + 三重判据方法学）、5.7 自动综合评分（公式/权重/门控实证/总分表/限制声明）、**5.8 为什么这么设计（设计决策链）**、第二部分决策表加「评分层」行、第三部分数据文件补 _scores.json/score_scheme.py/scorecard
-- **设计文档：docs/09-Score-Scheme-Design.md**（完整"为什么"：动机/六维权重理由/门控论证/归一化动机/指标去留判据/局限/新方法接入流程）；脚本 SCHEME 注释同步写理由（代码即文档）
-
-**实测总分（门控后）**：film_l1lpips 72.9 / base_cj 44.2 / cond 44.0 / film 44.0 / vae 25.7 / dcgan 7.0；Kendall τ（vs 人工）= 0.600（N=6 小样本 + cond/film 同分并列 → τ_b 校正，参考为主）
-- 无门控对照：film_l1lpips 76.1 / film 58.9 / base_cj 58.5 / **VAE 57.9** / cond 55.2 / dcgan 14.5——VAE 无门控混入中游正是门控必要性证据
-- film 低于 cond/base_cj：人工-指标分歧簇，如实写进报告（诚实反映而非 bug）
-
-**⚠️ 遇到的问题（回顾，供后续扩展参考）**：
-1. **早期 Plan agent 的"门控 τ 0.80→0.93"不可信**：N=6 时 Kendall τ 只能取离散值（0.467/0.733/0.867/1.0），0.93 数学上不可能；其权重表/门控收益全部需实测复现，不可照搬
-2. **门控的真实价值不是提 τ，而是语义正确性**：实测无门控 VAE=57.9（靠颜色/血管假象混到中游）→ 门控后 25.7（跌入失败带）
-3. **指标-人工分歧簇（film/cond/base_cj）**：film 人工第 2 但客观分布/抗识破是 4 个扩散里最差（FID 200.2 / C2ST 0.989）——方案按指标排后与人工不一致，这是写进报告的洞察（扩增用途下人工偏爱多样性），不是 bug
-4. **校准 ρ 实测（N=6，scipy spearmanr）**：KID -0.886、MS-SSIM -0.829、C2ST -0.771 与人工强吻合；Recall +0.580；LPIPS +0.200（方向反，VAE 悖论 → 出计分仅参考）；颜色 ρ≈-0.14（可被 VAE 博弈 → 门控+低权）；1-NN 全模型饱和 0.975-1.0 无区分 → 降权
-
-**新方法接入**：评估 JSON 进 eval_data/ → `python eval/score_scheme.py --scorecard && python eval/plot_metrics.py` 即得总分/画像/全图（显示名在 plot_metrics.py `MODEL_LABELS` 补）；min-max 归一化是相对分数，模型库扩大后旧分数会平移（已写进报告限制声明）
-
-### 4. 待用户确认的事项
-- [x] **Phase A 自设计指标已补齐**（2026-08-01 晚：metrics_fundus.py 病灶/血管/记忆/C2ST/BRISQUE/Vessel Dice 全部跑完并写入报告）→ Bug 1 的"通用+自设计"两层指标均已落地
-- [x] **Phase B 评分标准调研已完成**（2026-08-02：结论并入 evaluation_report.md 第二部分，"保留现有两层指标 + TSTR/TRTR 为终极金标准 + RETFound-FD 可选探索"）→ Bug 1 第二半落地
-- [x] **老师已答复分类模型要求（2026-08-02）**：只做分级分类、330需标注、分级标准 = KW I-IV 级（老师说的 HR，用户已确认）→ **2026-08-26 已 superseded**：老师提供了现成分级数据集 `fundus/HRSG_4_758_v0.3.4`，不需要等 330 标注，Phase D 方案已定稿（见下 Phase D 节）
-- [x] **Phase C2 计划已定（2026-08-02 深夜）**：传统 ML 3 基线（PCA/GMM/补丁合成）各 300 张 → 评估 → 评分入图 → 报告否定性结论，详见第六节 9
-- [ ] 是否有用户自己发现的报告/数据问题要改？
-
----
-
-## 六、后续任务（Phase B/C/D）
-
-### Phase B：评分标准调研（Bug 1 第二半）✅ 已完成 2026-08-02
-结论已并入 `research-report/evaluation_report.md` 第二部分（评估报告与评分标准调研合并版）。核心结论：
-- 现有两层指标方案经文献检验**无需推翻**（FID 小样本有偏但同量横向对比有效、KID 无偏、记忆检测独立于保真指标是共识）
-- **新增决策**：TSTR/TRTR 定为终极金标准（Phase D 验收）；记忆检测升级为"必报"指标；FID 补小样本偏差说明
-- **可选探索**（不阻塞）：RETFound-FD（域适配特征，需实测）、Betti-0/曲率血管指标（需先改善 conditions/ mask 质量）
-- **明确不做**：域适配提取器重算全部历史模型（Woodland 证据：医学预训练不必然更好）
-
-### Phase C：新方法探索（Bug 2）
-- **C1 经典增广**（⏸ 用户 2026-08-02 表态：不用做，已报告过可用）——若老师后续要求可随时补跑
-- **C3 Stable Diffusion**（可选）：先调研 8GB VRAM LoRA 可行性，再跑
-
-### 9. ⭐ Phase C2 传统 ML 实验（2026-08-03 阶段 1 + EX-004 泊松已完成，EX-005 Retinex 待做）
-
-**目标（更新）**：不再是"1 次否定性实验"，而是**完整传统 ML 生成章节**——① 纯传统 ML 基线（否定性结论，回应 Bug 2）；② 高价值组合（泊松病变重排/Retinex 光照交换，"相似但不相同"亮点）。
-
-**阶段 1 已执行（2026-08-03，六维门控同口径后）**：
-- PCA 线性重建 **20.0**（FID 297 全组最差，过平滑）｜ GMM 混合采样 **40.2**（高斯分量天生平滑）｜ 补丁拼接 **42.1**（真实像素平凡胜利，非生成）
-- ⚠️ **门控发现**：补丁初测 62.9 伪高分 → 根因 = 跳过 C2ST 导致 D2 口径不均 → **已改：C2ST 必跑**（执行计划步骤 1.5 已更新）→ 补跑后 42.1，全 9 模型同口径
-- 复制检测三件套全部通过（接近复制占比 0）；REPORT_ML.docx 已按六段式记录（含 2.7 踩坑教训）
-
-**阶段 2（✅ 全部完成，2026-08-26）**：EX-004 泊松贴片重排 **80.8**（v6 增强版，复制率 0.3%，详情见 06-Records.md）→ EX-005 Retinex 光照交换 **72.5**（60 张，方案3 近复制过滤复制率 0%，C2ST 0.744 全场最佳，v0 亮度崩塌公式已修复，详情见 06-Records.md）→ 评估（**含 C2ST**）→ 复制检测 → 打分入图（11 模型）→ REPORT_ML 第 7 章已重跑更新（【待实验】→ EX-004/EX-005 六段式完成结果）
-
-**阶段 3（收尾，已完成）**：EX-005 完成 ✅ + REPORT_ML 第 7 章更新 ✅ + 指引 v22 ✅ + git 提交推送双远端 ✅（d0185c7 / 7803861）+ 答辩防御手册 `report/06-defense-qa.md` ✅ → Phase C2 全部闭环。
-
-**注意**：评估脚本走 cuda（8GB 串行）；**C2ST 必跑不得 `--skip_c2st`**（否则评分口径不均，见 2.7）；**新模型记得在 `eval/plot_metrics.py` 的 `MODEL_LABELS` 补显示名**；复制检测必配（330 张小样本记忆风险）。
-
-**门控**：任一方法复制率超标或意外高分 → 停下跟用户确认，不擅自扩展。
-
-### Phase D：下游分类器验证（终极目标，方案已定稿 2026-08-26）
-**背景修正（2026-08-26，重要）**：老师已提供分级数据集 `fundus/HRSG_4_758_v0.3.4`（4 类 × 3 split，745 张，带标签），**不需要等 330 标注**。330 张是我们网络下载用于训练生成器的图，与老师数据集是两回事。老师指示：把生成的 severe 图补进各 split 的 severe 文件夹 → 平衡分布 → 拿去训练分类。
-
-**实测计数**：train normal120/mild140/moderate140/severe152；val 34/40/40/21；test 18/20/20/13。⚠️ train 里 severe 已是最多（152>140），"severe 少"只在 val/test 成立。severe 类图片分辨率系统性偏低（238-800px 居多）。
-
-**已锁定决策（用户确认）**：
-- 补图范围：**train + val，test 保留真实**（TSTR/TRTR 严谨性：test 必须是全真实，否则合成图会刷高准确率）
-- 平衡目标：severe 补齐到 mild/moderate 数 → **train +0、val +19（21→40）、test +0**
-- 生成图分辨率：**重新生成 512×512 原生图**（poisson/retinex 原生工作 512；128 只是评估输出）
-- **生成器待定**：先试所有生成器（poisson/retinex/film/vae/cond + 基线 + 未来预训练模型）再决定
-
-**执行路径**：
-1. 搭 **TSTR/TRTR 对比脚手架**（`classify_project/`）：分类器 = ResNet18 ImageNet 预训练，224 输入，4 类分级；协议固定可复现。每个生成器跑一轮"真实 severe + 该生成器合成 severe → 真实 test 评估"，输出 severe Recall/F1/平衡准确率/混淆矩阵对比表 → 回答"哪个生成器对 severe 增广最有用"
-2. 调研**预训练生成模型**（先通用再眼底，GitHub+权威源）→ 整理为 `machine_learning/report/07-pretrained-gen-models.md`（8GB VRAM 是硬约束：SD 1.5 LoRA 可行，SDXL/FLUX 很紧）
-3. 预训练模型落地（如 SD LoRA）→ 进同一对比脚手架
-
-**验收标准**：合成重度图显著提升对应类 Recall/F1/平衡准确率（相对真实-only 基线）。
-
----
-
-## 七、输出目录速查
-
-| 目录 | 内容 |
-|------|------|
-| `docs/` | 工程规范 9 份（00 导航+路径索引 / 01 需求 / 05 评估体系 / 06 路线 / 08 工作说明） |
-| `research-report/` | REPORT（原版）.docx（+ _with_metrics 待替换版）/ 本指引 CONTINUE_GUIDE_NEW.md / **evaluation_report.md/.docx**（评估+调研合并版）/ interview-prep / 临时脚本 `_insert_metrics.py`（待删） |
-| `eval/` | **metrics_common.py**（通用层）+ **metrics_fundus.py**（专用层自设计）+ **plot_metrics.py**（可视化，自动扫描 JSON 可复用）+ **score_scheme.py**（综合评分：六维门控 0-100 总分 + 人工分校准）+ **README.md**（用法说明） |
-| `research-report/figures/` | 评估可视化四图（general_metrics / color_metrics / fundus_metrics / radar.png）+ scorecard.png（综合评分卡片）+ score_overview.png（综合评分总览，plot_metrics 自动补），已整合进 evaluation_report.md |
-| `eval_data/` | 评估图（real/ 330 张 + 旧方法每模型 300 张 / 新方法 60 张，**已 .gitignore 只提交 JSON**）+ 各模型 `*_metrics.json` / `*_fundus_metrics.json` + `_step_compare/`（50/100 步 DDIM 对比图）+ `_scores.json`（综合评分输出） |
-| `generate_project/deep_learning/Fundus-Diffusion/ddpm/results_film_l1lpips/` | 最佳模型结果（checkpoint: models/final_model.pth） |
-| `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/` | 330 张血管骨架 mask（条件+评估用） |
-| `generate_project/docs/` | **宏观文档 4 份**（00 导航 / 01 设计规范 / 02 工作说明 / 03 执行步骤，跨方向） |
-| `generate_project/machine_learning/` | **传统 ML 方向（阶段 1+2 已完成）**：`report/`（5 篇文献报告）+ `docs/`（7 份工程规范）+ `scripts/`（pca/gmm/patch/make_comparison；poisson_gen.py v6 完成 EX-004；retinex_gen.py 完成 EX-005；memory_check.py 待建） |
-| `generate_project/pretrained/` | 预训练方向（Phase C3 可选）：README + `report-pretrained-lit.md`（文献归档） |
-| `generate_project/transfer_learning/` | 迁移学习方向：README + `report-tl-lit.md`（文献归档） |
-| `generate_project/deep_learning/` | 深度学习方向（已完成）：README 总览 + 各项目 STANDARDS.md |
-| `fundus/` | `_all_images_ORIGINAL/`（330 张真实眼底图，训练基准 + real 集）+ **rotate_augment_check.py** + **使用说明.txt**（旋转安全筛选工具） |
-
-## 八、快速命令
+## 六、快速命令
 
 ```bash
-# 推送到双远端
+# 实验链进度（Windows 下双击 查看实验进度.bat 亦可）
+cd generate_project/deep_learning/Fundus-Diffusion/ddpm && python check_progress.py
+
+# 启动 D1/D2（待用户下令）
+cd generate_project/deep_learning/Fundus-Diffusion/ddpm && bash run_D1_D2.sh
+
+# 评估 + 评分 + 出图（新方法：JSON 丢进 eval_data/ 后）
+python eval/score_scheme.py --scorecard && python eval/plot_metrics.py
+
+# 推送双远端
 git push github main && git push gitee main
-
-# GPU 确认
-python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
-
-# 评估通用层单模型（在项目根目录）
-python eval/metrics_common.py --real eval_data/real --fake eval_data/<model>/singles --img_size 128 --device cuda --json
-
-# 评估专用层自设计指标（条件模型加 --cond_path；--skip_c2st 可跳过 CNN 训练）
-python eval/metrics_fundus.py --real eval_data/real --fake eval_data/<model>/singles \
-    --model <model> --device cuda [--cond_path generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions] [--skip_c2st] --json
-
-# 评估可视化（自动扫 eval_data/ 全部 JSON → research-report/figures/ 四图；新方法重跑即入图）
-python eval/plot_metrics.py
-
-# 综合评分 + 人工分校准（校准表 + _scores.json + scorecard.png；新方法丢 JSON 重跑即打分）
-python eval/score_scheme.py [--no-gate] [--scorecard]
-
-# 生成评估图（在 generate_project/deep_learning/Fundus-Diffusion/ddpm/ 下，串行！8GB 不能并行）
-python generate.py --checkpoint <ckpt> --num_images 300 --output_dir ../../../../eval_data/<model> \
-    --grid_size 0 --sampler ddim --sampling_steps 50 \
-    --base_dim <64|128> --dim_mults 1 2 3 4 --attn_layers 2 \
-    [--cond_path ./conditions] --seed 42
 ```
+
+## 七、文档体系（2026-10-16 重整后）
+
+- 入口：根 `README.md`（论文向门面）→ `docs/00-Doc-Index.md`（全图）
+- 论文脊柱：`docs/14-Paper-Spine.md` ｜ 数据权威：`docs/15-Data-Documentation.md` ｜ 就绪度：`docs/11` ｜ 文献定位：`docs/12` ｜ 盲评协议：`docs/13`
+- 已归档：docs/03/04/05（内容被 REPORT + Work-Guide 覆盖，路径已失效）＋ `稿子.md`（参考模板）——见 `_archive/ARCHIVE.md`

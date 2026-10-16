@@ -97,3 +97,18 @@
 
 - **文档体系**：`docs/`、`generate_project/**/docs/`、`machine_learning/report/`（文献综述 01–07）
 
+---
+
+## 五、2026-10-16 文档体系重整（论文第一）新增归档
+
+| 归档内容 | 原路径 | 归档理由 |
+|---|---|---|
+| `docs/03-Development-Standards.md` | `docs/03-Development-Standards.md` | 内容被 REPORT + docs/08-Work-Guide 覆盖；2026-08-02 目录重组后路径已失效（索引标注 ⚠️ 近两月） |
+| `docs/04-Training-Pipeline.md` | `docs/04-Training-Pipeline.md` | 初始管线设计缺最终方案 FiLM+L1+LPIPS；实际配置以 EXPERIMENTS.md 为准 |
+| `docs/05-Research-Methodology.md` | `docs/05-Research-Methodology.md` | 两层评估体系"立场"文档，内容已被 evaluation_report.md 完整覆盖（专用层指标均已实现） |
+| `稿子-参考模板-科研文档体系.md` | `稿子.md`（根目录） | 用户自找的通用科研文档体系参考模板（未填）；有用槽位（数据文档）已落为 docs/15，论文计划槽位已落为 docs/14 |
+
+> 同日重整动作（未归档、原地修改）：`README.md` 重写为论文向门面；`docs/01`/`docs/06` 刷新；`docs/00-Doc-Index` v3；
+> `research-report/CONTINUE_GUIDE_NEW.md` 更新到 v24（保留为会话续接入口，用户确认）；
+> 新建 `docs/14-Paper-Spine.md`（论文脊柱）与 `docs/15-Data-Documentation.md`（数据权威文档）。
+
