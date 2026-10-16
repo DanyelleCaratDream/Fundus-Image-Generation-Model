@@ -1,0 +1,7 @@
+model,human_score,source
+film_l1lpips,87.5,REPORT_DL 5.4 综合排名（85-90 取中值）
+film,85,REPORT_DL 5.4 综合排名
+base_cj,75,REPORT_DL 5.4 综合排名
+cond,70,REPORT_DL 5.4 综合排名
+dcgan,20,REPORT_DL 5.4 综合排名
+vae,10,REPORT_DL 5.4 综合排名

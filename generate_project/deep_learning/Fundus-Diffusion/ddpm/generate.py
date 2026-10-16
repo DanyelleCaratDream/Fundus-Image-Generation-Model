@@ -53,6 +53,8 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default="./generated", help="输出文件夹")
     parser.add_argument("--grid_size", type=int, default=8, help="网格大小 (0=单张)")
     parser.add_argument("--seed", type=int, default=42, help="随机种子")
+    parser.add_argument("--use_raw", action="store_true",
+                        help="强制使用原始权重而非 EMA 权重（EMA 在续训过的 checkpoint 上可能退化）")
     parser.add_argument("--no_cuda", action="store_true", help="强制CPU")
 
     # 采样参数
@@ -242,8 +244,8 @@ def main():
     model.to(device)
     model.eval()
 
-    # 优先使用 EMA 权重
-    if "ema_state_dict" in checkpoint and checkpoint.get("has_ema", False):
+    # 优先使用 EMA 权重（除非显式要求用原始权重）
+    if (not args.use_raw) and "ema_state_dict" in checkpoint and checkpoint.get("has_ema", False):
         ema_state = checkpoint["ema_state_dict"]
         model.load_state_dict(ema_state, strict=False)
         print(f"[OK] 已加载模型（EMA 权重）: {args.checkpoint}")

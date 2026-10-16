@@ -7,7 +7,7 @@ DDPM 是目前生成质量最高的模型之一，训练稳定，不会模式坍
 理论简介:
 - 前向过程: 逐步对图像加高斯噪声，直到完全变成随机噪声
 - 反向过程: 训练一个 UNet 预测噪声，从随机噪声逐步去噪还原图像
-- 损失函数: 预测噪声与真实噪声的 MSE
+- 损失函数: 预测噪声与真实噪声的 L1/MSE（--loss_type 切换，默认 L1——对病灶等异常值更鲁棒）
 
 用法:
     python train.py --epochs 500 --batch_size 16 --img_size 128 \\
@@ -74,7 +74,7 @@ def parse_args():
                         help="在哪些下采样层添加自注意力 (从0开始)")
     parser.add_argument("--dropout", type=float, default=0.1, help="Dropout 概率")
     parser.add_argument("--ema_decay", type=float, default=0.9999,
-                        help="EMA 衰减率（0.9999 表示保留 99.99% 历史权重，默认 0.9999）")
+                        help="EMA 衰减率（0.9999 表示保留 99.99%% 历史权重，默认 0.9999）")
     parser.add_argument("--use_scale_shift_norm", action="store_true", default=True,
                         help="使用 FiLM 调制（scale_shift_norm），改善细节保留（推荐）")
     parser.add_argument("--no_scale_shift_norm", action="store_true",
@@ -87,6 +87,10 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default="./results", help="输出文件夹")
 
     parser.add_argument("--dataset_path", type=str, required=True, help="数据集路径")
+    parser.add_argument("--cool_sleep", type=float, default=0.0,
+                        help="每个 epoch 后休眠的秒数，给笔记本 GPU 降温用。"
+                             "正数=固定秒数；负数=自适应（如 -0.5 表示休眠半个 epoch 时长，"
+                             "即'训 2 歇 1'）；0=不休眠")
     parser.add_argument("--num_workers", type=int, default=4, help="数据加载线程")
     parser.add_argument("--seed", type=int, default=42, help="随机种子")
     parser.add_argument("--no_cuda", action="store_true", help="强制CPU")
@@ -97,6 +101,8 @@ def parse_args():
                         help="启用 LPIPS 感知损失（需要 pip install lpips）")
     parser.add_argument("--lpips_weight", type=float, default=0.1,
                         help="LPIPS 感知损失权重（默认 0.1，仅在 --use_lpips 时生效）")
+    parser.add_argument("--loss_type", choices=["l1", "mse"], default="l1",
+                        help="噪声预测主损失：l1（默认，抗病灶溶解）/ mse（原始 DDPM 基线，会溶解病灶）")
     parser.add_argument("--cond_path", type=str, default=None,
                         help="条件图路径（血管骨架等），开启条件扩散训练")
 
@@ -745,7 +751,7 @@ def print_banner(args, device, dataset_len, cond_channels=0):
     print(f"  注意力层:     {args.attn_layers}")
     print(f"  Dropout:       {args.dropout}")
     print(f"  FiLM 调制:     {'启用' if not args.no_scale_shift_norm else '禁用'}")
-    print(f"  损失函数:      L1（替代 MSE，抗病灶溶解）")
+    print(f"  损失函数:      {args.loss_type.upper()}（{'默认，抗病灶溶解' if args.loss_type == 'l1' else '原始 DDPM 基线'}）")
     if hasattr(args, 'use_lpips') and args.use_lpips:
         print(f"  LPIPS 感知损失: 启用（权重={args.lpips_weight}）")
     if cond_channels > 0:
@@ -984,8 +990,11 @@ def main():
                 else:
                     predicted_noise = model(noisy_images, t)
 
-                # L1 损失（噪声预测，替代 MSE — L1 对病灶等异常值更鲁棒，缓解"溶解"效应）
-                loss = F.l1_loss(predicted_noise, noise)
+                # 噪声预测主损失：L1（默认 — 对病灶等异常值更鲁棒，缓解"溶解"效应）或 MSE（原始 DDPM 基线）
+                if args.loss_type == "mse":
+                    loss = F.mse_loss(predicted_noise, noise)
+                else:
+                    loss = F.l1_loss(predicted_noise, noise)
 
                 # 颜色正则化 + LPIPS：只在低噪声 timestep 上约束
                 # t 越小，噪声越少，反推的 x_0 越可靠
@@ -1036,6 +1045,16 @@ def main():
 
             with open(log_file, "a", encoding="utf-8") as f:
                 f.write(f"Epoch {epoch+1}: loss={avg_loss:.6f}, time={epoch_time:.1f}s\n")
+
+            # 降温：休眠让 GPU 有机会冷却（笔记本长时间满载会触发热降频）
+            #   cool_sleep > 0  -> 固定休眠这么多秒
+            #   cool_sleep < 0  -> 自适应：休眠 |cool_sleep| × 本 epoch 耗时
+            #                      例如 -0.5 表示"训 2 歇 1"（工作 2 份、休息 1 份）
+            _cs = getattr(args, "cool_sleep", 0.0)
+            if _cs > 0:
+                time.sleep(_cs)
+            elif _cs < 0:
+                time.sleep(abs(_cs) * epoch_time)
 
             # 保存模型
             if (epoch + 1) % args.model_save_interval == 0 or epoch == args.epochs - 1:

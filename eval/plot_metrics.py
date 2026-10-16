@@ -67,16 +67,24 @@ MODEL_COLORS = {
     "poisson": "#2c6e49",       # 墨绿（组合方法组）
     "retinex": "#148f77",       # 青绿（组合方法组）
 }
-# 人工评分（报告 5.4 综合排名；85-90 取中间值 87.5 画图，备注在报告里写清）
+# 人工评分不再硬编码，从 CSV 读取：eval/human_scores.csv（列: model,human_score,source）
+# 报告 5.4 综合排名；85-90 取中间值 87.5 画图，备注在报告里写清。
 # 传统 ML 基线暂无人评分（留给下游分类验证），缺省在图中以断线跳过。
-HUMAN_SCORE = {
-    "film_l1lpips": 87.5,
-    "film": 85,
-    "base_cj": 75,
-    "cond": 70,
-    "dcgan": 20,
-    "vae": 10,
-}
+def load_human_scores(path):
+    """读人工评分 CSV。缺文件或某模型缺行时返回不含该模型的 dict，图中以断线跳过。"""
+    import csv
+    scores = {}
+    if not os.path.exists(path):
+        print(f"[warn] 人工评分表不存在: {path}，人工分相关面板将为空")
+        return scores
+    with open(path, "r", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            k = (row.get("model") or "").strip()
+            v = (row.get("human_score") or "").strip()
+            if k and v:
+                scores[k] = float(v)
+    print(f"  [human] 从 {path} 读到 {len(scores)} 条人工评分")
+    return scores
 # 模型展示顺序：排在前的画在左；不在列表里的新模型自动追加到末尾
 MODEL_ORDER = ["film_l1lpips", "film", "cond", "base_cj", "dcgan", "vae", "pca", "gmm", "patch", "poisson"]
 
@@ -345,6 +353,8 @@ def main():
     ap.add_argument("--datadir", default="eval_data", help="评估 JSON 目录（默认 eval_data/）")
     ap.add_argument("--outdir", default="research-report/figures", help="图表输出目录")
     ap.add_argument("--dpi", type=int, default=150, help="输出分辨率（默认 150）")
+    ap.add_argument("--human-csv", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "human_scores.csv"),
+                    help="人工评分 CSV（列: model,human_score,source；默认 eval/human_scores.csv）")
     args = ap.parse_args()
 
     models = discover_models(args.datadir)
@@ -364,6 +374,7 @@ def main():
             fi += 1
 
     fundus_map = {m: load_fundus(args.datadir, m) for m in order}
+    human = load_human_scores(args.human_csv)
 
     os.makedirs(args.outdir, exist_ok=True)
     print(f"发现 {len(order)} 个模型: {', '.join(order)}")
@@ -371,7 +382,7 @@ def main():
 
     # ---- 图1：通用层（3×4 = 12 面板：11 项 + 人工评分） ----
     fig, axs = plt.subplots(3, 4, figsize=(16, 9), dpi=args.dpi)
-    draw_general(axs, {m: models[m] for m in order}, labels, colors, HUMAN_SCORE)
+    draw_general(axs, {m: models[m] for m in order}, labels, colors, human)
     fig.suptitle("通用层指标对比（↓ 越小越好，↑ 越大越好；1-NN 越接近 0.5 越好）", fontsize=13, y=0.99)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     out = os.path.join(args.outdir, "general_metrics.png")
@@ -400,7 +411,7 @@ def main():
     print(f"  [fundus] 写入 {out}")
 
     # ---- 图4：雷达图 ----
-    draw_radar({m: models[m] for m in order}, labels, colors, HUMAN_SCORE,
+    draw_radar({m: models[m] for m in order}, labels, colors, human,
                fundus_map, os.path.join(args.outdir, "radar.png"), args.dpi)
 
     # ---- 图5：综合评分总览（可选，读 _scores.json；无则优雅跳过） ----
@@ -412,7 +423,7 @@ def main():
             print(f"  [score] _scores.json 读取失败，跳过综合评分面板: {e}")
         else:
             draw_score_overview(scores_data, {m: models[m] for m in order}, labels, colors,
-                                HUMAN_SCORE, os.path.join(args.outdir, "score_overview.png"), args.dpi)
+                                human, os.path.join(args.outdir, "score_overview.png"), args.dpi)
     else:
         print("  [score] 未找到 _scores.json（先运行 eval/score_scheme.py），跳过综合评分面板")
 

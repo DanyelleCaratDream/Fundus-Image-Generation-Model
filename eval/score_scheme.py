@@ -35,8 +35,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from plot_metrics import (MODEL_LABELS, MODEL_COLORS, HUMAN_SCORE, MODEL_ORDER,
-                          discover_models, load_fundus, model_order)
+from plot_metrics import (MODEL_LABELS, MODEL_COLORS, MODEL_ORDER,
+                          discover_models, load_fundus, load_human_scores, model_order)
+
+# GBK 控制台打不出 ✓ 等字符时直接崩，这里降级为替换输出而不是报错
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
 
 # 中文字体（Windows）
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
@@ -424,6 +428,8 @@ def main():
     ap.add_argument("--scorecard", action="store_true", help="画 scorecard.png")
     ap.add_argument("--outdir", default="research-report/figures", help="scorecard 输出目录")
     ap.add_argument("--dpi", type=int, default=150)
+    ap.add_argument("--human-csv", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "human_scores.csv"),
+                    help="人工评分 CSV（列: model,human_score,source；默认 eval/human_scores.csv）")
     args = ap.parse_args()
 
     discovered = discover_models(args.datadir)
@@ -441,8 +447,9 @@ def main():
     all_metrics = {m: merged_metrics(args.datadir, m) for m in order}
     print(f"模型 ({len(order)}): {', '.join(MODEL_LABELS.get(m, m) for m in order)}")
 
-    # 人工分（缺失不影响打分，仅不参与校准）
-    human = {m: HUMAN_SCORE[m] for m in order if m in HUMAN_SCORE}
+    # 人工分（读 eval/human_scores.csv；缺失不影响打分，仅不参与校准）
+    _human_all = load_human_scores(args.human_csv)
+    human = {m: _human_all[m] for m in order if m in _human_all}
 
     # ---- 校准 ----
     rows = calibrate(all_metrics, human)

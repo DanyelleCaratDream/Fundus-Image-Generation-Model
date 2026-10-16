@@ -280,11 +280,11 @@
   "tau_vs_human": 0.7333,
   "human": {
     "film_l1lpips": 87.5,
-    "film": 85,
-    "cond": 70,
-    "base_cj": 75,
-    "dcgan": 20,
-    "vae": 10
+    "film": 85.0,
+    "cond": 70.0,
+    "base_cj": 75.0,
+    "dcgan": 20.0,
+    "vae": 10.0
   },
   "no_gate": null
 }
