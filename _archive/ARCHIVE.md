@@ -112,3 +112,16 @@
 > `research-report/CONTINUE_GUIDE_NEW.md` 更新到 v24（保留为会话续接入口，用户确认）；
 > 新建 `docs/14-Paper-Spine.md`（论文脊柱）与 `docs/15-Data-Documentation.md`（数据权威文档）。
 
+---
+
+## 六、2026-10-16 深夜：generate_project 方法目录文档收敛（第二批）
+
+**新约定**：方法目录只保留三件套 `README.md` + `EXPERIMENTS.md`（如适用）+ `report/`；**不再建方法级 `docs/`**，工程规范统一收敛到根 `docs/`。
+
+| 归档内容 | 原路径 | 说明 |
+|---|---|---|
+| `generate_project/` 宏观文档 4 份（00-Index / 01-Design-Spec / 02-Work-Guide / 03-Execution-Plan） | `generate_project/docs/` | 内容被根 docs/（01/06/08/09/14/15）覆盖，路径大量失效 |
+| `machine_learning/docs/00~05`（Index/Requirements/Technical-Standards/Design-Spec/Work-Guide/Execution-Plan） | `generate_project/machine_learning/docs/` | 同上；实验登记不在其列（见下） |
+| `Fundus-{Diffusion,GAN,VAE}-STANDARDS.md` 旧版 | `generate_project/deep_learning/*/STANDARDS.md` | **原位换新**：新版加"现状更正"头（ddim/cond_diffusion 目录从未建立等）；旧版移入 `standards/`；docs/03 失效引用已修 |
+| ——（改名，非归档） | `machine_learning/docs/06-Records.md` → `machine_learning/EXPERIMENTS.md` | 实验登记升格到方法目录顶层，与 deep_learning/EXPERIMENTS.md 对齐 |
+

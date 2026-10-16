@@ -1,6 +1,6 @@
 # 实验记录规范（EX-XXX）
 
-> 更新日期：2026-08-03 ｜ 每个传统 ML 生成实验按此模板记录，对齐根目录 `docs/05-Research-Methodology.md` §四 + `docs/07-Model-Card-Template.md`
+> 更新日期：2026-10-16（自 `docs/06-Records.md` 升格到本位置）｜ 每个传统 ML 生成实验按此模板记录，对齐根目录 `docs/07-Model-Card-Template.md` + `docs/14-Paper-Spine.md` 口径表
 > 目的：规模化可追溯——每个方法有编号、可复现、可对比。
 
 ---

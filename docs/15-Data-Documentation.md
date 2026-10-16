@@ -12,10 +12,14 @@
 
 | 池 | 路径 | 数量 | 说明 | 状态 |
 |:--|:--|--:|:--|:--|
-| A 域训练基准 | `fundus/_all_images_ORIGINAL/` | **299** | 方形 JPG，文件名前缀 `HRSRC_`（ATLAS_/CASE_/DATASET_ 等） | ⚠️ **与历史口径 330 差 31 张**，待作者确认（见第四节） |
+| A 域训练基准 | `fundus/_all_images_ORIGINAL/` | **299** | 方形 JPG，文件名前缀 `HRSRC_`（ATLAS_/CASE_/DATASET_ 等） | ⚠️ 作者注明：**质量参差**（见下方层级） |
 | 评估 real 快照 | `eval_data/real/` | **330** | Phase A 评估时的基准集（改名 real_0000…，resize 128） | ✅ 冻结，勿动 |
-| 手挑池 | `fundus/all_ORIGINAL_sq256/` | **163** | 作者后期手挑（池内 10 张重复/镜像 → 实际 153 唯一） | ✅ |
+| **作者认可池** | `fundus/all_ORIGINAL_sq256/` | **163** | 作者逐张手挑的**"过关"集合**（池内 10 张重复/镜像 → 实际 153 唯一） | ✅ 生成器数据的优先来源 |
 | 旧派生集 | `fundus/_all_images_raw / _all_images_256 / _all_images_much` | — | 1320 = 330×4 每图 4 几何变体（用户记忆为 60° 步进旋转） | 🔴 **已不在磁盘**（10 月瘦身移除，归档目录亦无备份）——旧文档仍在引用，本行即更正 |
+
+> **A 域质量层级（作者 2026-10-16 口述确认）**：
+> `all_ORIGINAL_sq256`（163，作者认可的过关图）＞ `_all_images_ORIGINAL`（299，含部分不过关图）＞ 历史口径 330（含作者后来手动删除的 31 张质量不过关图）。
+> **含义**：① 299 vs 330 之谜已解——31 张为作者手动质量淘汰；② `eval_data/real`（330）快照里含有作者已判"不过关"的图，作为评估基准是**历史冻结**口径（与全部历史 FID/指标可比），论文如需更干净的 real 集须重建并声明口径变更（写作时决策，见 §四）。
 
 > A 域全部为重度（KW-IV）眼底彩照，**无标签、无病灶 mask**；血管骨架 330 张在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/`。
 
@@ -91,6 +95,7 @@ combined_sq256（193）
 ```
 
 - 条件 mask：`generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions_combined/`（193，stem 一一对应）
+- 网络部分源自 `all_ORIGINAL_sq256`（作者认可的**过关**集合，见 §一质量层级）
 - 硬约束：**只用 train 侧数据**；val/test 图不入池（防泄漏，见 classify_project/README.md）
 - 逐张清理原因见 `fundus/_removed_dups_sq256/MANIFEST.md`
 
@@ -100,7 +105,7 @@ combined_sq256（193）
 
 | # | 事项 | 状态 |
 |:--|:--|:--|
-| 1 | `_all_images_ORIGINAL` 现存 299 vs 评估快照 330——差的 31 张是什么时候、为什么移除的（疑似作者手挑期间淘汰，**待作者确认**） | 🔴 待确认 |
+| 1 | ~~299 vs 330 差异~~ **已解决（2026-10-16 作者确认）**：差的 31 张是作者手动质量淘汰。遗留子问题：`eval_data/real`（330）快照含已淘汰图，是否重建更干净的 real 集 = **论文写作时决策**（重建会破坏与历史 FID 的可比性，须声明口径） | ✅ 已答 / ⏳ 写作时决策 |
 | 2 | `_all_images_raw/_256/_much` 三派生集已彻底离开磁盘（连归档目录都没有）——若论文需要复现旧训练集，只能从 `_all_images_ORIGINAL` + 增强脚本重建 | ⚠️ 已记录 |
 | 3 | 转告老师两件事（2.4 节） | ⏳ 待传达 |
-| 4 | C2ST@256 检查、`eval_data/real` 是否需要随 299 口径重算 | ⏳ 未排期（评估快照冻结中，暂不影响历史结果可比性） |
+| 4 | C2ST@256 检查 | ⏳ 未排期 |

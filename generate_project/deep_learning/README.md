@@ -11,7 +11,7 @@
 **[EXPERIMENTS.md](EXPERIMENTS.md)** —— 所有深度学习实验的编号、配置、结果与结论。
 **写报告/论文时从这里取数**，不要另处手写。
 
-> ⚠️ 编号用 **`DL-EX-xxx`** 前缀，与传统 ML 侧的 `EX-xxx`（`machine_learning/docs/06-Records.md`）区分——
+> ⚠️ 编号用 **`DL-EX-xxx`** 前缀，与传统 ML 侧的 `EX-xxx`（`machine_learning/EXPERIMENTS.md`）区分——
 > 两边原本都用 `EX-xxx` 且已撞车。
 
 ---
@@ -20,11 +20,12 @@
 
 | 子项目 | 方法 | 状态 | 评估结果 |
 |:--|:--|:--:|:--|
-| [Fundus-Diffusion/](Fundus-Diffusion/) | DDPM 系列（无条件/条件/FiLM） | ✅ 最佳 | FiLM+L1+LPIPS **72.9 分**（最佳） |
-| [Fundus-GAN/](Fundus-GAN/) | DCGAN / StyleGAN2 / WGAN-GP | ✅ DCGAN 已评，其余权重丢失跳过 | DCGAN 7.0 分（全面失败） |
-| [Fundus-VAE/](Fundus-VAE/) | Vanilla VAE / Beta-VAE | ✅ | VAE Large 25.7 分（门控后） |
+| [Fundus-Diffusion/](Fundus-Diffusion/) | DDPM 系列（无条件/条件/FiLM） | ✅ 最佳 | FiLM+L1+LPIPS **45.2 分**（11 模型现版最佳深度） |
+| [Fundus-GAN/](Fundus-GAN/) | DCGAN / StyleGAN2 / WGAN-GP | ✅ DCGAN 已评，其余权重丢失跳过 | DCGAN 12.9 分（全面失败） |
+| [Fundus-VAE/](Fundus-VAE/) | Vanilla VAE / Beta-VAE | ✅ | VAE Large 26.6 分（门控后） |
 
-> 综合评分（六维门控 0-100）：film_l1lpips 72.9 / base_cj 44.2 / cond 44.0 / film 44.0 / vae 25.7 / dcgan 7.0。
+> 综合评分（六维门控 0-100，11 模型现版 `_scores.json`）：film_l1lpips 45.2 / film 37.2 / cond 35.0 / base_cj 34.5 / vae 26.6 / dcgan 12.9。
+> ⚠️ min-max **相对分**：模型库扩大会整体平移（film_l1lpips 70.8→47.4→45.2），跨版本对比须锁同一版 `_scores.json`；组合方法 poisson 80.8 / retinex 72.5 见 `machine_learning/EXPERIMENTS.md`。
 
 ## 各项目规范
 

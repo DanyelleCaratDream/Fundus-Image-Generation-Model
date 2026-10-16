@@ -3,7 +3,7 @@
 > 建立于 2026-10-16。这是论文写作的**宪法**：每条主张的证据在哪、每个数字从哪取、所有口径怎么统一。
 > 写作前读一遍，写作中随时对照，投稿前逐条自查。
 > 卫星文档：[11-Paper-Readiness](11-Paper-Readiness.md)（就绪度诊断）｜[12-Literature-Survey-and-Positioning](12-Literature-Survey-and-Positioning.md)（文献定位）｜[13-Expert-Evaluation-Protocol](13-Expert-Evaluation-Protocol.md)（专家盲评）
-> 数字唯一来源：`generate_project/deep_learning/EXPERIMENTS.md`（深度）＋ `generate_project/machine_learning/docs/06-Records.md`（传统）＋ `eval_data/*.json`（指标）＋ `eval/human_scores.csv`（人工分）。
+> 数字唯一来源：`generate_project/deep_learning/EXPERIMENTS.md`（深度）＋ `generate_project/machine_learning/EXPERIMENTS.md`（传统）＋ `eval_data/*.json`（指标）＋ `eval/human_scores.csv`（人工分）。
 
 ---
 
@@ -42,7 +42,7 @@
 
 ### C3 同口径多方法横评（unified benchmark）—— 调研确认的空白
 
-11 个方法（5 传统 ML + 6 深度）同一套指标、同一评分口径横向对比。docs/12：调研 30+ 篇全是"提出单方法自证"，无人做统一横评。传统侧证据：`machine_learning/docs/06-Records.md`（EX-001~005）+ REPORT_ML。
+11 个方法（5 传统 ML + 6 深度）同一套指标、同一评分口径横向对比。docs/12：调研 30+ 篇全是"提出单方法自证"，无人做统一横评。传统侧证据：`machine_learning/EXPERIMENTS.md`（EX-001~005）+ REPORT_ML。
 
 ### C4 下游验证（downstream validation，路线 B）—— 待做
 
@@ -57,7 +57,7 @@
 | # | 口径项 | **定论** | 依据 / 说明 |
 |:--|:--|:--|:--|
 | 1 | 模型类别 | **"三大生成家族（VAE / GAN / Diffusion）＋ 传统 ML 基线与组合"** | 摘要"四类"、结论"三代"、副标题四个（含 Flow Matching）三处打架 → 以此为准；Flow Matching 只出现在展望 |
-| 2 | 评分尺度 | **两套，永不混排**：①人工分（human score，0-100，单人目测校准）：film_l1lpips **87.5** / film 85 / base_cj 75 / cond 70 / dcgan 20 / vae 10；②六维门控总分（gated composite score，0-100，11 模型可比）：**72.9** / 44.2 / 44.0 / 44.0 / 25.7 / 7.0 | 出处 `eval/human_scores.csv` 与 `eval_data/_scores.json`。论文主用②（全模型可比），①只在校准分析出现并标注"单人 N=6" |
+| 2 | 评分尺度 | **两套，永不混排**：①人工分（human score，0-100，单人目测校准）：film_l1lpips **87.5** / film 85 / base_cj 75 / cond 70 / dcgan 20 / vae 10；②六维门控总分（gated composite score，0-100，11 模型**现版**）：poisson 80.8 / retinex 72.5 / film_l1lpips **45.2** / film 37.2 / cond 35.0 / base_cj 34.5 / patch 31.0 / vae 26.6 / gmm 22.7 / dcgan 12.9 / pca 11.9 | 出处 `eval/human_scores.csv` 与 `eval_data/_scores.json`。论文主用②，①只在校准分析出现并标注"单人 N=6"。⚠️ ②是 min-max **相对分**，模型库扩大会整体平移（film_l1lpips 70.8→47.4→45.2）；引用必须注明 _scores.json 版本，旧文档的 72.9/44.2 等为 6 模型版历史分**不得再用** |
 | 3 | 最佳模型称谓 | FiLM DDPM + L1 + LPIPS（film_l1lpips），@128，780 轮，最佳效果 ~700 轮 | 保留 checkpoint 720 对应最佳 |
 | 4 | DCGAN 轮数 | **1500** | checkpoint_epoch_001500 为准；报告 4.2 的"800"是笔误 |
 | 5 | 基础 DDPM 人工分 | **75** | human_scores.csv；EX-010 的 70 是旧实验 DL-EX-009，EX-011 的 80 未采用 |
@@ -113,7 +113,7 @@
 
 ## 六、写作纪律（投稿前逐条自查）
 
-1. **数字不手写**：正文数字一律从 EXPERIMENTS.md / 06-Records / eval_data JSON 取，改数先改源。
+1. **数字不手写**：正文数字一律从两份 EXPERIMENTS.md / eval_data JSON 取，改数先改源。
 2. **分数必标尺度**：出现任何 0-100 分，括号标注（human / gated）。
 3. **图规格**：≥300 DPI、子图 (a)(b)(c) 标号、原始单图另存——从出图那一刻就按论文规格（docs/11 第八节）。
 4. **引用纪律**（docs/12）：Deo 2025 必引；Asokan 按原文口径；禁用"首创病灶级指标"类表述。

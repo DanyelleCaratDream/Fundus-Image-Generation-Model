@@ -1,7 +1,7 @@
 # 执行路线图
 
 > 更新日期：2026-10-16（v3，全面刷新；此前版本停在 2026-08-01）
-> 数字唯一来源 → `generate_project/deep_learning/EXPERIMENTS.md` 与 `machine_learning/docs/06-Records.md`；当前任务位置 → `research-report/CONTINUE_GUIDE_NEW.md`（v24）
+> 数字唯一来源 → `generate_project/deep_learning/EXPERIMENTS.md` 与 `generate_project/machine_learning/EXPERIMENTS.md`；当前任务位置 → `research-report/CONTINUE_GUIDE_NEW.md`（v24）
 
 ---
 

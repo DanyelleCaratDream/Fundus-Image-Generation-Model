@@ -12,7 +12,7 @@
 - `beta_vae/` — beta-VAE（增加 KL 权重以促进隐空间解耦）
 
 ## 统一 CLI
-遵循 `docs/03-Development-Standards.md` 定义的 CLI 规范。
+CLI 以各脚本 `--help` 与根目录 `docs/08-Work-Guide.md` 的实际命令为准（原 `docs/03-Development-Standards.md` 已归档）。
 
 ## VAE 特有参数
 | 参数 | 类型 | 默认值 | 说明 |

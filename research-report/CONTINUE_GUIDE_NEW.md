@@ -1,7 +1,7 @@
 # Continue Guide - 2026-10-16（v24 — Phase D 进行中：数据卫生三连查完成 + D1/D2 预登记待跑 + 文档体系论文向重整）
 
 > **⚠️ 反失步纪律（2026-10-16 起）**：本文件只记「**当前位置 + 下一步 + 既定纪律**」。
-> **所有实验数字一律以 `generate_project/deep_learning/EXPERIMENTS.md`（DL-EX-xxx）和 `machine_learning/docs/06-Records.md`（EX-xxx）为唯一来源**，本文件不复制数字。每轮工作结束更新本文件的日期、版本与「当前位置」。
+> **所有实验数字一律以 `generate_project/deep_learning/EXPERIMENTS.md`（DL-EX-xxx）和 `generate_project/machine_learning/EXPERIMENTS.md`（EX-xxx）为唯一来源**，本文件不复制数字。每轮工作结束更新本文件的日期、版本与「当前位置」。
 > **当前任务（2026-10-16）**：① 文档体系论文向重整（本轮，README/docs/14 脊柱/docs/15 数据文档/01、06 刷新/03、04、05 归档）；② **D1/D2 待用户下令启动**（`bash run_D1_D2.sh`，193 张，GPU 空闲中，用户明言"先不急"）。
 
 ---
@@ -41,7 +41,7 @@
 - 池内重复：网络 163→153 唯一；老师 severe 76→**67** 唯一；跨池同图 16 对
 - **跨 split 泄漏**：老师官方 split train↔val/test 有像素级同图（severe 3 对 MSE=0 + moderate 16794≡16788/16796 + 网络图撞 val/test 5 对）；全树 113 对相似 → 数据集按图非按眼划分
 - 处置：combined_sq256 两批清理 239→**193**，移出文件进 `fundus/_removed_dups_sq256/`（MANIFEST 可回滚）；**官方数据集未动**
-- ⚠️ `_all_images_ORIGINAL` 现存 **299** vs 评估快照 330——差 31 张待作者确认（docs/15 第四节）
+- ✅ 299 vs 330 已确认（2026-10-16 作者）：差的 31 张是作者手动**质量淘汰**的；且 299 中仍有作者认为不过关的图，作者认可的"过关"集合 = `all_ORIGINAL_sq256`（163）——质量层级与论文影响见 docs/15 §四
 
 ## 四、📣 转告老师两件事（长期挂起直至传达）
 

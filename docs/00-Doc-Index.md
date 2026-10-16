@@ -40,7 +40,7 @@
 | 文件 | 说明 |
 |------|------|
 | `generate_project/deep_learning/EXPERIMENTS.md` | ⭐ 深度学习实验登记表（DL-EX-001~020），**所有数字从这里取** |
-| `generate_project/machine_learning/docs/06-Records.md` | 传统 ML 实验登记表（EX-001~005） |
+| `generate_project/machine_learning/EXPERIMENTS.md` | 传统 ML 实验登记表（EX-001~005；原 `docs/06-Records.md` 升格） |
 | `research-report/CONTINUE_GUIDE_NEW.md` | 会话续接指引（v24：只记位置+下一步+纪律，不复制数字） |
 
 ### research-report/（交付物）
@@ -59,9 +59,11 @@
 |------|------|
 | `classify_project/README.md` | Phase D 方案（替换 76 张翻转副本 + TSTR 协议 + 硬约束） |
 | `literature/` | 文献管理（links.md + pdf/） |
-| `generate_project/docs/` | 生成方法库宏观文档 4 份（00 导航 / 01 设计规范 / 02 工作说明 / 03 执行步骤） |
-| `generate_project/pretrained/report-pretrained-lit.md` 等 | 预训练/迁移文献归档；深度学习报告 07 = SD-LoRA 调研（在 `deep_learning/` 内） |
-| `_archive/ARCHIVE.md` | 归档登记（2026-10-15 瘦身 + 2026-10-16 文档归档） |
+| `generate_project/pretrained/report-pretrained-lit.md` 等 | 预训练/迁移文献归档；SD-LoRA 调研 = `machine_learning/report/07-pretrained-gen-models.md` |
+| `_archive/ARCHIVE.md` | 归档登记（10-15 瘦身 + 10-16 两批文档归档） |
+
+> **📁 各方法目录的文档约定（2026-10-16 定）**：每个方法目录只保留三件套——`README.md`（入口/状态）＋ `EXPERIMENTS.md`（实验登记，如适用）＋ `report/`（文献与报告）。
+> **不再建方法级 `docs/` 子目录**（工程规范统一收敛到根 `docs/`；`generate_project/docs/` 宏观 4 份与 `machine_learning/docs/` 00-05 已归档）。
 
 ---
 
@@ -87,14 +89,14 @@
 | `generate_project/deep_learning/Fundus-Diffusion/ddpm/prep_conditions.py` | 血管骨架提取脚本 |
 
 ### 模型 checkpoint（可评估的 6 个）
-| 模型 | 人工分 | 六维分 | checkpoint 路径 |
+| 模型 | 人工分 | 六维分（11 模型现版） | checkpoint 路径 |
 |------|:--:|:--:|------|
-| FiLM+L1+LPIPS（最佳） | 87.5 | 72.9 | `ddpm/results_film_l1lpips/models/final_model.pth` |
-| FiLM DDPM MSE | 85 | 44.0 | `ddpm/results_film/models/final_model.pth` |
-| 条件扩散 | 70 | 44.0 | `ddpm/results_cond/models/final_model.pth` |
-| 基础 DDPM（去 CJ） | 75 | 44.2 | `ddpm/results_去掉ColorJitter版/models/final_model.pth` |
-| DCGAN | 20 | 7.0 | `Fundus-GAN/dcgan/results_220726_020708/models/checkpoint_epoch_001500.pth` |
-| VAE Large 800 | 10 | 25.7 | `Fundus-VAE/results/vanilla_vae_large_210726_212102/models/final_model.pth` |
+| FiLM+L1+LPIPS（最佳深度） | 87.5 | 45.2 | `ddpm/results_film_l1lpips/models/final_model.pth` |
+| FiLM DDPM MSE | 85 | 37.2 | `ddpm/results_film/models/final_model.pth` |
+| 条件扩散 | 70 | 35.0 | `ddpm/results_cond/models/final_model.pth` |
+| 基础 DDPM（去 CJ） | 75 | 34.5 | `ddpm/results_去掉ColorJitter版/models/final_model.pth` |
+| DCGAN | 20 | 12.9 | `Fundus-GAN/dcgan/results_220726_020708/models/checkpoint_epoch_001500.pth` |
+| VAE Large 800 | 10 | 26.6 | `Fundus-VAE/results/vanilla_vae_large_210726_212102/models/final_model.pth` |
 
 > ⚠️ 两套分数定义见 [14-Paper-Spine.md](14-Paper-Spine.md) 口径表 #2，不可混排。
 > WGAN-GP / StyleGAN2 / VAE 1200 无 checkpoint（用户确认跳过）。
@@ -117,7 +119,7 @@
 
 ## 四、更新约定
 
-- **数字**：只在 EXPERIMENTS.md / 06-Records / eval_data JSON / human_scores.csv 维护，其他文档引用不复制
+- **数字**：只在两份 EXPERIMENTS.md / eval_data JSON / human_scores.csv 维护，其他文档引用不复制
 - **每轮工作结束**：更新 `research-report/CONTINUE_GUIDE_NEW.md`（版本号 + 日期 + 当前位置）
 - **doc 增删**：同步更新本文件「文档地图」；**路径变动**：同步「关键路径索引」
 - **口径**：拿不准的口径查 [14-Paper-Spine.md](14-Paper-Spine.md) 第三节；新口径先入表再使用

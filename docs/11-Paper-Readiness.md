@@ -151,8 +151,7 @@
 **这些是"现在花 10 分钟，后期省 10 小时"的事：**
 
 1. **实验登记要连续**——每跑一个实验，当场记：编号、超参、命令、结果、结论。
-   现有 `machine_learning/docs/06-Records.md` 是模板，但深度学习侧没有对应登记表。
-   **→ 建议补一份 `generate_project/deep_learning/EXPERIMENTS.md`**
+   （2026-10-16 后记：两侧均已落地——`deep_learning/EXPERIMENTS.md`（DL-EX）与 `machine_learning/EXPERIMENTS.md`（EX，原 06-Records））
 
 2. **图从生成的那一刻就按论文规格出**——
    - 分辨率 ≥ 300 DPI（现有 522×522 的拼贴图不能投稿）

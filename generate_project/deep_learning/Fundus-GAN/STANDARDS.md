@@ -13,7 +13,7 @@
 - `stylegan2/` — StyleGAN2-ADA（NVIDIA SOTA，适合小数据集）
 
 ## 统一 CLI
-遵循 `docs/03-Development-Standards.md` 定义的 CLI 规范。
+CLI 以各脚本 `--help` 与根目录 `docs/08-Work-Guide.md` 的实际命令为准（原 `docs/03-Development-Standards.md` 已归档）。
 
 ## GAN 特有参数（通用）
 | 参数 | 类型 | 默认值 | 说明 |

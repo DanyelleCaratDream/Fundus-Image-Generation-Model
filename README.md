@@ -35,7 +35,7 @@
 | 尺度 | 范围 | 说明 |
 |:--|:--|:--|
 | 人工分（human score） | 单人目测校准 | film_l1lpips 87.5 / film 85 / base_cj 75 / cond 70 / dcgan 20 / vae 10（`eval/human_scores.csv`，N=6 局限） |
-| 六维门控总分（gated composite） | 11 模型可比 | film_l1lpips 72.9 / base_cj 44.2 / cond 44.0 / film 44.0 / vae 25.7 / dcgan 7.0（`eval_data/_scores.json`） |
+| 六维门控总分（gated composite） | 11 模型可比（现版） | poisson 80.8 / retinex 72.5 / film_l1lpips **45.2** / film 37.2 / cond 35.0 / base_cj 34.5 / vae 26.6 / dcgan 12.9（`eval_data/_scores.json`；⚠️ min-max 相对分，模型库扩大会整体平移） |
 
 ---
 
@@ -70,7 +70,7 @@ AI_Model_Project_for_Fundus_Color_Images/
 | 文档总索引 | [docs/00-Doc-Index.md](docs/00-Doc-Index.md) |
 | 论文主张与口径（写作宪法） | [docs/14-Paper-Spine.md](docs/14-Paper-Spine.md) |
 | 数据集与数据卫生 | [docs/15-Data-Documentation.md](docs/15-Data-Documentation.md) |
-| 实验数字 | [EXPERIMENTS.md](generate_project/deep_learning/EXPERIMENTS.md)（深度）＋ `machine_learning/docs/06-Records.md`（传统） |
+| 实验数字 | [EXPERIMENTS.md](generate_project/deep_learning/EXPERIMENTS.md)（深度）＋ [EXPERIMENTS.md](generate_project/machine_learning/EXPERIMENTS.md)（传统） |
 | 当前任务位置 | [research-report/CONTINUE_GUIDE_NEW.md](research-report/CONTINUE_GUIDE_NEW.md) |
 | 常用命令与坑 | [docs/08-Work-Guide.md](docs/08-Work-Guide.md) |
 | 文献定位（哪些贡献已被做过） | [docs/12-Literature-Survey-and-Positioning.md](docs/12-Literature-Survey-and-Positioning.md) |
