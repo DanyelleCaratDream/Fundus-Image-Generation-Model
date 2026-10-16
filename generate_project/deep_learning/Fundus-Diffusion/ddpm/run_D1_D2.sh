@@ -54,7 +54,7 @@ python -X utf8 train.py --dataset_path "$DS" --cond_path "$CD" \
     --img_size 256 --base_dim 64 --batch_size 2 \
     --dim_mults 1 2 3 4 --attn_layers 2 \
     --epochs 500 --use_lpips --lpips_weight 0.1 --color_weight 0.01 \
-    --ema_decay 0.9999 --use_scale_shift_norm --cool_sleep -0.5 \
+    --ema_decay 0.9999 --use_scale_shift_norm --cool_sleep -1.0 \
     --model_save_interval 50 --image_save_interval 25 \
     --preview_grid_size 4 --num_workers 0 --seed 42 > /tmp/D1.log 2>&1
 log "D1 训练结束"
@@ -62,7 +62,8 @@ eval_raw results_D1_combined239_bd64/models/final_model.pth 64 D1
 
 # ==================== D2：base_dim=128 ====================
 log "D2：193张 @256, base_dim=128, batch=2, 300轮（会溢出显存，慢）"
-# cool_sleep -0.75（2026-10-16 用户温度约束 ≤70°C：D2 比 D1 重，D1 沿用有据可依的 -0.5；
+# cool_sleep -1.25（2026-10-17 00:13 早停调整：首启 -0.5 于 00:10-00:12 持续爬到 73°C，
+# 越过用户 ≤70°C 约束，按预案早停重启；D1 提到 -1.0（训1歇1），D2 更重故再 +0.25；
 # 该参数只影响每轮后的休眠时长，不影响任何训练数学/结果）
 rm -rf results_D2_combined239_bd128
 python -X utf8 train.py --dataset_path "$DS" --cond_path "$CD" \

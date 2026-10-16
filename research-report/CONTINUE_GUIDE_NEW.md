@@ -2,7 +2,7 @@
 
 > **⚠️ 反失步纪律（2026-10-16 起）**：本文件只记「**当前位置 + 下一步 + 既定纪律**」。
 > **所有实验数字一律以 `generate_project/deep_learning/EXPERIMENTS.md`（DL-EX-xxx）和 `generate_project/machine_learning/EXPERIMENTS.md`（EX-xxx）为唯一来源**，本文件不复制数字。每轮工作结束更新本文件的日期、版本与「当前位置」。
-> **当前任务（2026-10-17 凌晨）**：① 文档体系论文向重整 ✅（README/docs/14 脊柱/docs/15 数据文档/方法目录收敛/口径校准至 11 模型现版）；② **D1/D2 🏃 运行中**（23:57 启动独立进程 `run_D1_D2.sh`；D1=193张@256 bd64 500轮 cool_sleep -0.5，D2=bd128 300轮 **-0.75**；用户温度约束 **GPU ≤70°C**，看门狗留证 `D:/tmp/gpu_temp_D1D2.log`；判定照预注册：只看 --use_raw 出图）。
+> **当前任务（2026-10-17 凌晨）**：① 文档体系论文向重整 ✅（README/docs/14 脊柱/docs/15 数据文档/方法目录收敛/口径校准至 11 模型现版）；② **D1/D2 🏃 运行中**（00:25 加冷重启，D1=193张@256 bd64 500轮 cool_sleep **-1.0**，D2=bd128 300轮 **-1.25**；首启 -0.5 因温度爬到 73°C 越过用户 ≤70°C 约束早停，事件全记录在 EXPERIMENTS.md DL-EX-019 执行记录；看门狗 `D:/tmp/gpu_temp_D1D2.log`，保险丝 ≥78°C×3min 自动断电留旗标；判定照预注册：只看 --use_raw 出图）。
 
 ---
 
@@ -27,8 +27,8 @@
 
 ## 二、下一步（依序）
 
-1. **启动 D1/D2**（等用户下令）：`bash run_D1_D2.sh`（在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/`，自动等 GPU，D1 ~4-5h + D2 ~5-6h，D2 显存溢出会慢）
-2. 出图判定 → 填 EXPERIMENTS.md DL-EX-019/020 → **定正式生成路线**（combined 模型 vs B 微调 vs 预训练+LoRA [报告 07]）
+1. ~~启动 D1/D2~~（🏃 2026-10-17 00:25 运行中，独立进程，会话关闭不影响）
+2. **训练完成后**：`nvidia-smi -rgc` 无需执行（时钟未锁成功）；检查保险丝旗标 `D:/tmp/D1D2_FUSE_TRIPPED.txt` 是否存在（存在 = 曾失控断电，看 D1.log 判进度）；出图判定 → 填 EXPERIMENTS.md DL-EX-019/020 → **定正式生成路线**（combined 模型 vs B 微调 vs 预训练+LoRA [报告 07]）
 3. 正式生成替换图（256px，300 DPI 论文规格同步出图，手工挑图并注明筛选事实）→ 老师审核 → 替换 76 张
 4. 专家盲评（docs/13 协议；评分表模板未做）
 5. TSTR：扩充数据集训分类器 vs 基线 QWK 0.747@256
