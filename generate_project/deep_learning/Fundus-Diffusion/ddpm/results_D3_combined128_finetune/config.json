@@ -1,0 +1,39 @@
+{
+  "epochs": 1100,
+  "batch_size": 2,
+  "lr": 0.0001,
+  "img_size": 128,
+  "channels": 3,
+  "timesteps": 1000,
+  "beta_start": 0.0001,
+  "beta_end": 0.02,
+  "base_dim": 128,
+  "dim_mults": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "attn_layers": [
+    2
+  ],
+  "dropout": 0.1,
+  "ema_decay": 0.9999,
+  "use_scale_shift_norm": true,
+  "no_scale_shift_norm": false,
+  "model_save_interval": 50,
+  "image_save_interval": 25,
+  "preview_grid_size": 4,
+  "output_dir": "./results_D3_combined128_finetune",
+  "dataset_path": "../../../../fundus/combined_sq128",
+  "cool_sleep": -0.5,
+  "num_workers": 0,
+  "seed": 42,
+  "no_cuda": false,
+  "resume": "./results_film_l1lpips/models/final_model.pth",
+  "color_weight": 0.01,
+  "use_lpips": true,
+  "lpips_weight": 0.1,
+  "loss_type": "l1",
+  "cond_path": "./conditions_combined_128"
+}
