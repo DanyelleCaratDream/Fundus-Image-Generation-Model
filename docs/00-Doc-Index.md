@@ -1,7 +1,7 @@
 # 工程文档导航 + 文件路径索引
 
 > 这是项目的「文档地图」。新会话（或新成员）先读本文件定位所有关键文档与路径。
-> 更新日期：2026-10-16（v3：补 11-15 号文档 + 路径全面核对；2026-10-16 文档体系已按**论文第一**重整，见 [14-Paper-Spine](14-Paper-Spine.md)）
+> 更新日期：2026-10-17（v3.1：登记论文草稿区 `paper/`；v3：补 11-15 号文档 + 路径全面核对；2026-10-16 文档体系已按**论文第一**重整，见 [14-Paper-Spine](14-Paper-Spine.md)）
 
 ---
 
@@ -52,6 +52,17 @@
 | `evaluation_report.md` / `.docx` | 评估报告 + 评分标准调研合并版（Phase A 结果 + Phase B 结论） |
 | `interview-prep.docx` | 面试/答辩追问准备（Q1-Q14） |
 | `figures/` | 报告嵌入结果图（`eval/plot_metrics.py` + `score_scheme.py --scorecard` 生成） |
+| `REPORT_DL_text.txt` | REPORT_DL.docx 纯文本提取版（2026-10-17 入库备份，论文写作引用源；**停更于 2026-08-02**，D1–D4 与数据卫生不在此文件，须引 EXPERIMENTS.md/docs/15） |
+
+### paper/（论文正文草稿区，2026-10-17 新建）
+
+| 文件 | 说明 |
+|------|------|
+| `paper/README.md` | 写作约定（数字三点头、分数标尺度、占位语法、引用红线） |
+| `paper/outline.md` | ⭐ 全书节级大纲（单一真源）+ 占位清单 |
+| `paper/abstract.md` + `paper/ch1…ch7` | 各章草稿（首批：失效机理链章节组 3.3/3.4/4.1/4.3/5.1–5.6/6.1/6.2） |
+| `paper/refs-notes.md` | 引用便签（.bib 建库前暂存，R1–R6） |
+| `paper/figures/` | 图规格约定（≥300 DPI、(a)(b)(c) 标号）+ 占位清单 |
 
 ### 其他入口
 
