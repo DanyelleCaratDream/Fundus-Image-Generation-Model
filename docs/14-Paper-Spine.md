@@ -93,6 +93,9 @@
 | 下游验证 | downstream validation |
 | 消融实验 | ablation study |
 | 专家盲评 | blinded expert evaluation |
+| 判别器记忆 | discriminator memorization |
+| 数据卫生 | data hygiene |
+| 通道塌缩 | channel collapse |
 
 ---
 

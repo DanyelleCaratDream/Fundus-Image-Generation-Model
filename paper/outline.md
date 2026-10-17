@@ -24,7 +24,7 @@
   写法约束：**本节只讲设计动机，不带结果数字**（结果在 5.4，前向指针"见 5.4"）。
 - **3.4 两层评估指标与六维门控评分 — `drafted`（骨架，2026-10-17）**
   主张：通用分布层 + 眼底语义层两层设计，动机是防通用指标盲区；六维门控把"低层代理可被博弈"的维度乘上"整体像真实"的门。
-  证据：`eval/metrics_common.py`、`metrics_fundus.py`、`score_scheme.py`（SCHEME 权重）、docs/09；门控前后 VAE 57.9→25.7 实例。
+  证据：`eval/metrics_common.py`、`metrics_fundus.py`、`score_scheme.py`（SCHEME 权重）、docs/09；门控前后 VAE 57.9→26.6 实例。
 
 ## 4. Experimental Setup
 - **4.1 数据来源与数据卫生 — `drafted`（2026-10-17）**
@@ -41,13 +41,13 @@
   一图一表串六环（VAE→GAN→MSE 溶解→L1+LPIPS 修复→数据量假说→单变量纪律），每环带证据编号。图 1 占位。
 - **5.2 VAE：模糊天花板（blur ceiling）— `drafted`（2026-10-17）**
   主张：像素级 MSE 重建在小样本下模糊是天性，加容量/轮数不可逃逸（800 vs 1200 轮肉眼无差，EX-001/002/003）。
-  证据：REPORT_DL_text §3.2（行 294-353"平均脸"）、§3.4-3.6；`vae_metrics.json`（FID 188.4 但 C2ST AUC 0.9992 = 颜色假象秒识破）；`vae_fundus_metrics.json`（hemo_retention 0.6997）；DL-EX-001/002/003；门控 57.9→25.7。
+  证据：REPORT_DL_text §3.2（行 294-353"平均脸"）、§3.4-3.6；`vae_metrics.json`（FID 188.4 但 C2ST AUC 0.9992 = 颜色假象秒识破）；`vae_fundus_metrics.json`（hemo_retention 0.6997）；DL-EX-001/002/003；门控 57.9→26.6。
 - **5.3 GAN：判别器记忆（discriminator memorization）— `drafted`（2026-10-17）**
   主张：三变体同根因——330 张图判上千遍，判别器背题后梯度消失或 Critic 分数爆炸。
   证据：REPORT_DL_text §4.2-4.12、§4.10 三行根因表（行 502-516）；DL-EX-005（FID 229.8）/006（2 轮 D −398.89 爆炸）/007/008；`dcgan_fundus_metrics.json`（hemo_retention 0.0、C2ST 1.0）；口径 #4（DCGAN 1500 轮，"800"是笔误）。
 - **5.4 MSE 病灶溶解：受控消融（lesion dissolution）— `drafted`（2026-10-17，核心先写）**
-  主张：MSE 损失下出血保留率 0.254（丢 76%），换 L1+LPIPS 恢复 1.137（4.5×）；Palette 异架构复现同现象 → 归因损失而非架构。
-  证据：REPORT_DL_text §5.9.4（行 842-853，epoch 220/500/800 细节先好后差）、§5.9.5-5.9.6（Palette 同效应 + 推理无效）、§6.3（行 951）；DL-EX-011/012/013 vs 014；`film_fundus_metrics.json`（0.2539、C2ST 0.9892）vs `film_l1lpips_fundus_metrics.json`（1.1368、C2ST 0.9146 全场最低）。
+  主张：MSE 损失下出血保留率 0.254（丢约 75%），换 L1+LPIPS 恢复 1.137（4.5×）；Palette 异架构复现同现象 → 归因损失而非架构。
+  证据：REPORT_DL_text §5.9.4（行 842-853，epoch 220/500/800 细节先好后差）、§5.9.5-5.9.6（Palette 同效应 + 推理无效）、§6.3（行 951）；DL-EX-011/012/013 vs 014；`film_fundus_metrics.json`（0.2539、C2ST 0.9892）vs `film_l1lpips_fundus_metrics.json`（1.1368、C2ST 0.9146 深度方法中最低）。
 - **5.5 L1+LPIPS 修复效果与双尺度评分 — `drafted`（2026-10-17）**
   主张：出血保留率 4.5× 恢复 + FID 178.8（vs MSE 版 200.2）；人工分 87.5（human）与门控分 45.2（gated）并存 → 相对分语义引出 6.2。
   证据：REPORT_DL_text §5.10.2（行 899-913）；`eval/human_scores.csv`（87.5，单人 N=6）；`eval_data/_scores.json`（45.2，v1）；纪律 #6（干净样本率 25-30%，展示图注明筛选）；白点伪影/边缘噪点如实写（行 911-912）。
