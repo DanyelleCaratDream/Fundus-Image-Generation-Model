@@ -620,6 +620,21 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
   交付量账：替换 76 张，按 D3+SDEdit 实测约 25% 干净率 → 生成 300+ 张再筛，量非瓶颈、质量与筛选是。
 - **待办（B1 后续）**：①F1/F2/F3 按作者排期执行；②C（D3_ema 迁移改良）/D（病灶移植，与老师讨论）
   仍在菜单；③评估管线接入（60 张/DDIM50/六维门控）待作者下令。
+- **执行记录 14（2026-10-21 夜，F1 完成 + F2 启动，作者睡前授权连续跑）**：
+  **F1（SR 交付管线）✅**：Real-ESRGAN x4plus 权重（RRDBNet 23 blocks，64 特征，64MB，
+  经 hf-mirror 下载至 `D:\tmp\sr_weights\`）→ 自实现 RRDBNet（`f1_sr_deliver.py`，权重
+  missing=0/unexpected=0）→ D3 原图与 SDEdit t0=200 各 8 张：128 → x4(512) → LANCZOS 256。
+  产出 `judgment_20261020/D3_sr/{orig_256,t00200_256,orig_bicubic,t00200_bicubic}/` 与
+  `f1_sr_compare.png`（5 行：真实 / 原图双三次 / 原图+SR / SDEdit 双三次 / SDEdit+SR）。
+  **锐度代理（Laplacian var，仅记录不作排序依据，见 DL-EX-024）**：原图 SR 0.00231 < 双三次
+  0.00314；SDEdit SR 0.00292 > 双三次 0.00092（3.2×）——SR 对原本更糊的 SDEdit 输出增益明确，
+  对原图可能以去伪影为主。**待作者目检 f1_sr_compare.png 裁决。**
+  **F2（CFM 同配方）🚀 启动**：`train.py --objective cfm`，其余逐项复刻 D3
+  （resume=film_l1lpips final/epoch780、combined_sq128、conditions_combined_128、
+  L1+LPIPS0.1+color0.01、bd128、batch2、1100ep、seed42、cool_sleep -0.5、
+  image_save_interval 25）。启动确认：CFM 分支日志"训练目标: CFM（速度场 v=x1-x0，Euler 采样）"、
+  EMA/优化器状态加载、epoch 780 续训；实测 58–62s/轮，预计约 5.3h（凌晨完成）。
+  产物 `results_cfm_l1lpips/`（config.json/logs/images/models），与 D3 同槽对比待出图。
 
 ---
 
