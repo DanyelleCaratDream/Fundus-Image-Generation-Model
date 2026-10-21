@@ -1,21 +1,21 @@
 """
-Fundus-Diffusion DDPM 训练脚本
-===============================
-训练 Denoising Diffusion Probabilistic Models 用于眼底彩照生成。
-DDPM 是目前生成质量最高的模型之一，训练稳定，不会模式坍塌。
+Fundus-Diffusion 训练脚本
+=========================
+同一套 FiLM 条件 UNet，两种训练目标（--objective 切换，自动写入 config.json）：
 
-理论简介:
-- 前向过程: 逐步对图像加高斯噪声，直到完全变成随机噪声
-- 反向过程: 训练一个 UNet 预测噪声，从随机噪声逐步去噪还原图像
-- 损失函数: 预测噪声与真实噪声的 L1/MSE（--loss_type 切换，默认 L1——对病灶等异常值更鲁棒）
+- ddpm（默认）：预测噪声 ε，DDPM/DDIM 采样
+- cfm：条件流匹配（Conditional Flow Matching / OT 线性路径）
+      x_t = (1-t)·x_0 + t·x_1，x_0=噪声，x_1=数据，预测速度 v = x_1 - x_0
+      采样用 Euler ODE（NFE 与 DDIM 步数对齐）
+
+损失函数: 主损失 L1/MSE（--loss_type；CFM 作用在速度场上，用于复检「MSE 溶解病灶」）
 
 用法:
     python train.py --epochs 500 --batch_size 16 --img_size 128 \\
         --dataset_path "../../../../fundus/_all_images_ORIGINAL" --output_dir "./results"
 
-采样（训练后）:
-    python generate.py --checkpoint "./results/models/checkpoint_epoch_000500.pth" \\
-        --num_images 64 --output_dir "./results/generated"
+    python train.py --objective cfm --loss_type l1 --use_lpips --lpips_weight 0.1 \\
+        --cond_path ./conditions --epochs 300 --output_dir ./results_cfm_l1lpips
 """
 
 import argparse
@@ -102,7 +102,13 @@ def parse_args():
     parser.add_argument("--lpips_weight", type=float, default=0.1,
                         help="LPIPS 感知损失权重（默认 0.1，仅在 --use_lpips 时生效）")
     parser.add_argument("--loss_type", choices=["l1", "mse"], default="l1",
-                        help="噪声预测主损失：l1（默认，抗病灶溶解）/ mse（原始 DDPM 基线，会溶解病灶）")
+                        help="主损失：l1（默认，抗病灶溶解）/ mse（基线，会溶解病灶）。"
+                             "DDPM 作用在噪声上，CFM 作用在速度场上")
+    parser.add_argument("--objective", choices=["ddpm", "cfm"], default="ddpm",
+                        help="训练目标：ddpm=预测噪声（默认）/ cfm=条件流匹配预测速度场")
+    parser.add_argument("--lpips_t", type=int, default=200,
+                        help="LPIPS/颜色正则只在「靠近干净图」的时间段计算。"
+                             "DDPM：timestep < lpips_t；CFM：t_cont > 1 - lpips_t/timesteps")
     parser.add_argument("--cond_path", type=str, default=None,
                         help="条件图路径（血管骨架等），开启条件扩散训练")
 
@@ -365,6 +371,61 @@ class GaussianDiffusion:
             )
 
         return x_t
+
+    @staticmethod
+    def _broadcast_t(t_cont, x):
+        """把 [B] 的连续时间扩成可与 x 相乘的形状。"""
+        return t_cont.view(-1, *([1] * (x.ndim - 1))).to(dtype=x.dtype)
+
+    def t_cont_to_index(self, t_cont):
+        """连续 t∈[0,1] → 离散 embedding 下标 0..T-1（不改 TimeEmbedding 架构）。"""
+        t_idx = (t_cont * self.timesteps).long()
+        return t_idx.clamp(0, self.timesteps - 1)
+
+    def cfm_path(self, x1, t_cont, noise=None):
+        """
+        OT 线性路径（Lipman/Tong CFM）：
+            x_t = (1-t)·x_0 + t·x_1 ，x_0=噪声，x_1=数据
+            v   = x_1 - x_0
+        t_cont: [B] in [0, 1]
+        """
+        if noise is None:
+            noise = torch.randn_like(x1)
+        t = self._broadcast_t(t_cont, x1)
+        x_t = (1.0 - t) * noise + t * x1
+        v_target = x1 - noise
+        return x_t, v_target, noise
+
+    @staticmethod
+    def cfm_predict_x1(x_t, t_cont, v_pred):
+        """由速度场反推 x_1：x_1 = x_t + (1-t)·v 。供 LPIPS/颜色正则使用。"""
+        t = t_cont.view(-1, *([1] * (x_t.ndim - 1))).to(dtype=x_t.dtype)
+        return x_t + (1.0 - t) * v_pred
+
+    @torch.no_grad()
+    def euler_sample(self, model, shape, device, sampling_steps=50, cond=None):
+        """
+        CFM 欧拉采样：t=0 纯噪声 → t=1 数据，NFE = sampling_steps。
+        评估时与 DDIM 使用相同步数（默认 50），不要拿 1000 步打 50 步。
+        """
+        batch_size = shape[0]
+        x = torch.randn(shape, device=device)
+        dt = 1.0 / sampling_steps
+
+        cond_broadcast = cond
+        if cond is not None and cond.shape[0] != batch_size:
+            cond_broadcast = cond[:1].repeat(batch_size, 1, 1, 1) if cond.shape[0] == 1 else cond
+
+        for i in range(sampling_steps):
+            t_cont = torch.full((batch_size,), i / sampling_steps, device=device)
+            t_idx = self.t_cont_to_index(t_cont)
+            if cond_broadcast is not None:
+                v = model(x, t_idx, cond=cond_broadcast)
+            else:
+                v = model(x, t_idx)
+            x = x + v * dt
+
+        return x.clamp(-1.0, 1.0)
 
 
 # ============================================================
@@ -746,6 +807,8 @@ def print_banner(args, device, dataset_len, cond_channels=0):
     print(f"  训练轮数:      {args.epochs}")
     print(f"  学习率:        {args.lr}")
     print(f"  扩散步数:      {args.timesteps}")
+    print(f"  训练目标:      {getattr(args, 'objective', 'ddpm').upper()}"
+          f"{'（速度场 v=x1-x0，Euler 采样）' if getattr(args, 'objective', 'ddpm') == 'cfm' else '（预测噪声，DDPM/DDIM）'}")
     print(f"  UNet 基础通道: {args.base_dim}")
     print(f"  UNet 通道倍数: {args.dim_mults}")
     print(f"  注意力层:     {args.attn_layers}")
@@ -978,51 +1041,59 @@ def main():
                         cond_batch = torch.stack(cond_batch)
                     cond = cond_batch.to(device, non_blocking=True)
 
-                # 随机采样时间步
-                t = torch.randint(0, args.timesteps, (batch,), device=device, dtype=torch.long)
+                is_cfm = getattr(args, "objective", "ddpm") == "cfm"
+                lpips_t = getattr(args, "lpips_t", 200)
 
-                # 前向加噪
-                noisy_images, noise = diffusion.q_sample(real_data, t)
-
-                # 预测噪声（条件模式下传入 cond）
-                if cond is not None:
-                    predicted_noise = model(noisy_images, t, cond=cond)
+                if is_cfm:
+                    t_cont = torch.rand(batch, device=device)
+                    t = diffusion.t_cont_to_index(t_cont)
+                    x_t, v_target, _noise = diffusion.cfm_path(real_data, t_cont)
+                    predicted = model(x_t, t, cond=cond) if cond is not None else model(x_t, t)
+                    if args.loss_type == "mse":
+                        loss = F.mse_loss(predicted, v_target)
+                    else:
+                        loss = F.l1_loss(predicted, v_target)
+                    # CFM：t→1 靠近数据，对应 DDPM 的低噪声段
+                    low_noise_mask = t_cont > (1.0 - float(lpips_t) / args.timesteps)
+                    if low_noise_mask.any():
+                        x1_pred = diffusion.cfm_predict_x1(
+                            x_t[low_noise_mask], t_cont[low_noise_mask], predicted[low_noise_mask]
+                        ).clamp(-1.0, 1.0)
+                        pred_mean = x1_pred.mean(dim=[0, 2, 3])
+                        loss = loss + args.color_weight * F.mse_loss(pred_mean, target_mean)
+                        if lpips_fn is not None:
+                            lpips_val = lpips_fn(x1_pred, real_data[low_noise_mask], normalize=True).mean()
+                            loss = loss + args.lpips_weight * lpips_val
                 else:
-                    predicted_noise = model(noisy_images, t)
+                    t = torch.randint(0, args.timesteps, (batch,), device=device, dtype=torch.long)
+                    noisy_images, noise = diffusion.q_sample(real_data, t)
+                    predicted = model(noisy_images, t, cond=cond) if cond is not None else model(noisy_images, t)
+                    if args.loss_type == "mse":
+                        loss = F.mse_loss(predicted, noise)
+                    else:
+                        loss = F.l1_loss(predicted, noise)
 
-                # 噪声预测主损失：L1（默认 — 对病灶等异常值更鲁棒，缓解"溶解"效应）或 MSE（原始 DDPM 基线）
-                if args.loss_type == "mse":
-                    loss = F.mse_loss(predicted_noise, noise)
-                else:
-                    loss = F.l1_loss(predicted_noise, noise)
+                    # 颜色正则化 + LPIPS：只在低噪声 timestep 上约束
+                    low_noise_mask = t < lpips_t
+                    if low_noise_mask.any():
+                        t_low = t[low_noise_mask]
+                        x_t_low = noisy_images[low_noise_mask]
+                        pred_noise_low = predicted[low_noise_mask]
 
-                # 颜色正则化 + LPIPS：只在低噪声 timestep 上约束
-                # t 越小，噪声越少，反推的 x_0 越可靠
-                low_noise_mask = t < 200
-                if low_noise_mask.any():
-                    t_low = t[low_noise_mask]
-                    x_t_low = noisy_images[low_noise_mask]
-                    pred_noise_low = predicted_noise[low_noise_mask]
+                        sqrt_alpha = extract(diffusion.sqrt_alphas_cumprod, t_low, x_t_low.shape)
+                        sqrt_one_minus = extract(diffusion.sqrt_one_minus_alphas_cumprod, t_low, x_t_low.shape)
 
-                    sqrt_alpha = extract(diffusion.sqrt_alphas_cumprod, t_low, x_t_low.shape)
-                    sqrt_one_minus = extract(diffusion.sqrt_one_minus_alphas_cumprod, t_low, x_t_low.shape)
+                        x_0_pred = (x_t_low - sqrt_one_minus * pred_noise_low) / sqrt_alpha
+                        x_0_pred = torch.clamp(x_0_pred, -1.0, 1.0)
 
-                    # 从噪声预测反推原始图估计
-                    x_0_pred = (x_t_low - sqrt_one_minus * pred_noise_low) / sqrt_alpha
-                    x_0_pred = torch.clamp(x_0_pred, -1.0, 1.0)
+                        pred_mean = x_0_pred.mean(dim=[0, 2, 3])
+                        color_loss = F.mse_loss(pred_mean, target_mean)
+                        loss = loss + args.color_weight * color_loss
 
-                    # 计算这批预测图的 RGB 均值与目标均值的差距
-                    pred_mean = x_0_pred.mean(dim=[0, 2, 3])
-                    color_loss = F.mse_loss(pred_mean, target_mean)
-
-                    # 颜色正则权重（小权重，不干扰主任务）
-                    loss = loss + args.color_weight * color_loss
-
-                    # LPIPS 感知损失：在像素空间衡量"看起来像不像"
-                    if lpips_fn is not None:
-                        real_low = real_data[low_noise_mask]
-                        lpips_val = lpips_fn(x_0_pred, real_low, normalize=True).mean()
-                        loss = loss + args.lpips_weight * lpips_val
+                        if lpips_fn is not None:
+                            real_low = real_data[low_noise_mask]
+                            lpips_val = lpips_fn(x_0_pred, real_low, normalize=True).mean()
+                            loss = loss + args.lpips_weight * lpips_val
 
                 loss.backward()
 
@@ -1073,23 +1144,28 @@ def main():
                 model.eval()
                 # 切换到 EMA 权重
                 ema.apply_shadow(model)
-                print(f"  [GEN] 正在生成预览图 (DDIM, 100步, EMA)...", flush=True)
+                is_cfm = getattr(args, "objective", "ddpm") == "cfm"
+                preview_steps = 50 if is_cfm else 100
+                preview_name = f"{'Euler' if is_cfm else 'DDIM'}, {preview_steps}步, EMA"
+                print(f"  [GEN] 正在生成预览图 ({preview_name})...", flush=True)
                 with torch.no_grad():
-                    sample_shape = (args.preview_grid_size ** 2, args.channels, args.img_size, args.img_size)
                     all_samples = []
                     sample_batch = min(4, args.preview_grid_size ** 2)
                     n_batches = (args.preview_grid_size ** 2 + sample_batch - 1) // sample_batch
                     for i in range(n_batches):
                         bs = min(sample_batch, args.preview_grid_size ** 2 - i * sample_batch)
                         shape = (bs, args.channels, args.img_size, args.img_size)
-                        # 条件采样
                         cond_i = None
                         if fixed_cond is not None:
                             start_idx = i * sample_batch
                             end_idx = min(start_idx + bs, fixed_cond.shape[0])
                             cond_i = fixed_cond[start_idx:end_idx]
-                        samples = diffusion.ddim_sample(model, shape, device, sampling_steps=100,
-                                                        cond=cond_i)
+                        if is_cfm:
+                            samples = diffusion.euler_sample(
+                                model, shape, device, sampling_steps=preview_steps, cond=cond_i)
+                        else:
+                            samples = diffusion.ddim_sample(
+                                model, shape, device, sampling_steps=preview_steps, cond=cond_i)
                         all_samples.append(samples.cpu())
                     samples = torch.cat(all_samples, dim=0)
 

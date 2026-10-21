@@ -58,10 +58,14 @@ def parse_args():
     parser.add_argument("--no_cuda", action="store_true", help="强制CPU")
 
     # 采样参数
-    parser.add_argument("--sampler", type=str, default="ddim", choices=["ddpm", "ddim"],
-                        help="采样方式: ddpm=高质量慢速, ddim=快速")
+    parser.add_argument("--sampler", type=str, default="auto",
+                        choices=["auto", "ddpm", "ddim", "euler"],
+                        help="采样方式: auto=按 checkpoint 的 objective 选择（cfm→euler，否则 ddim）；"
+                             "ddpm=高质量慢速; ddim=快速; euler=CFM 欧拉 ODE")
     parser.add_argument("--sampling_steps", type=int, default=50,
-                        help="DDIM 采样步数（越小越快，建议 20-100）")
+                        help="DDIM/Euler 采样步数（NFE 对齐口径：两边用同一数字，默认 50）")
+    parser.add_argument("--objective", type=str, default=None, choices=["ddpm", "cfm"],
+                        help="覆盖 checkpoint 里的训练目标（默认自动读取）")
     parser.add_argument("--eta", type=float, default=0.0,
                         help="DDIM 随机性 (0=确定性, >0=有随机性)")
 
@@ -209,7 +213,21 @@ def main():
         else:
             checkpoint = _remap_legacy(checkpoint)
 
+    objective = args.objective
+    if objective is None and ckpt_args is not None:
+        objective = getattr(ckpt_args, "objective", "ddpm")
+    if objective is None:
+        objective = "ddpm"
+
+    sampler = args.sampler
+    if sampler == "auto":
+        sampler = "euler" if objective == "cfm" else "ddim"
+    elif objective == "cfm" and sampler in ("ddpm", "ddim"):
+        print(f"[WARN] CFM checkpoint 配 {sampler.upper()} 无意义，自动改为 Euler")
+        sampler = "euler"
+
     print(f"[INFO] 模型架构: FiLM 调制 = {'启用' if use_ssn else '禁用'}")
+    print(f"[INFO] 训练目标: {objective.upper()}  |  采样: {sampler.upper()} × {args.sampling_steps} NFE")
 
     # 加载模型（支持条件扩散 + FiLM）
     model = UNet(
