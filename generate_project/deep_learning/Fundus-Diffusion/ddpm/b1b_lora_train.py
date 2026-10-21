@@ -55,11 +55,14 @@ def cool_wait(limit, verbose=True):
 
 
 class SevereSet(Dataset):
-    def __init__(self, root, size=512):
+    def __init__(self, root, size=512, rot=0):
         self.files = sorted(Path(root).glob("*.jpg"))
         assert self.files, f"no images in {root}"
-        self.tf = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
+        pre = [transforms.RandomHorizontalFlip(), transforms.RandomVerticalFlip()]
+        if rot > 0:
+            # 整图才有黑边可填；patch 数据旋转会造出假黑角，传 0 关掉
+            pre.append(transforms.RandomRotation(rot))
+        self.tf = transforms.Compose(pre + [
             transforms.Resize(size, interpolation=transforms.InterpolationMode.LANCZOS),
             transforms.CenterCrop(size),
             transforms.ToTensor(),
@@ -86,11 +89,16 @@ def main():
     ap.add_argument("--temp_limit", type=int, default=70)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--resume", default=None)
+    ap.add_argument("--data", default=None, help="覆盖默认数据目录 b1b_data/severe512")
+    ap.add_argument("--out", default=None, help="覆盖默认输出目录 b1b_lora")
+    ap.add_argument("--rot", type=int, default=0, help="随机旋转角度上限（度）；patch 数据传 0")
     a = ap.parse_args()
 
     torch.manual_seed(a.seed)
     device = "cuda"
-    OUT.mkdir(parents=True, exist_ok=True)
+    data_dir = Path(a.data) if a.data else DATA
+    out_dir = Path(a.out) if a.out else OUT
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     print("[load] components", flush=True)
     tokenizer = CLIPTokenizer.from_pretrained(str(BASE / "tokenizer"))
@@ -112,9 +120,9 @@ def main():
     trainable = [p for p in unet.parameters() if p.requires_grad]
     print(f"[lora] rank={a.rank} alpha={a.alpha} trainable={sum(p.numel() for p in trainable)/1e6:.2f}M", flush=True)
 
-    ds = SevereSet(DATA)
+    ds = SevereSet(data_dir, rot=a.rot)
     dl = DataLoader(ds, batch_size=a.batch, shuffle=True, num_workers=0, drop_last=True)
-    print(f"[data] {len(ds)} images, {len(dl)} steps/epoch", flush=True)
+    print(f"[data] {data_dir.name}: {len(ds)} images, {len(dl)} steps/epoch", flush=True)
 
     # 文本编码一次即可（固定 prompt）
     tok = tokenizer(PROMPT, padding="max_length", max_length=tokenizer.model_max_length,
@@ -173,7 +181,7 @@ def main():
             if step % a.save_every == 0 or step == a.steps:
                 from safetensors.torch import save_file
                 sd = {k: v.detach().clone() for k, v in unet.state_dict().items() if "lora" in k}
-                fp = OUT / f"lora_step_{step:05d}.safetensors"
+                fp = out_dir / f"lora_step_{step:05d}.safetensors"
                 save_file(sd, str(fp))
                 print(f"[save] {fp.name} ({len(sd)} tensors)", flush=True)
 
