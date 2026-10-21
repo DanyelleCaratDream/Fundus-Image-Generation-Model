@@ -1,0 +1,6 @@
+# 外部仓库：体积大、上游持续变动，按 code/README.md 的表重克隆即可
+code/external/
+
+# 训练产物：权重沿用根目录 *.pth/*.safetensors 忽略约定；结果目录只留 JSON/图
+results/*/models/
+results/*/logs/
