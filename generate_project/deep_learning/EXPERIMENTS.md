@@ -390,6 +390,174 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
 
 ---
 
+## DL-EX-025：B1——SD2.1 + LoRA + 血管 ControlNet（2026-10-19 预注册，作者拍板"转 B1"）
+
+- **动机**：D3/D4 裁决 + DL-EX-024 确认——本地数据（193 张）信息量到头，细节混乱（血管拓扑/纹理）无法靠轮数/损失修复
+  （6.1 论证）。B1 引入**外来信息量**：SD 在数十亿自然图上学过的纹理/结构先验 + 血管 ControlNet 锁结构。
+  方法清单 literature/methods-quality-upgrade.md B1；报告 07 §1.1/1.4/2.1 已核验可行性（LoRA 训练 6GB 起 / ControlNet 推理 6GB 起 / SDXL 紧 / FLUX 不可行）。
+- **底座**：SD 2.1-base（KylianSu 套件同底座）＋现成眼底组件 [KylianSu/vessel-bezier-retinal-weights](https://huggingface.co/KylianSu/vessel-bezier-retinal-weights)：
+  sd21_lora_fundus_v2（rank64, noise_offset=0.1, ~51MB）+ G2/G3 血管 ControlNet + restore 脚本。
+  ⚠️ 该套件是**论文复现套件非即插即用**（要 base + restore 脚本适配）；许可 TBD（**联系作者确认，登记待办**）。
+- **分两阶段（先零训练后训练）**：
+  - **B1a（零训练推理验证，先做）**：下载 SD2.1-base（~5GB，走 hf-mirror.com，HF 直连可能超时——openaipublic 教训）
+    + 套件组件 → 用**我们的血管 mask**（conditions_combined_128，192 张现成）作 ControlNet hint +
+    DR 病灶文本 prompt（学 KylianSu 句式"a fundus photograph with diabetic retinopathy showing microaneurysms and hemorrhages"）
+    → 512 推理 8 张（显存 4~6GB，8GB 卡无压力）→ **作者看图 vs D3_ema 基线**（同 mask 尽量配对）。
+    目的：验证"SD 先验 + 血管条件"能到什么水平，作为 B1b 的上界参照。
+  - **B1b（LoRA 微调，视 B1a 结果）**：Kohya sd-scripts，LoRA rank 32~64 + noise_offset 0.1（KylianSu 配方），
+    数据 = combined 193（**只用 train 来源**，防泄漏纪律不变），prompt 模板化（严重级描述），512 训练
+    （fp16 + gradient checkpointing + xformers，batch 1~2，6~8GB）。**温度方案：Kohya 无 cool_sleep →
+    分段训练（每 ~50 epoch 存档停机降温，贴合 ≤70°C 线）**。若套件 ControlNet 输入是 bezier 非 raster mask：
+    先试转换，不行再考虑改训（ControlNet 训练更贵，默认不训）。
+- **判定纪律（沿用并更新）**：作者看图裁决（配对下标），**IQA 代理不作排序依据**（DL-EX-024 结论）；
+  白像素率/颜色距离只作参考记录；若 B1a/B1b 达到"部分可当真图"水平 → 正式评估走既定两层指标 + 六维门控入库（eval_data JSON）。
+- **分辨率红利**：SD 原生 512 生成 → 下采样 256 交付 = 免费超分，可能绕开 SR 环节（报告 07"512 对齐 Phase D"的口径以本条为准）。
+- **论文定位**：B1 若成功 → 失效机理链的"解法章"（信息量瓶颈的外来信息修复，6.1 闭环）+ 新结果进 REPORT_DL.docx；
+  失败 → "预训练先验非万能"同样是素材。引用红线：写"采用/借鉴 KylianSu 范式"，禁首创。
+- **风险**：HF 下载超时（→ hf-mirror / 手动）；KylianSu 适配工作量未知（→ 先读 restore 脚本）；许可 TBD；
+  Windows+4060 上 xformers 安装；温度分段纪律执行。
+- **执行记录（2026-10-19 夜，下载阶段踩坑四连，全部留档）**：
+  ①diffusers 0.41.0 已装（transformers 4.56.2/hub 0.36.2/accelerate 已有）；
+  ②**官方 stabilityai/stable-diffusion-2-1(-base) 已被门禁**（镜像回 401"Invalid username or password"）→
+  改用公开副本 **LanguageMachines/stable-diffusion-2-1-base**（1128 下载，diffusers 布局已 HEAD 验证）；
+  ③hub 0.36 移除了 huggingface-cli（只打印帮助）→ 改 `hf.exe download`；
+  ④**hf-mirror 不代理 Xet CAS**（cas-server.xethub.hf.co 直连被墙）→ 新仓库默认 Xet 后端全部报
+  "CAS Client Error" → **`HF_HUB_DISABLE_XET=1` 强制普通 HTTP 解决**（KylianSu 由此从 1M→133M 下完）；
+  ⑤夜间网络抽风（DNS getaddrinfo failed + WinError 10038）打死三个单发下载 → 挂**自动重试守护循环**
+  （D:\tmp\b1_download_all.ps1，60 轮×2 分钟间隔，断点续传）后自愈。套件结构速览：
+  LoRA 为 **diffusers 格式**（sd21_lora_fundus_v1/v2/pytorch_lora_weights.safetensors），
+  ControlNet 为自训 `.pth`（controlnet_g2_encoder_v2 / g3_bezier_v3，**适配点：需要它们的网络定义**），
+  另含大量分类器权重与实验图；许可 TBD（联系作者）待办不变。
+
+- **执行记录 2（2026-10-20 日间，下载收尾 + 环境修复）**：
+  ①用户开代理（127.0.0.1:7890）直连后测通（镜像站大文件 302 跳境外 CloudFront 是抽风根源），但代理断续、
+  多次 SSL EOF；②**关键优化：`--include` 白名单只下必需文件**——base 仓库全重 26GB（单文件 ckpt 15.6GB +
+  `*.bin` 重复 5.2GB 全砍），只留 diffusers safetensors ≈5.3GB；KylianSu 全量 2.7GB（含数百张实验示例图）
+  同法过滤后一轮校验即过；③最终状态：KylianSu 套件完整落地，LanguageMachines base 5.3GB 校验通过；
+  ④**环境冲突链**：hub 1.33.0（装 `hf.exe` 带上来的）与 transformers 4.56.2（要 hub<1.0）、
+  diffusers 0.41.0（要 hub 1.x 的 `resolve_revision`）三方互斥 → 定版 **hub 0.36.0 + diffusers 0.35.1 +
+  transformers 4.56.2 + accelerate 1.15.0 + peft 0.21.2**，全链路 import 验证通过。
+- **执行记录 3（2026-10-20，B1a 第一步：LoRA-only 零训练推理）**：
+  ①**GitHub 代码不可得**——`KylianSu/reproduce_dr` 经 GitHub API 返回 404（投稿期未公开），jsDelivr/镜像克隆
+  均失败；ControlNet 加载需要其网络定义，且 G2 的 `hint_source='encoder'` 依赖 VesselEncoderV2（同样无代码）
+  → **ControlNet 血管条件路线本轮判定为不可执行，硬逆向架构有污染实验记录风险，主动放弃**；
+  ②改走零门槛的 **LoRA-only 文本生成**（`b1a_lora_infer.py`，diffusers 标准 `load_lora_weights`）；
+  ③prompt 探路（4 候选 × 2 seed, DDIM50）：**p1 "a fundus image of a human retina, showing blood vessels
+  and optic disc" 最佳**；p3 次之（血管更密但视盘略扭曲）；p0 中等；p2（"fundus photography clinical"）基本失败
+  （近空白）→ 文本条件确实在起作用，且模型对 "blood vessels and optic disc" 敏感；
+  ④正式出图：p1 prompt, seed 42–49, **DDIM 100**（对齐 D3_ema 判定协议），512 原生，
+  存 `judgment_20261020/B1a_lora/singles/` 8 张；对比图 `judgment_20261020/b1a_vs_d3_same256.png` /
+  `b1a_vs_d3_native.png`（脚本 `make_b1a_compare.py`）；
+  ⑤**作者初判（2026-10-20）**："细节和风格确实非常好了"，色彩偏灰属于**可后处理修复**，非致命；
+  ⑥机器可读观察（供论文）：**成片率 8/8 结构合理、零灾难失败**，对照 D3_ema 同批 3/8 干净
+  （#2/#4 严重噪声、#5/#7/#8 过曝偏白）；原生 512 放大后血管仍连续成形，D3 放大后为模糊块；
+  ⑦**三条必须写进论文的边界**：(a) 非同数据对比——LoRA 在作者私有眼底数据微调 36k steps（hparams 已核），
+  我们 D3/D4 为 193 张从零训，只能写"范式对比（预训练底座+LoRA vs from-scratch）"；
+  (b) **B 域生成器本就无需结构条件**（作者 2026-10-20 指出，本记录曾误判，特此更正）：
+  B 域任务是"生成相似不相同的 severe 图扩充分类器训练集"（v6 方向），老师数据集无血管 mask，
+  故无条件/纯文本生成正是正确形态；文本条件是 B 域**唯一的语义控制手段**（指定 severe 而非 normal），
+  而非 A 域条件扩散（DL-EX-011/012）那种结构条件的替代品；
+  (c) LoRA 训练域 ≠ 老师 HRSG_4 数据集，域偏移是色彩偏灰的候选解释之一（未验证）。
+- **待办（B1a 后续）**：①色彩后处理——拟用**真实 B 域 train split 统计 + Reinhard LAB 色彩迁移**
+  （不用 D4 当锚点，避免二手偏差），落地后同批出图由作者复判；②若色彩仍不自然 → 评估 B1b
+  （老师 train 数据微调 LoRA，成本高）；③ControlNet/G2 路线待作者放码或邮件索取（与许可 TBD 合并为一次联系）。
+- **执行记录 4（2026-10-20，色彩迁移验证 + 路线决策）**：
+  ①**Reinhard LAB 迁移已落地**（`b1a_color_transfer.py`）：锚点 = 真实 B 域 train split 545 张圆盘内 LAB 统计
+  （LAB mean=[109.1, 28.4, 33.3]），生成图同空间对齐；**关键坑**：初版按亮度阈值取前景，把生成图的灰色背景
+  一并迁移 → 整圈染成品红；改为**几何圆盘（r=0.47·min(H,W)）∩ 亮度阈值**双 mask 后修复；
+  ②效果分层：**整体偏灰 8/8 均可修复**（前 2 张迁移后接近真实眼底橙棕色，背景未污染）；
+  **初版问题**：LAB 三通道全量对齐时，a/b 的方差拉伸把原图轻微局部色偏放大成高饱和色块（8 张中 5 张出现鲜红/亮蓝/品红块）；
+  **修正方案（已落地）**：**L 通道完整对齐（修亮度/对比度），a/b 通道只平移色温、锁方差**
+  → 复跑后 8/8 呈自然橙棕色调，显眼色块全部消失，仅 4/5/7 号中心残留淡蓝紫晕（低强度局部色偏）；
+  ③**作者路线决策（2026-10-20）**：**B1a 定为 B 域生成器主路线**；**D3_ema 保留为备胎**——
+  若后续色彩/局部色偏实在无法收敛，回退 D3_ema（其橙色调更真，代价是成片率与分辨率）。
+  ④残留问题登记：4/5/7 号淡蓝紫晕（低强度）；控制变量待做（CFG↑ / 负向 prompt "blue, cyan, green" / LoRA v1 对照）。
+  ⑤产出：`judgment_20261020/B1a_lora_ct/singles/`（8 张最终版）、`b1a_final_three_way.png`（D3_ema / B1a 原始 / B1a+色彩迁移 三方对比）。
+- **执行记录 5（2026-10-20，第二轮压色偏：负结果）**：按作者要求"再压一轮"，同 prompt/同 seed 单变量改两处——
+  `negative_prompt="blue, cyan, purple, green, color aberration, color fringing, fluorescent"` + `cfg 7.5→9.0`。
+  **结果：明确失败**——原始 8/8 血管几乎全部消失，仅存视盘与淡影；色彩迁移后色彩饱满（偏黄绿）但同样无血管。
+  归因：颜色词被模型当作眼底图的构成色相（眼底照本身含青/蓝/紫），负向抑制连带压掉纹理与血管，CFG 9 放大该效应。
+  **结论：本轮判负，R1 + 色彩迁移（L 全对齐 / a-b 只平移）仍为当前最佳**；产物存档
+  `judgment_20261020/B1a_lora_neg{,_ct}/singles/`、`b1a_round2_compare.png`（四行对比）。
+- **待判别缺口的发现（2026-10-20，B1a 方向问题）**：现有 prompt（`"...showing blood vessels and optic disc"`）
+  生成的是**正常眼底**，不含 severe 病灶（出血/渗出/微动脉瘤）——而 B 域的用途是**扩充 severe 类**。
+  图再真，若无病理特征，对分类器扩充无益甚至有害（教模型"severe=正常图"）。**下一轮必须先验证
+  severe 定向 prompt 能否生成可辨识病灶**，这是 B1a 是否成立的更硬条件，优先级高于色彩微调。
+  候选 prompt：`"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`。
+- **执行记录 6（2026-10-20，severe 定向 prompt 探路：硬缺陷）**：4 张（seed 42–45, cfg7.5, DDIM50），
+  prompt = `"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`。
+  **结果：4/4 无任何病灶**（无出血/渗出/微动脉瘤），seed 44/45 血管清晰但为正常眼底形态，
+  seed 42/43 连血管都淡。**结论：LoRA 对病理描述无响应**——其训练数据无"病灶↔文本"配对，只学到眼底图外观。
+  含义：**B1a LoRA-only 不能直接用于 severe 扩充**（图真但无病理，会教分类器"severe=正常图"），
+  B 域路线必须解决"定向生成病灶"，权限高于色彩与分辨率。产物 `results_b1a/severe_probe_grid.png`。
+- **路线岔口（待作者决策，2026-10-20）**：
+  - **B1b（推荐）**：用老师 **severe train 76 张**微调 LoRA（few-shot 正是 LoRA 主场），prompt 用 severe 描述，
+    从数据层面注入病灶信息；成本 = Kohya/diffusers LoRA 训练 + 温度分段纪律（≤70°C）。
+  - **分类器引导**：用套件现成 severe 分类器（`cls_binary_leakfree/baseline`，EfficientNet-B2@384）做梯度引导，
+    让采样偏向 severe——但需该分类器架构代码（同为未公开仓库），且只能"推进分类器判定"不等于"生成真病灶"。
+  - **回退 D3_ema**：用户预留备胎，但 D3 同样无法定向 severe（条件仅血管 mask），不解决本问题。
+- **执行记录 7（2026-10-20，B1b 首训 + 出图，作者已批准转 B1b）**：
+  ①数据：老师 train severe **72 张唯一图**（square 原图 1296–1900px → LANCZOS 512，存 `b1b_data/severe512/`）；
+  ②训练（`b1b_lora_train.py`，自写，不依赖 GitHub）：SD2.1-base 冻结 + UNet LoRA（rank32/alpha32，
+  target to_k/to_q/to_v/to_out.0，6.64M 可训参数），batch2、lr1e-4 cosine、noise_offset 0.1、fp16、1500 步
+  （≈21 epochs）、**24.6 分钟**；温度守护每 25 步检查、>70°C 休眠 60s，全程触发 2 次（峰值 73°C），
+  其余时间 65–70°C；7 个检查点（每 250 步）；
+  ③**生成结果（1500 步，severe prompt，seed42–49，DDIM100）**：
+  **成功面**——色彩学到老师 severe 的橙红调（对比 B1a 的灰）；**4/8 出现视盘周围白色/黄白斑块**，
+  形态类同真实图的硬性渗出/棉絮斑（B1a 为 0/8）；
+  **不足面**——(a) 白斑位置固定在视盘周围，真实图渗出为散在分布；(b) 血管主干模糊、细节丢失严重；
+  (c) 视盘过大过亮 + 图像边缘绿/黄框伪影；
+  ④对比图 `judgment_20261020/b1b_vs_real_severe.png`（真实 severe 8 张 vs B1b 8 张）、`b1b_grid.png`；
+  ⑤**结论：部分成功**——首次生成出病灶样结构（B1a 做不到），证实"用真实 severe 微调可注入病理信息"；
+  但病灶空间分布与血管精度不足，距离"可替代真实 severe 扩充分类器"仍有距离。
+  **待作者裁决**：是否调训练配方（更少步数/更小 rank/数据增强）复跑，还是以此水平进入下游 TSTR 验证。
+- **执行记录 8（2026-10-20/21，检查点扫描：**500 步最佳，1500 步过拟合**）**：
+  同一批 seed 分别用 500/750/1500 步检查点出图对比（`b1b_ckpt_compare.png`）——
+  **500 步**：血管清晰连续有分支、病灶形态多样（暗红出血斑/白色渗出/金黄色颗粒状硬性渗出）、色调接近真实 severe；
+  **750 步**：血管仍清晰但构图开始对称化；
+  **1500 步**：主干血管消失、只剩"大亮视盘+糊成一片的白斑"平均模板。
+  **结论：72 张 × 21 epochs 明显过拟合，500 步（≈7 epochs）为最佳检查点**。
+  追加验证：数据分辨率分布 min/median/max = 242/1536/3456，**32/72 低于 1536px、24/72 低于 768px**，
+  故血管模糊部分来自源数据上限，但不足以解释 1500 步的全面退化（另一半源图 ≥1536px）。
+  产出：`judgment_20261020/B1b_lora_500/singles/`（8 张，seed42–49，DDIM100）、`b1b_500_grid.png`、
+  `b1b500_vs_real.png`（真实 severe vs 500 步生成）；**B1b 正式检查点定为 lora_step_00500**。
+  作者观察（待正式裁决）：8/8 血管清晰、8/8 具病灶样结构；残留问题为视盘偏大偏亮、病灶集中于视盘周围
+  （真实图分布更散）、部分图边缘几何切角。
+- **执行记录 9（2026-10-21，作者裁决 + B1c LoRA 权重合并）**：
+  作者对 B1b_500 的判定：**仍一眼生成、视盘过大、白斑（硬性渗出）未展现** → 批准权重合并，
+  验收标准定为三条：白斑显性 / 视盘大小 / 真实感。
+  方法（`b1c_merge_infer.py`）：两份 LoRA 格式不同（KylianSu r64、diffusers 键 `lora.down/up`；
+  自训 r32、peft 键 `lora_A/B.default`），不叠 adapter，直接算 ΔW 加回底座：
+  `W = W_base + w_k·(up@down) + w_o·(B@A)`。两份各 128 个 attn 模块（to_k/to_q/to_v/to_out.0），
+  **键一一对应**（交集 128，各自独有 0）；scale 均为 1（KylianSu 无 alpha 键，按 diffusers 惯例
+  alpha=rank；自训 alpha=32/r=32）。
+  配比扫描：K1.0/O1.0、K1.0/O0.6、K0.6/O1.0，同种子 42–49、DDIM100、cfg7.5（24 张约 11 分钟，
+  温度 56–62°C 未触发守护）。
+  **数值体检（盘内 RGB 均值）**：真实 (116,70,30)、B1b500 (147,83,39)、K1.0/O1.0 (178,134,93)、
+  K1.0/O0.6 (152,107,77)、K0.6/O1.0 (152,80,37)——**等权与 K 主导配比把色调拉向 KylianSu 的
+  正常眼底粉黄域（蓝通道 2.5–3× 真实），仅 K0.6/O1.0 保住 B 域橙红**。原因：KylianSu 训了 36k 步
+  且 r64，ΔW 范数占优，1:1 并非"各取一半"。
+  产出：`judgment_20261020/B1c_merge_{k10_o10,k10_o06,k06_o10}/singles/`（各 8 张）、
+  `b1c_merge_compare.png`（5 行 8 列：真实/B1b500/三组合并）。
+  **作者裁决（2026-10-21）：合并失败——三组均不如 no-merge（B1b_500）**，KylianSu 的正常眼底
+  先验侵蚀病灶域与色调，加权融合路线关闭（负结果入库）。
+- **路线菜单（2026-10-21，合并失败后五条路，作者要求记录）**（按 成本×成功率 排序）：
+  **A. B1b 复训配方改良**——随机旋转+垂直翻转、patch 裁剪训练（52% 源图 ≥1536px，从高清图裁
+  512 小块，视盘不再霸占画面中央）、每 125 步密检查点；攻"视盘过大/病灶扎堆视盘旁"，约 1h；
+  修不了白斑模糊（源分辨率天花板仍在）。**B. 顺序精修**——B1b_500 出图 → img2img 挂 KylianSu
+  低强度 denoise 0.25–0.35，内容锁在 latent 里只补高频；攻"细节不够/一眼生成"，约 1h；
+  加权合并失败 ≠ 顺序精修失败。**C. A 域预训练迁移**——D3_ema 权重当初始化（已学过 299 张
+  真实眼底），72 张 severe 无条件下微调；D3_ema 备胎提前启用，论文叙事最顺（少样本跨域迁移），
+  彻底摆脱 SD/License 纠缠，约 0.5 天。**D. 病灶移植合成**——B1a 真实感正常眼底当画布 +
+  老师 severe 图抠病灶（出血斑/渗出）Poisson 贴合；不性感但下游扩充分类器可能最实用，
+  兼作"显式病灶合成"对照叙事，1–2 天。**E. TSTR 下游裁决**——B1b_500 图直接扩充 severe 训
+  分类器，让 AUC/F1 说话；图"不够自然"不一定致命，2–3h。
+  建议顺序（Claude）：A+B 先行 → 不行走 E；C 压箱底；D 列入与老师讨论清单（不碰生成模型）。
+- **待办（B1b 后续路线，作者选定中）**：合并失败后可选方向 = B1b 复训配方改良 /
+  顺序低强度精修 / A 域预训练权重迁移（D3_ema 备胎）/ 病灶移植合成 / TSTR 下游裁决，详见执行记录 9 后续。
+
+---
+
 ## 附：本次排查中确认的事实（供组员参考）
 
 1. **`train.py` 的噪声预测主损失已有 `--loss_type {l1,mse}` 开关**（2026-10-16 加入，默认 l1，自动记入 config.json）。

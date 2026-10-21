@@ -44,3 +44,10 @@ eval_data/*/
 
 # === 临时实验输出（保留 images/ 和 models/ 在各自目录中） ===
 **/results_ColorJitter*/
+
+# === B1 线（SD2.1 LoRA 生成实验，2026-10-20 起） ===
+# 权重沿用顶部约定不入 git（官方检查点 lora_step_00500 本地留存、单独分发）；
+# 训练数据是老师数据集的副本，组员用 b1b_make_data.py 从 fundus/ 重建
+b1b_data/
+b1b_lora/
+*.log
