@@ -79,7 +79,7 @@ def main():
     ap.add_argument("--num_images", type=int, default=8)
     ap.add_argument("--img_size", type=int, default=128)
     ap.add_argument("--base_dim", type=int, default=128)
-    ap.add_argument("--t_start", type=float, nargs="+", default=[0.8, 0.7])
+    ap.add_argument("--t_start", type=float, nargs="+", default=[0.8, 0.7, 0.5])
     ap.add_argument("--denoise_steps", type=int, default=100)
     ap.add_argument("--noise_seed", type=int, default=1234)
     ap.add_argument("--no_cuda", action="store_true")
@@ -143,6 +143,7 @@ def main():
         (sorted((SR_ROOT / "base_256").glob("*.png"))[:8], "CFM base + SR 256"),
         (sorted((SR_ROOT / "t0800_256").glob("*.png"))[:8], "CFM + SDEdit(0.8) + SR 256"),
         (sorted((SR_ROOT / "t0700_256").glob("*.png"))[:8], "CFM + SDEdit(0.7) + SR 256"),
+        (sorted((SR_ROOT / "t0500_256").glob("*.png"))[:8], "CFM + SDEdit(0.5) + SR 256"),
     ]
     S, PAD, CAP, N = 256, 6, 24, 8
     canvas = Image.new("RGB", (N * S + (N + 1) * PAD, len(rows) * (S + CAP + PAD) + PAD), "white")
