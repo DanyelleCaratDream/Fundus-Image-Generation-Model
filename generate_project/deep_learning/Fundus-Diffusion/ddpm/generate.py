@@ -278,7 +278,7 @@ def main():
 
     # 初始化扩散过程
     diffusion = GaussianDiffusion(timesteps=1000).to(device)
-    print(f"[INFO] 采样方式: {args.sampler.upper()}")
+    print(f"[INFO] 采样方式: {sampler.upper()}")
 
     # 生成
     print(f"[GEN] 正在生成 {args.num_images} 张图片...")
@@ -297,9 +297,17 @@ def main():
             if conds is not None:
                 cond_batch = conds[batch_idx * batch_size: batch_idx * batch_size + bs]
 
-            if args.sampler == "ddpm":
+            if sampler == "ddpm":
                 print(f"  DDPM 采样 ({bs} 张, 1000 步)...", end=" ", flush=True)
                 samples = diffusion.p_sample_loop(model, shape, device, cond=cond_batch)
+            elif sampler == "euler":
+                # CFM 必须走 Euler ODE：DDIM 是噪声预测的参数化，喂速度场会直接出噪点
+                print(f"  EULER 采样 ({bs} 张, {args.sampling_steps} NFE)...", end=" ", flush=True)
+                samples = diffusion.euler_sample(
+                    model, shape, device,
+                    sampling_steps=args.sampling_steps,
+                    cond=cond_batch,
+                )
             else:
                 print(f"  DDIM 采样 ({bs} 张, {args.sampling_steps} 步)...", end=" ", flush=True)
                 samples = diffusion.ddim_sample(
