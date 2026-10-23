@@ -47,6 +47,8 @@ F:/python/python.exe train.py --objective cfm \
 | awesome-flow-matching | 论文索引 | https://github.com/dongzhuoyao/awesome-flow-matching |
 
 > `external/` 不入 git（体积 + 上游变动）；需要时按上表重克隆即可。
+> **external 里基本没有模型权重**：TTA-Flow/Tiger-Model 的权重在各自 HF/Drive，
+> SymmFlow 只有 CFG 空嵌入 `sd_emptyembed.pt` 与 UNet 配置——已复制到 `../SymmFlow/models/`。
 
 ## 3. 不建议做的事
 

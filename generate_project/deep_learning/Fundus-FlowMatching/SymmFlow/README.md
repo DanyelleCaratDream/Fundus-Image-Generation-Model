@@ -26,6 +26,11 @@
 ```
 SymmFlow/
 ├── README.md
-├── models/     # 若后续下载 HF 权重放这里
+├── models/     # 已放入 CFG 空嵌入 sd_emptyembed.pt + sd_unet_config.json
+│               # （从 code/external/symmetric-flow/models/ 复制；上游代码仍保留原位置）
 └── results/    # 如 results/symmflow_fundus/
 ```
+
+**权重状态**：论文的完整预训练权重在 [HF ocaetas/SymmFlow](https://huggingface.co/ocaetas/SymmFlow)，
+未下载（SD2.1 + CelebA/COCO，体积大且与眼底域无关）。本目录当前只有 CFG 空嵌入
+（312K）与 UNet 配置，足够阅读/改造代码。
