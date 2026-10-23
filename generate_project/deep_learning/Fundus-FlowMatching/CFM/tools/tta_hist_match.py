@@ -3,7 +3,7 @@
 """TTA-Flow 思路的移植：轨迹对齐直方图匹配（推理期，无需重训）
 
 来源：Hucke et al., "Test-Time Adaptation in OCT Using Trajectory-Aligned
-Time-Independent Flow"（代码 code/external/tta-flow）。
+Time-Independent Flow"（代码 CFM/upstream/tta-flow）。
 
 流程
 1. 用当前 CFM 模型生成 N 条参考轨迹，记录第 s_target 步的样本；

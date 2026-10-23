@@ -3,7 +3,7 @@
 > 方法族：**Stochastic Interpolants（SI）**
 > 论文：Albergo & Vanden-Eijnden, *Building Normalizing Flows with Stochastic Interpolants*,
 > ICLR 2023（arXiv:2209.15571）；扩展版 Albergo, Boffi, Vanden-Eijnden, JMLR 2025
-> 代码参考：`code/external/flow_matching/`（含 stochastic interpolant 路径）；
+> 代码参考：`code/flow_matching/`（含 stochastic interpolant 路径）；
 > 上游：https://github.com/malbergo/stochastic-interpolants
 
 ## 与 CFM 的区别

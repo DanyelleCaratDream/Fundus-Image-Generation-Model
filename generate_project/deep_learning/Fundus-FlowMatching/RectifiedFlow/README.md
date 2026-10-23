@@ -3,7 +3,7 @@
 > 方法族：**Rectified Flow（RF）**
 > 论文：Liu, Gong, Liu, *Flow Straight and Fast: Learning to Generate and Transfer Data
 > with Rectified Flow*, ICLR 2023（arXiv:2209.03003）；规模化见 SD3（Esser et al., ICML 2024）
-> 代码参考：`code/external/flow_matching/`（官方库含 rectified flow 示例）；
+> 代码参考：`code/flow_matching/`（官方库含 rectified flow 示例）；
 > 上游 RF 实现：https://github.com/gnobitab/RectifiedFlow
 
 ## 与 CFM 的区别

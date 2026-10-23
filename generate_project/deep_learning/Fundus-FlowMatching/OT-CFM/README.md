@@ -3,7 +3,7 @@
 > 方法族：**OT-CFM**（Optimal Transport Conditional Flow Matching）
 > 论文：Tong et al., *Improving and Generalizing Flow-Based Generative Models with
 > Minibatch Optimal Transport*, TMLR 2024（arXiv:2302.00482）
-> 代码参考：`code/external/torchcfm/`（`ExactOptimalTransportConditionalFlowMatcher`）
+> 代码参考：`code/torchcfm/`（`ExactOptimalTransportConditionalFlowMatcher`）
 
 ## 与 CFM 的区别
 

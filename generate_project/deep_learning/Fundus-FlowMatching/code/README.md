@@ -28,14 +28,14 @@ F:/python/python.exe train.py --objective cfm \
 > `results/cfm256/`（原生 256，loss 0.100，作者目检 97/100）。见 ../README.md 第 2 节。
 > 路径说明：训练器在 `Fundus-Diffusion/ddpm/`，实验输出按约定放本目录 `results/`。
 
-## 2. 外部库（code/external/）
+## 2. 外部库（code/）
 
 ### 通用库（跨方法族）
 
 | 目录 | 仓库 | 用途 | 安装 |
 |:--|:--|:--|:--|
-| `external/flow_matching/` | [facebookresearch/flow_matching](https://github.com/facebookresearch/flow_matching) | Meta 官方库：连续/离散 FM、条件路径、OT 耦合 | `pip install -e external/flow_matching` |
-| `external/torchcfm/` | [atong01/conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) | OT-CFM / SB-CFM / [SF]²M 等变体 | `pip install torchcfm` |
+| `flow_matching/` | [facebookresearch/flow_matching](https://github.com/facebookresearch/flow_matching) | Meta 官方库：连续/离散 FM、条件路径、OT 耦合 | `pip install -e flow_matching` |
+| `torchcfm/` | [atong01/conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) | OT-CFM / SB-CFM / [SF]²M 等变体 | `pip install torchcfm` |
 
 ### 已按方法族归位的上游实现
 

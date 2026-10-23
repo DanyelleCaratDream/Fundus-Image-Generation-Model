@@ -60,6 +60,7 @@ B 域三模型同协议评估（60 张/模型，severe 参照 72 张）：
 `train.py` 实现 OT 线性路径 `cfm_path()`、`cfm_predict_x1()`、Euler `euler_sample()`；
 `generate.py` 的 `--sampler auto` 对 CFM checkpoint 自动选 Euler（2026-10-22 修复分派 bug 后）。
 训练命令见 `code/README.md`；新实验输出请写到本目录 `results/<exp>/`。
+**后续实验按性价比排序执行，见 [ROADMAP.md](ROADMAP.md)**（作者 2026-10-23 确认）。
 
 ## 3. 目录约定
 
@@ -70,7 +71,7 @@ B 域三模型同协议评估（60 张/模型，severe 参照 72 张）：
 Fundus-FlowMatching/
 ├── README.md                 # 方法族总览
 ├── papers/                   # 文献调研（reading-list + 精读笔记）
-├── code/external/            # 上游库克隆（不入 git）
+├── code/            # 上游库克隆（不入 git）
 │
 ├── CFM/                      # 方法族 1：条件流匹配（线性 OT 路径，独立耦合）★ 主线
 │   ├── README.md
@@ -90,7 +91,7 @@ Fundus-FlowMatching/
 - `models/` 放该族**所有实验的模型权重**，用实验名命名（如 `cfm128_final_model.pth`）；
 - `results/<实验名>/` 放该实验的生成结果、日志、config——即“族文件夹 → results → 实验名”的孙子目录；
 - 同一族只是换了训练目标/条件/技巧，不另开族文件夹，都在族内用不同实验名区分；
-- 上游代码放 `code/external/`，不复制进方法族，避免分叉。
+- 上游代码放 `code/`，不复制进方法族，避免分叉。
 
 ## 4. 纪律
 
