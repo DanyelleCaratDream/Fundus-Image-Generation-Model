@@ -53,6 +53,10 @@ MODEL_LABELS = {
     "patch": "补丁拼接（传统ML）",
     "poisson": "泊松重排（传统ML）",
     "retinex": "Retinex光照交换（传统ML）",
+    # B 域（老师数据集 severe）生成器——独立参照集，不与 A 域同表比
+    "cfm256": "CFM@256（B域）",
+    "cfm128": "CFM@128（B域）",
+    "d3": "D3_ema（B域）",
 }
 MODEL_COLORS = {
     "film_l1lpips": "#c0392b",  # 红（最佳，突出）
