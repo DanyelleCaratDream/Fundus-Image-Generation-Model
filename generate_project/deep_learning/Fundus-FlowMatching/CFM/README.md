@@ -36,7 +36,8 @@ CFM/
 │   └── deliver_cfm.py        # 交付批次（SDEdit 0.8，分批 + 断点续跑）
 ├── tools/
 │   ├── make_lesion_weights.py  # 病灶权重图（渗出优先的高精度启发式）
-│   └── lesion_transplant.py    # 病灶块移植（羽化 alpha + LAB 均值匹配）
+│   ├── lesion_transplant.py    # 病灶块移植（羽化 alpha + LAB 均值匹配）
+│   └── tta_hist_match.py       # TTA-Flow 轨迹对齐直方图匹配（推理期，无需重训）
 ├── data/
 │   ├── conditions_combined_256/  # 256 版血管 mask（193 张）
 │   └── lesion_weights_256/       # 病灶权重图（193 张）

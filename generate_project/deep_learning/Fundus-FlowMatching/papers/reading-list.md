@@ -50,6 +50,16 @@
 | Stability-AI/generative-models | SD3 rectified flow 实现 | https://github.com/Stability-AI/generative-models |
 | dongzhuoyao/awesome-flow-matching | 论文索引（持续更新） | https://github.com/dongzhuoyao/awesome-flow-matching |
 
+## G. 2026-10-23 新增精读（作者提供 PDF，详见 notes/01-lit-review-2026-10-23.md）
+
+| # | 论文 | 类型 | 核心方法 | 代码 |
+|:--|:--|:--|:--|:--|
+| G1 | **TTA-Flow**: Test-Time Adaptation in OCT Using Trajectory-Aligned Time-Independent Flow | MICCAI 类 | FM + 轨迹对齐直方图匹配 + 去时间条件 + 预测 x1 | [tta-flow](https://github.com/Veit21/tta-flow) |
+| G2 | **FSFM**: Few-Shot Flow Matching with Stochastic Barycentric Sampling | MICCAI 2026 | 检索近邻 + Dirichlet 重心条件，DR 眼底少样本 | 匿名仓库已失效（410） |
+| G3 | **SymmFlow**: Symmetrical Flow Matching | AAAI 2026 | 双向流统一生成/分割/分类 | [SymmetricFlow](https://github.com/caetas/SymmetricFlow) |
+| G4 | Self-evolving AI virtual cells（综述） | 综述 | 提及 CellFlow、AlphaFold3 | — |
+| G5 | **Tiger-Model**（罕见甲状腺癌） | Nat. Commun. 2025 | 文本引导扩散增广 | [Tiger-Model](https://github.com/fangdai-dear/Tiger-Model) |
+
 ## F. 给作者的检索关键词
 
 中文库/英文库都能用，建议组合：

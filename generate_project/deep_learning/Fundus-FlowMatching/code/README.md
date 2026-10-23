@@ -34,6 +34,9 @@ F:/python/python.exe train.py --objective cfm \
 |:--|:--|:--|:--|
 | `external/flow_matching/` | [facebookresearch/flow_matching](https://github.com/facebookresearch/flow_matching) | Meta 官方库：连续/离散 FM、条件路径、OT 耦合 | `pip install -e external/flow_matching` |
 | `external/torchcfm/` | [atong01/conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) | OT-CFM / SB-CFM / [SF]²M 等变体 | `pip install torchcfm` |
+| `external/tta-flow/` | [Veit21/tta-flow](https://github.com/Veit21/tta-flow) | **轨迹对齐直方图匹配 + 去时间条件 + x1 预测**（2026-10-23 克隆） | 需 Docker/CUDA 12.6 |
+| `external/symmetric-flow/` | [caetas/SymmetricFlow](https://github.com/caetas/SymmetricFlow) | 双向流（生成/分割/分类统一）；权重在 [HF](https://huggingface.co/ocaetas/SymmFlow) | 见其 README |
+| `external/tiger-model/` | [fangdai-dear/Tiger-Model](https://github.com/fangdai-dear/Tiger-Model) | 罕见病文本引导扩散增广（LFS 权重未拉取） | 见其 README |
 
 未克隆（需要时再下）：
 | 仓库 | 用途 | 地址 |
