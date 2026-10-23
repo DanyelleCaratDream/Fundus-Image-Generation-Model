@@ -54,3 +54,6 @@ b1b_lora/
 
 # === 预训练线数据副本（可由 tools/b1b_make_data.py 重建） ===
 pretrained/SD21-LoRA/data/b1b_data/
+
+# 临时错误输出
+*.err
