@@ -43,7 +43,7 @@ F:/python/python.exe train.py --objective cfm \
 |:--|:--|:--|
 | [Veit21/tta-flow](https://github.com/Veit21/tta-flow) | `../CFM/upstream/tta-flow/` | CFM 应用：轨迹对齐直方图 + 去时间条件 |
 | [caetas/SymmetricFlow](https://github.com/caetas/SymmetricFlow) | `../SymmFlow/upstream/symmetric-flow/` | 双向流方法族 |
-| [fangdai-dear/Tiger-Model](https://github.com/fangdai-dear/Tiger-Model) | `../../Fundus-Diffusion/TextGuidedDiffusion/upstream/tiger-model/` | 文本引导扩散（非 FM） |
+| [fangdai-dear/Tiger-Model](https://github.com/fangdai-dear/Tiger-Model) | `../../pretrained/TextGuidedDiffusion/upstream/tiger-model/` | 文本引导扩散（非 FM） |
 
 未克隆（需要时再下）：
 | 仓库 | 用途 | 地址 |

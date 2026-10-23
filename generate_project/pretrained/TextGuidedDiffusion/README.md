@@ -1,13 +1,18 @@
-# TextGuidedDiffusion —— 文本引导扩散（方法族）
+# TextGuidedDiffusion —— 文本引导扩散（预训练方法族）
 
-> 本目录是 `Fundus-Diffusion/` 下的**具体方法族**之一（另一个是 `ddpm/`）。
+> 本目录是 `pretrained/` 下的**具体方法族**之一（另一个是 `SD21-LoRA/`）。
 > 当前承载的是 **Tiger-Model**（罕见甲状腺癌，Nature Communications 2025）的参考实现：
-> 用文本描述 + ControlNet 条件做罕见类图像增广。
+> 用预训练 Stable Diffusion + 文本描述 + ControlNet 做罕见类图像增广。
 
-## 为什么会在这里
+## 为什么会在这里（而不是 Fundus-Diffusion/）
 
-它不是 Flow Matching，而是**扩散模型**（Stable Diffusion + ControlNet），
-所以按框架归到 `Fundus-Diffusion/` 下，与自研 `ddpm/` 并列。
+按本项目的归类原则，**“方法族”按初始化/先验来源划分**：
+- 从零自研训练的扩散 → `deep_learning/Fundus-Diffusion/`（如 `ddpm/`）；
+- 依赖预训练模型再做迁移/适配的 → `pretrained/`（如 `SD21-LoRA/`、本目录）。
+
+Tiger-Model 的定义性特征是**预训练 SD 先验 + ControlNet + 文本条件**，
+不是新的扩散目标；把它放进 `pretrained/` 与 SD21-LoRA 并列，逻辑更一致。
+生成框架（扩散 / Flow Matching / GAN）是另一条正交的轴。
 
 ## 状态：📌 代码已下载，**未跑**
 
