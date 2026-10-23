@@ -25,6 +25,7 @@
 ```
 CFM/
 ├── README.md                 # 本文件：方法标注 + 结构 + 结果
+├── upstream/tta-flow/        # TTA-Flow 官方代码（CFM 应用，未入 git）
 ├── configs/                  # 三套实验配置（与 results/*/config.json 对应）
 │   ├── cfm128.json
 │   ├── cfm256.json

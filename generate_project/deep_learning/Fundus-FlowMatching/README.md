@@ -74,6 +74,7 @@ Fundus-FlowMatching/
 │
 ├── CFM/                      # 方法族 1：条件流匹配（线性 OT 路径，独立耦合）★ 主线
 │   ├── README.md
+│   ├── upstream/tta-flow/    # TTA-Flow 官方代码（CFM 应用，不入 git）
 │   ├── configs/ train/ infer/ tools/ data/ judgment/
 │   ├── models/               # 本族全部模型权重（cfm128/cfm256/...）
 │   └── results/              # 按实验名：cfm128/、cfm256/、cfm256_lesion/

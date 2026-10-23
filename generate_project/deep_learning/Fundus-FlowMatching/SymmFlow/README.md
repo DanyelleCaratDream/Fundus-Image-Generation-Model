@@ -3,7 +3,7 @@
 > 方法族：**Symmetrical Flow Matching（SymmFlow）**
 > 论文：Caetano et al., *Symmetrical Flow Matching: Unified Image Generation,
 > Segmentation, and Classification with Score-Based Generative Models*, AAAI 2026
-> 代码：`code/external/symmetric-flow/`（已克隆）；
+> 代码：`upstream/symmetric-flow/`（已克隆）；
 > 权重：https://huggingface.co/ocaetas/SymmFlow（未下载）
 
 ## 方法要点
@@ -26,8 +26,9 @@
 ```
 SymmFlow/
 ├── README.md
+├── upstream/symmetric-flow/  # 官方代码（未入 git）
 ├── models/     # 已放入 CFG 空嵌入 sd_emptyembed.pt + sd_unet_config.json
-│               # （从 code/external/symmetric-flow/models/ 复制；上游代码仍保留原位置）
+│               # （从 upstream/symmetric-flow/models/ 复制；上游代码仍保留原位置）
 └── results/    # 如 results/symmflow_fundus/
 ```
 
