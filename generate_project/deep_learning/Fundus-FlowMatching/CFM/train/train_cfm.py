@@ -26,7 +26,7 @@ PRESETS = {
     "cfm128": [
         "--objective", "cfm",
         "--dataset_path", str(REPO / "fundus/combined_sq128"),
-        "--cond_path", str(DDPM / "conditions_combined_128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
         "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
         "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
         "--epochs", "1100",
@@ -46,11 +46,22 @@ PRESETS = {
     "cfm128_align": [
         "--objective", "cfm", "--cfm_time_align",
         "--dataset_path", str(REPO / "fundus/combined_sq128"),
-        "--cond_path", str(DDPM / "conditions_combined_128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
         "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
         "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
         "--epochs", "1100",
         "--output_dir", str(CFM / "results/cfm128_align"),
+    ],
+    # 文本条件 A/B：与 cfm128 同预算，额外接 CLIP 文本分支（normal/severe 两个提示）
+    "cfm128_text": [
+        "--objective", "cfm", "--use_text_cond",
+        "--dataset_path", str(REPO / "fundus/combined_sq128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
+        "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
+        "--severe_list_dir", str(REPO / "fundus/HRSG_4_758_sq256/train/severe"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "1100",
+        "--output_dir", str(CFM / "results/cfm128_text"),
     ],
     # CFM@256 → 病灶加权续训（150 轮）
     "cfm256_lesion": [

@@ -32,7 +32,19 @@ import numpy as np
 from PIL import Image
 from torchvision.utils import save_image
 
-from train import UNet, GaussianDiffusion, check_environment
+from train import UNet, GaussianDiffusion, check_environment, DEFAULT_TEXT_ENCODER_DIR
+
+
+class _TextWrapper:
+    """把固定文本嵌入绑定到模型上，供不接收 text_emb 的采样函数调用。"""
+
+    def __init__(self, model, emb):
+        self.model = model
+        self.emb = emb
+
+    def __call__(self, x, t, cond=None):
+        e = self.emb.expand(x.shape[0], -1) if self.emb.shape[0] == 1 else self.emb
+        return self.model(x, t, cond=cond, text_emb=e)
 
 
 def parse_args():
@@ -62,6 +74,10 @@ def parse_args():
                         choices=["auto", "ddpm", "ddim", "euler"],
                         help="采样方式: auto=按 checkpoint 的 objective 选择（cfm→euler，否则 ddim）；"
                              "ddpm=高质量慢速; ddim=快速; euler=CFM 欧拉 ODE")
+    parser.add_argument("--text_prompt", type=str,
+                        default="a fundus photograph of a retina with severe diabetic retinopathy, "
+                                "hemorrhages and hard exudates",
+                        help="启用文本条件时的提示词")
     parser.add_argument("--sampling_steps", type=int, default=50,
                         help="DDIM/Euler 采样步数（NFE 对齐口径：两边用同一数字，默认 50）")
     parser.add_argument("--objective", type=str, default=None, choices=["ddpm", "cfm"],
@@ -221,6 +237,7 @@ def main():
 
     # CFM 时间轴对齐标志（训练时写入 checkpoint args；采样必须用同一约定）
     time_align = bool(getattr(ckpt_args, "cfm_time_align", False)) if ckpt_args is not None else False
+    use_text = bool(getattr(ckpt_args, "use_text_cond", False)) if ckpt_args is not None else False
 
     sampler = args.sampler
     if sampler == "auto":
@@ -243,6 +260,7 @@ def main():
         dropout=args.dropout,
         cond_channels=cond_channels,
         use_scale_shift_norm=use_ssn,
+        text_dim=(1024 if use_text else 0),
     )
 
     # 兼容不同保存格式
@@ -274,6 +292,23 @@ def main():
     else:
         print(f"[OK] 已加载模型（原始权重）: {args.checkpoint}")
 
+    # 文本条件：加载冻结 CLIP，编码提示词并绑定到采样模型
+    model_sample = model
+    if use_text:
+        from transformers import CLIPTextModel, CLIPTokenizer
+        _tok = CLIPTokenizer.from_pretrained(os.path.join(DEFAULT_TEXT_ENCODER_DIR, "tokenizer"))
+        _te = CLIPTextModel.from_pretrained(os.path.join(DEFAULT_TEXT_ENCODER_DIR, "text_encoder"),
+                                            torch_dtype=torch.float32).to(device).eval()
+        tk = _tok(args.text_prompt, padding="max_length", max_length=_tok.model_max_length,
+                  truncation=True, return_tensors="pt").to(device)
+        with torch.no_grad():
+            out = _te(tk.input_ids)[0]
+            emb = out[0, tk.input_ids.argmax(dim=-1)[0]][None]
+        model_sample = _TextWrapper(model, emb)
+        print(f"[INFO] 文本条件: {args.text_prompt[:60]}...")
+        del _te
+        torch.cuda.empty_cache()
+
     # 加载条件图
     conds = None
     if args.cond_path:
@@ -303,12 +338,12 @@ def main():
 
             if sampler == "ddpm":
                 print(f"  DDPM 采样 ({bs} 张, 1000 步)...", end=" ", flush=True)
-                samples = diffusion.p_sample_loop(model, shape, device, cond=cond_batch)
+                samples = diffusion.p_sample_loop(model_sample, shape, device, cond=cond_batch)
             elif sampler == "euler":
                 # CFM 必须走 Euler ODE：DDIM 是噪声预测的参数化，喂速度场会直接出噪点
                 print(f"  EULER 采样 ({bs} 张, {args.sampling_steps} NFE)...", end=" ", flush=True)
                 samples = diffusion.euler_sample(
-                    model, shape, device,
+                    model_sample, shape, device,
                     sampling_steps=args.sampling_steps,
                     cond=cond_batch,
                     time_align=time_align,
@@ -316,7 +351,7 @@ def main():
             else:
                 print(f"  DDIM 采样 ({bs} 张, {args.sampling_steps} 步)...", end=" ", flush=True)
                 samples = diffusion.ddim_sample(
-                    model, shape, device,
+                    model_sample, shape, device,
                     sampling_steps=args.sampling_steps,
                     eta=args.eta,
                     cond=cond_batch,

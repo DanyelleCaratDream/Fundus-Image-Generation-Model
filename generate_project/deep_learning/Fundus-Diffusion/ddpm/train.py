@@ -50,6 +50,11 @@ except ImportError:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers import CLIPTextModel, CLIPTokenizer
+
+# SD2.1 CLIP（文本条件分支用；可用 --text_encoder_dir 覆盖）
+DEFAULT_TEXT_ENCODER_DIR = (r"D:\hf_cache\hub\models--LanguageMachines--stable-diffusion-2-1-base"
+                            r"\snapshots\2579f99c90b5a3019fc115ee9566d5ec4f17fccf")
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
@@ -127,6 +132,17 @@ def parse_args():
                         help="病灶权重图目录（与图同名的 PNG，0=非病灶 255=病灶）；仅 CFM 分支生效")
     parser.add_argument("--lesion_lambda", type=float, default=5.0,
                         help="病灶权重上限：w = 1 + λ·mask（默认 5 → 最大 6 倍）")
+    parser.add_argument("--use_text_cond", action="store_true",
+                        help="轻量文本条件：CLIP 文本向量加到时间嵌入（与 mask 条件并行）")
+    parser.add_argument("--text_prompt_normal", type=str,
+                        default="a fundus photograph of a normal retina")
+    parser.add_argument("--text_prompt_severe", type=str,
+                        default="a fundus photograph of a retina with severe diabetic retinopathy, "
+                                "hemorrhages and hard exudates")
+    parser.add_argument("--severe_list_dir", type=str,
+                        default="../../../../fundus/HRSG_4_758_sq256/train/severe",
+                        help="用于判定哪些图是 severe（按文件名主干匹配）")
+    parser.add_argument("--text_encoder_dir", type=str, default=DEFAULT_TEXT_ENCODER_DIR)
     parser.add_argument("--cond_path", type=str, default=None,
                         help="条件图路径（血管骨架等），开启条件扩散训练")
 
@@ -165,10 +181,11 @@ class FundusDataset(Dataset):
     """直接从文件夹读取眼底图，可选加载条件图（血管骨架）。"""
 
     def __init__(self, root, transform=None, cond_root=None, cond_transform=None, img_size=128,
-                 lesion_root=None):
+                 lesion_root=None, severe_names=None):
         self.transform = transform
         self.cond_root = cond_root
         self.lesion_root = lesion_root
+        self.severe_names = set(severe_names or [])
         self.cond_transform = cond_transform or transform
         self.img_size = img_size
         self.image_paths = []
@@ -212,9 +229,12 @@ class FundusDataset(Dataset):
             if cond is None:
                 cond = torch.zeros(1, self.img_size, self.img_size)
 
+        basename = os.path.splitext(os.path.basename(self.image_paths[idx]))[0]
+        # 文本标签：severe 名单内=1，其余=0（仅 --use_text_cond 时使用）
+        tid = torch.tensor(1 if basename in self.severe_names else 0, dtype=torch.long)
+
         # 病灶权重图（可选）：0=非病灶 → 权重 1，255 → 权重 1+λ
         if self.lesion_root:
-            basename = os.path.splitext(os.path.basename(self.image_paths[idx]))[0]
             wp = os.path.join(self.lesion_root, basename + ".png")
             w = torch.zeros(1, self.img_size, self.img_size)
             if os.path.isfile(wp):
@@ -226,7 +246,11 @@ class FundusDataset(Dataset):
                 else:
                     wv = np.array(Image.open(wp).convert("L").resize((self.img_size, self.img_size)))
                     w = torch.from_numpy(wv.astype(np.float32) / 255.0).unsqueeze(0)
+            if self.severe_names:
+                return img, cond, w, tid, idx
             return img, cond, w, idx
+        if self.severe_names:
+            return img, cond, tid, idx
         return img, cond, idx
 
 
@@ -638,11 +662,19 @@ class UNet(nn.Module):
 
     def __init__(self, T=1000, channels=3, base_dim=128, dim_mults=(1, 2, 3, 4),
                  attn_layers=(2,), dropout=0.1, cond_channels=0,
-                 use_scale_shift_norm=True):
+                 use_scale_shift_norm=True, text_dim=0):
         super().__init__()
         self.use_scale_shift_norm = use_scale_shift_norm
         tdim = base_dim * 4
         self.time_embedding = TimeEmbedding(T, base_dim, tdim)
+
+        # 轻量文本条件：CLIP 文本向量 → 与时间嵌入相加（零初始化，初始等价于无文本）
+        self.text_dim = text_dim
+        self.text_proj = None
+        if text_dim > 0:
+            self.text_proj = nn.Linear(text_dim, tdim)
+            nn.init.zeros_(self.text_proj.weight)
+            nn.init.zeros_(self.text_proj.bias)
 
         # 条件输入处理
         self.cond_channels = cond_channels
@@ -720,9 +752,11 @@ class UNet(nn.Module):
                     if module.conv2.bias is not None:
                         module.conv2.bias.zero_()
 
-    def forward(self, x, t, cond=None):
+    def forward(self, x, t, cond=None, text_emb=None):
         # 时间步编码
         temb = self.time_embedding(t)
+        if text_emb is not None and self.text_proj is not None:
+            temb = temb + self.text_proj(text_emb)
 
         # 初始卷积
         h = self.head(x)
@@ -918,11 +952,20 @@ def main():
             transforms.Normalize((0.5,), (0.5,)),
         ])
 
+    severe_names = None
+    if getattr(args, "use_text_cond", False):
+        import glob as _glob
+        severe_names = {os.path.splitext(os.path.basename(p))[0]
+                        for p in _glob.glob(os.path.join(args.severe_list_dir, "*"))
+                        if "_aug_1" not in os.path.basename(p)}
+        print(f"  文本条件：severe 名单 {len(severe_names)} 张")
+
     dataset = FundusDataset(
         args.dataset_path, transform=transform,
         cond_root=args.cond_path,
         img_size=args.img_size,
         lesion_root=getattr(args, "lesion_weight_dir", None),
+        severe_names=severe_names,
     )
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
@@ -961,11 +1004,36 @@ def main():
         dropout=args.dropout,
         cond_channels=cond_channels,
         use_scale_shift_norm=use_ssn,
+        text_dim=(1024 if getattr(args, "use_text_cond", False) else 0),
     ).to(device)
 
     n_params = count_parameters(model)
     print(f"  UNet 参数量: {n_params:,}")
     print()
+
+    # 文本条件表（CLIP 文本编码，冻结；只训练 UNet 里的零初始化 text_proj）
+    text_table = None
+    if getattr(args, "use_text_cond", False):
+        _tok = CLIPTokenizer.from_pretrained(os.path.join(args.text_encoder_dir, "tokenizer"))
+        _te = CLIPTextModel.from_pretrained(os.path.join(args.text_encoder_dir, "text_encoder"),
+                                            torch_dtype=torch.float32).to(device).eval()
+        for _p in _te.parameters():
+            _p.requires_grad_(False)
+
+        def _encode(prompt):
+            tk = _tok(prompt, padding="max_length", max_length=_tok.model_max_length,
+                      truncation=True, return_tensors="pt").to(device)
+            with torch.no_grad():
+                out = _te(tk.input_ids)[0]
+            eos = tk.input_ids.argmax(dim=-1)
+            return out[0, eos[0]]
+
+        with torch.no_grad():
+            text_table = torch.stack([_encode(args.text_prompt_normal),
+                                      _encode(args.text_prompt_severe)])
+        print(f"  文本条件：normal/severe 嵌入 {tuple(text_table.shape)}")
+        del _te
+        torch.cuda.empty_cache()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
@@ -1092,6 +1160,11 @@ def main():
                         cond_batch = torch.stack(cond_batch)
                     cond = cond_batch.to(device, non_blocking=True)
 
+                text_emb_b = None
+                if text_table is not None:
+                    tid = batch_data[3] if getattr(args, "lesion_weight_dir", None) else batch_data[2]
+                    text_emb_b = text_table[tid.to(device)]
+
                 is_cfm = getattr(args, "objective", "ddpm") == "cfm"
                 lpips_t = getattr(args, "lpips_t", 200)
 
@@ -1100,7 +1173,7 @@ def main():
                     t = diffusion.t_cont_to_index(
                         t_cont, align=bool(getattr(args, "cfm_time_align", False)))
                     x_t, v_target, _noise = diffusion.cfm_path(real_data, t_cont)
-                    predicted = model(x_t, t, cond=cond) if cond is not None else model(x_t, t)
+                    predicted = model(x_t, t, cond=cond, text_emb=text_emb_b)
                     if args.loss_type == "mse":
                         loss = F.mse_loss(predicted, v_target)
                     else:
@@ -1124,7 +1197,7 @@ def main():
                 else:
                     t = torch.randint(0, args.timesteps, (batch,), device=device, dtype=torch.long)
                     noisy_images, noise = diffusion.q_sample(real_data, t)
-                    predicted = model(noisy_images, t, cond=cond) if cond is not None else model(noisy_images, t)
+                    predicted = model(noisy_images, t, cond=cond, text_emb=text_emb_b)
                     if args.loss_type == "mse":
                         loss = F.mse_loss(predicted, noise)
                     else:

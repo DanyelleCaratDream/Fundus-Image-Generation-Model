@@ -52,6 +52,16 @@
 - 产出：`SymmFlow/results/symmflow_fundus/`。
 - 风险：193 张数据量可能不足；改造量大。
 
+## 预训练对照（作者 2026-10-23 追加，两项都做）
+
+| # | 实验 | 做法 | 成本 | 状态 |
+|:--|:--|:--|:--|:--|
+| 7 | **Tiger-Model 零样本/迁移观察** | 官方权重（pretrain + controlnet_bg，6.2GB）已下载；文本提示直接生成 | 推理约 1h | 权重就绪、脚本就绪（`pretrained/TextGuidedDiffusion/tools/tiger_zeroshot.py`），等 GPU；它是**超声图**训练的，域差大，预期负结果 |
+| 8 | **轻量文本条件 A/B** | 在 CFM 的 UNet 时间嵌入上加零初始化 CLIP 文本投影（normal/severe 两个提示），与 cfm128 同预算对比 | 320 轮 @128，约 5h | **代码已实现**（`--use_text_cond`，预设 `cfm128_text`），排队 |
+
+> 这两项回答的是“文本/预训练能带来什么”，与 1–6 的 Flow Matching 族内消融并列；
+> 完成后先问作者是否写入 DLreport。
+
 ## 依赖与限制
 
 - GPU 单卡 8GB：同一时间只能跑一个训练；推理类实验（#1）可与训练错开。

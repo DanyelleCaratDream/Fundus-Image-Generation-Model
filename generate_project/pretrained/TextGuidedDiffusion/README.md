@@ -14,9 +14,14 @@ Tiger-Model 的定义性特征是**预训练 SD 先验 + ControlNet + 文本条�
 不是新的扩散目标；把它放进 `pretrained/` 与 SD21-LoRA 并列，逻辑更一致。
 生成框架（扩散 / Flow Matching / GAN）是另一条正交的轴。
 
-## 状态：📌 代码已下载，**未跑**
+## 状态：📌 权重已下载、待跑（GPU 被占）
 
 作者 2026-10-23 明确要求：**后续提醒可以跑一跑这个方法**。
+
+- 权重：`models/tiger/`（pretrain 全套 + controlnet_bg，约 6.2GB；官方 tokenizer 的
+  vocab.json 在镜像上损坏，已用本地 SD2.1 tokenizer 替换，CLIP 词表一致）；
+- 零样本脚本：`tools/tiger_zeroshot.py`（文本提示直接生成，等 GPU 空出后跑）；
+- 注意：它训练在**超声图**上，不是病理切片；迁到眼底域的域差极大，预期多为负结果。
 
 它可以用来回答：
 - 文本条件（如“severe DR with hemorrhages and hard exudates”）能否比 mask 条件更好地注入病理语义？
@@ -50,7 +55,7 @@ Tiger-Model **不是一个新的扩散目标**（不是新损失、也不是新�
 | 条件 | **血管 mask**，FiLM 注入 | **文本提示 + ControlNet**（结构条件） |
 | 初始化 | 从零，或 film_l1lpips 微调 | **预训练 SD + ControlNet** |
 | 训练阶段 | 单阶段 | **两阶段**：Tiger-Coarse（结构）→ Tiger-Fine（细节） |
-| 数据领域 | 眼底彩照 | 病理切片（甲状腺癌亚型） |
+| 数据领域 | 眼底彩照 | **超声图（甲状腺癌亚型）+ 文本报告** |
 | 目的 | 扩充 severe 训练集 | 罕见亚型增广，提升分类准确率 |
 
 ## 我们能借鉴什么
