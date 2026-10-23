@@ -20,6 +20,18 @@ Fundus-Diffusion 训练脚本
 
 import argparse
 import os
+
+
+def _gpu_temp():
+    """读取 GPU 温度（失败返回 -1）"""
+    try:
+        import subprocess
+        o = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader"],
+            timeout=5, text=True)
+        return int(o.strip().splitlines()[0])
+    except Exception:
+        return -1
 import sys
 import math
 import time
@@ -1047,12 +1059,21 @@ def main():
     print()
 
     try:
+        _step_in_epoch = 0
         for epoch in range(start_epoch, args.epochs):
             epoch_start = time.time()
             epoch_losses = []
             model.train()
 
             for batch_data in dataloader:
+                _step_in_epoch += 1
+                # 温度守护（作者纪律 ≤70°C）：每 25 步检查，超过 70 就睡到降下来
+                if _step_in_epoch % 25 == 0:
+                    t_now = _gpu_temp()
+                    while 0 <= t_now > 70:
+                        print(f"  [cool] {t_now}C > 70C, sleeping 60s", flush=True)
+                        time.sleep(60)
+                        t_now = _gpu_temp()
                 real_data = batch_data[0].to(device, non_blocking=True)
                 batch = real_data.shape[0]
 

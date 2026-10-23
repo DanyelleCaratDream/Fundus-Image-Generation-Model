@@ -151,7 +151,7 @@ def main():
     # 对照表：受体原图 / 移植后
     rows = [(sorted(recep_dir.glob("*.png"))[:a.num], "CFM@256 + SDEdit 0.8 (before)"),
             (sorted(OUT_DIR.glob("*.png"))[:a.num], "after lesion transplant")]
-    S, PAD, CAP, N = 256, 6, 24, a.num
+    S, PAD, CAP, N = 224, 6, 24, min(8, a.num)
     canvas = Image.new("RGB", (N * S + (N + 1) * PAD, len(rows) * (S + CAP + PAD) + PAD), "white")
     dr = ImageDraw.Draw(canvas)
     y = PAD
