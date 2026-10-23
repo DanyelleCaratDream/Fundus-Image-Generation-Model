@@ -6,7 +6,7 @@ CFM 版 SDEdit：x_t = t_start·x1 + (1−t_start)·noise，Euler 从 t_start �
 等价档位：DDPM t0=200 ↔ t_start=0.8；t0=300 ↔ 0.7。
 
 用法
-    python infer/sdedit_cfm.py --ckpt results/cfm256/models/final_model.pth \
+    python infer/sdedit_cfm.py --ckpt models/cfm256_final_model.pth \
         --t_start 0.8 --out judgment/cfm256_s08
 """
 import argparse
@@ -22,7 +22,7 @@ DDPM = DL / "Fundus-Diffusion" / "ddpm"
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ckpt", default=str(CFM / "results/cfm256/models/final_model.pth"))
+    ap.add_argument("--ckpt", default=str(CFM / "models/cfm256_final_model.pth"))
     ap.add_argument("--cond", default=str(CFM / "data/conditions_combined_256"))
     ap.add_argument("--t_start", type=float, nargs="+", default=[0.8])
     ap.add_argument("--steps", type=int, default=100)

@@ -41,12 +41,19 @@ CFM/
 ├── data/
 │   ├── conditions_combined_256/  # 256 版血管 mask（193 张）
 │   └── lesion_weights_256/       # 病灶权重图（193 张）
-├── results/
+├── models/                   # 本族全部模型权重（按实验名命名）
+│   ├── cfm128_final_model.pth
+│   └── cfm256_final_model.pth
+├── results/                  # 生成结果，按实验名（孙子目录）
 │   ├── cfm128/               # 320 轮，loss 0.90→0.12–0.14
 │   ├── cfm256/               # 320 轮，loss 0.100（作者 97/100）
 │   └── cfm256_lesion/        # 病灶加权续训（λ=8，150 轮，进行中）
 └── judgment/                 # 评估/对照图（同槽对比、移植对照、交付总览）
 ```
+
+> 命名约定（2026-10-23）：**模型权重统一放族内 `models/`**，用实验名区分；
+> **生成结果放 `results/<实验名>/`**。训练脚本的 `--output_dir` 仍写到 results，
+> 训练结束后把 `results/<实验名>/models/*.pth` 移到族 `models/` 并按实验名重命名。
 
 **为什么训练器不在本目录**：CFM 与 Diffusion 共用同一套 FiLM 条件 UNet、数据管线与
 温度/EMA 逻辑；复制一份会分叉。`train/train_cfm.py` 是指定 `--objective cfm` 的入口，
@@ -86,11 +93,11 @@ CFM/
 python train/train_cfm.py --preset cfm256_lesion
 
 # 生成 8 张判定图
-python infer/sample_cfm.py --ckpt results/cfm256/models/final_model.pth \
+python infer/sample_cfm.py --ckpt models/cfm256_final_model.pth \
     --num 8 --seed 42 --steps 50 --out judgment/cfm256_8
 
 # 自精修
-python infer/sdedit_cfm.py --ckpt results/cfm256/models/final_model.pth \
+python infer/sdedit_cfm.py --ckpt models/cfm256_final_model.pth \
     --base judgment/cfm256_8/singles --t_start 0.8 --out judgment/cfm256_s08
 
 # 交付批次（60 张，SDEdit 0.8）

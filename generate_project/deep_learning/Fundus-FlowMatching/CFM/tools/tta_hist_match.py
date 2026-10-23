@@ -15,7 +15,7 @@ Time-Independent Flow"（代码 code/external/tta-flow）。
 ②对生成图做非参数色彩校准（与 Reinhard 对照）。不改模型、不加训练。
 
 用法
-    python tools/tta_hist_match.py --ckpt results/cfm256/models/final_model.pth \
+    python tools/tta_hist_match.py --ckpt models/cfm256_final_model.pth \
         --src <测试图目录> --num_ref 16 --s_target 0.5 --steps 100 --out judgment/tta_proj
 """
 import argparse

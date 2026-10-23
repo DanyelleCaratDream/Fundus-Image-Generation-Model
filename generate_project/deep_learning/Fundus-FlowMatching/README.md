@@ -68,21 +68,28 @@ B 域三模型同协议评估（60 张/模型，severe 参照 72 张）：
 
 ```
 Fundus-FlowMatching/
-├── README.md                 # 本文件：方法族总览 + 现状
-├── papers/                   # 论文调研（reading-list + notes）
-├── code/                     # 外部库清单（不复制共享训练器）
+├── README.md                 # 方法族总览
+├── papers/                   # 文献调研（reading-list + 精读笔记）
+├── code/external/            # 上游库克隆（不入 git）
+│
+├── CFM/                      # 方法族 1：条件流匹配（线性 OT 路径，独立耦合）★ 主线
 │   ├── README.md
-│   └── external/             # facebookresearch/flow_matching、TorchCFM（不入 git）
-└── CFM/                      # 具体方法族：条件流匹配（OT 线性路径）
-    ├── README.md             # 方法标注（哪种 FM）+ 三套实验 + 结果
-    ├── configs/              # cfm128 / cfm256 / cfm256_lesion
-    ├── train/train_cfm.py    # 训练入口（薄封装共享训练器）
-    ├── infer/                # sample / sdedit / deliver
-    ├── tools/                # 病灶权重图、病灶移植
-    ├── data/                 # 256 血管 mask + 病灶权重图
-    ├── results/              # cfm128、cfm256、cfm256_lesion（权重不入 git）
-    └── judgment/             # 同槽对比、移植对照、交付总览
+│   ├── configs/ train/ infer/ tools/ data/ judgment/
+│   ├── models/               # 本族全部模型权重（cfm128/cfm256/...）
+│   └── results/              # 按实验名：cfm128/、cfm256/、cfm256_lesion/
+│
+├── OT-CFM/                   # 方法族 2：minibatch 最优传输耦合（未实现，低优先）
+├── RectifiedFlow/            # 方法族 3：线性路径 + reflow（未实现，中优先）
+├── StochasticInterpolants/   # 方法族 4：随机插值统一框架（参考）
+└── SymmFlow/                # 方法族 5：双向流（参考/中期）
 ```
+
+**每个方法族的统一约定**（作者 2026-10-23 定）：
+
+- `models/` 放该族**所有实验的模型权重**，用实验名命名（如 `cfm128_final_model.pth`）；
+- `results/<实验名>/` 放该实验的生成结果、日志、config——即“族文件夹 → results → 实验名”的孙子目录；
+- 同一族只是换了训练目标/条件/技巧，不另开族文件夹，都在族内用不同实验名区分；
+- 上游代码放 `code/external/`，不复制进方法族，避免分叉。
 
 ## 4. 纪律
 

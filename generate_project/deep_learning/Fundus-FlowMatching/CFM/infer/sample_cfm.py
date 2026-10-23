@@ -3,7 +3,7 @@
 """CFM 采样入口（薄封装 → Fundus-Diffusion/ddpm/generate.py，自动 Euler）
 
 用法
-    python infer/sample_cfm.py --ckpt results/cfm256/models/final_model.pth \
+    python infer/sample_cfm.py --ckpt models/cfm256_final_model.pth \
         --num 8 --seed 42 --steps 50 --out judgment/cfm256_8
 """
 import argparse

@@ -20,7 +20,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--ckpt", default=str(CFM / "results/cfm256/models/final_model.pth"))
+    ap.add_argument("--ckpt", default=str(CFM / "models/cfm256_final_model.pth"))
     ap.add_argument("--cond", default=str(CFM / "data/conditions_combined_256"))
     ap.add_argument("--t_start", type=float, default=0.8)
     ap.add_argument("--steps", type=int, default=100)

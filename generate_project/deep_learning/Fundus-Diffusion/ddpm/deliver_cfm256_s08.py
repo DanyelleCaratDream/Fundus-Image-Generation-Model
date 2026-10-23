@@ -46,7 +46,7 @@ def refine(model, diffusion, x1, t_start, steps, cond, align=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--checkpoint", default=str(ROOT.parent.parent / "Fundus-FlowMatching/results/cfm256/models/final_model.pth"))
+    ap.add_argument("--checkpoint", default=str(ROOT.parent.parent / "Fundus-FlowMatching/CFM/models/cfm256_final_model.pth"))
     ap.add_argument("--cond_path", default=str(ROOT / "conditions_combined_256"))
     ap.add_argument("--base_dir", default=str(DEFAULT_BASE))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
