@@ -39,8 +39,8 @@ def refine(model, diffusion, x1, t_start, steps, cond):
     return x.clamp(-1.0, 1.0)
 
 
-def load_bases(n):
-    files = sorted(BASE_DIR.glob("sample_*.png"))[:n]
+def load_bases(n, base_dir=None):
+    files = sorted((Path(base_dir) if base_dir else BASE_DIR).glob("sample_*.png"))[:n]
     assert files, f"no base images in {BASE_DIR}"
     out = []
     for f in files:
@@ -61,6 +61,8 @@ def main():
     ap.add_argument("--t_start", type=float, nargs="+", default=[0.8, 0.7])
     ap.add_argument("--denoise_steps", type=int, default=100)
     ap.add_argument("--noise_seed", type=int, default=1234)
+    ap.add_argument("--base_dir", default=str(BASE_DIR))
+    ap.add_argument("--out_root", default=str(OUT_ROOT))
     ap.add_argument("--no_cuda", action="store_true")
     a = ap.parse_args()
 
@@ -79,23 +81,23 @@ def main():
 
     conds = load_condition_images(a.cond_path, a.img_size, a.num_images).to(device)
     diffusion = GaussianDiffusion(timesteps=1000).to(device)
-    x1 = load_bases(a.num_images).to(device)
+    x1 = load_bases(a.num_images, a.base_dir).to(device)
 
     outputs = {}
     for ts in a.t_start:
         torch.manual_seed(a.noise_seed)
         print(f"[SDEDIT] t_start={ts} {a.denoise_steps} Euler steps", flush=True)
         outputs[ts] = refine(model, diffusion, x1, ts, a.denoise_steps, conds)
-        d = OUT_ROOT / f"t{int(ts*1000):04d}" / "singles"
+        d = Path(a.out_root) / f"t{int(ts*1000):04d}" / "singles"
         d.mkdir(parents=True, exist_ok=True)
         for i in range(a.num_images):
             save_image(outputs[ts][i], d / f"sample_{i}.png", normalize=True)
         print(f"[ok] {d}", flush=True)
 
     rows = [(sorted((ROOT / "b1b_data/severe512").glob("*.jpg"))[:8], "real severe (512)"),
-            (sorted(BASE_DIR.glob("*.png"))[:8], "CFM@256 base")]
+            (sorted(Path(a.base_dir).glob("*.png"))[:8], "CFM@256 base")]
     for ts in a.t_start:
-        rows.append((sorted((OUT_ROOT / f"t{int(ts*1000):04d}/singles").glob("*.png"))[:8],
+        rows.append((sorted((Path(a.out_root) / f"t{int(ts*1000):04d}/singles").glob("*.png"))[:8],
                      f"CFM@256 + SDEdit({ts})"))
     S, PAD, CAP, N = 256, 6, 24, 8
     canvas = Image.new("RGB", (N * S + (N + 1) * PAD, len(rows) * (S + CAP + PAD) + PAD), "white")

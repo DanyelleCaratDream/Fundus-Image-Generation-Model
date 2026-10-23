@@ -63,16 +63,25 @@ B 域三模型同协议评估（60 张/模型，severe 参照 72 张）：
 
 ## 3. 目录约定
 
+对标 `Fundus-GAN/DCGAN`、`Fundus-GAN/WGAN-GP` 的组织方式：**方法族目录下自含训练、推理、
+中间产物与结果**。
+
 ```
 Fundus-FlowMatching/
 ├── README.md                 # 本文件：方法族总览 + 现状
-├── papers/
-│   ├── reading-list.md       # 顶会论文表（venue/年份/链接/贡献/与本项目相关性）
-│   └── notes/                # 逐篇精读笔记
-├── code/
-│   ├── README.md             # 外部库清单 + 我们实现的指针
-│   └── external/             # 克隆的外部仓库（不入 git，见 .gitignore 约定）
-└── results/                  # CFM 训练产物（权重不入 git）
+├── papers/                   # 论文调研（reading-list + notes）
+├── code/                     # 外部库清单（不复制共享训练器）
+│   ├── README.md
+│   └── external/             # facebookresearch/flow_matching、TorchCFM（不入 git）
+└── CFM/                      # 具体方法族：条件流匹配（OT 线性路径）
+    ├── README.md             # 方法标注（哪种 FM）+ 三套实验 + 结果
+    ├── configs/              # cfm128 / cfm256 / cfm256_lesion
+    ├── train/train_cfm.py    # 训练入口（薄封装共享训练器）
+    ├── infer/                # sample / sdedit / deliver
+    ├── tools/                # 病灶权重图、病灶移植
+    ├── data/                 # 256 血管 mask + 病灶权重图
+    ├── results/              # cfm128、cfm256、cfm256_lesion（权重不入 git）
+    └── judgment/             # 同槽对比、移植对照、交付总览
 ```
 
 ## 4. 纪律

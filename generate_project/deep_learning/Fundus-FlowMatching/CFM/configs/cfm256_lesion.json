@@ -1,0 +1,18 @@
+{
+  "objective": "cfm",
+  "init": "results/cfm256/models/final_model.pth (epoch 1420)",
+  "img_size": 256,
+  "base_dim": 128,
+  "batch_size": 1,
+  "epochs": 1570,
+  "note": "1420→1570，再训 150 轮",
+  "dataset_path": "fundus/combined_sq256 (193)",
+  "cond_path": "data/conditions_combined_256",
+  "lesion_weight_dir": "data/lesion_weights_256",
+  "lesion_lambda": 8.0,
+  "loss": "L1 + LPIPS 0.1 + color 0.01",
+  "sampler": "Euler 50 NFE (eval) / 100 NFE (deliver)",
+  "output_dir": "results/cfm256_lesion",
+  "cool_sleep": -0.5,
+  "temp_guard": "every 25 steps, sleep if >70C"
+}
