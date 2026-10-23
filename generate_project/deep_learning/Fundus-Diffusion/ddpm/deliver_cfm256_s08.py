@@ -32,13 +32,13 @@ def load_images(files):
 
 
 @torch.no_grad()
-def refine(model, diffusion, x1, t_start, steps, cond):
+def refine(model, diffusion, x1, t_start, steps, cond, align=False):
     b = x1.shape[0]
     x = t_start * x1 + (1.0 - t_start) * torch.randn_like(x1)
     dt = (1.0 - t_start) / steps
     for i in range(steps):
         t_cont = torch.full((b,), t_start + i * dt, device=x1.device)
-        t_idx = diffusion.t_cont_to_index(t_cont)
+        t_idx = diffusion.t_cont_to_index(t_cont, align=align)
         v = model(x, t_idx, cond=cond) if cond is not None else model(x, t_idx)
         x = x + v * dt
     return x.clamp(-1.0, 1.0)
@@ -90,7 +90,8 @@ def main():
         x1 = load_images(chunk).to(device)
         conds = conds_all[idxs]
         torch.manual_seed(a.noise_seed + idxs[0])  # 按原始下标定种子，续跑可复现
-        y = refine(model, diffusion, x1, a.t_start, a.denoise_steps, conds)
+        y = refine(model, diffusion, x1, a.t_start, a.denoise_steps, conds,
+                   align=bool(getattr(ck_args, "cfm_time_align", False)))
         for j in range(len(chunk)):
             save_image(y[j], out / chunk[j].name, normalize=True)
         print(f"[ok] {len(done) + s + len(chunk)}/{len(all_files)}", flush=True)

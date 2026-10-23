@@ -44,7 +44,7 @@ def gpu_temp():
 
 
 @torch.no_grad()
-def cfm_refine(model, diffusion, x1, t_start, steps, cond):
+def cfm_refine(model, diffusion, x1, t_start, steps, cond, align=False):
     """从线性路径 t_start 处积分到 t=1（Euler）"""
     b = x1.shape[0]
     noise = torch.randn_like(x1)  # 调用方已设 seed
@@ -52,7 +52,7 @@ def cfm_refine(model, diffusion, x1, t_start, steps, cond):
     dt = (1.0 - t_start) / steps
     for i in range(steps):
         t_cont = torch.full((b,), t_start + i * dt, device=x1.device)
-        t_idx = diffusion.t_cont_to_index(t_cont)
+        t_idx = diffusion.t_cont_to_index(t_cont, align=align)
         v = model(x, t_idx, cond=cond) if cond is not None else model(x, t_idx)
         x = x + v * dt
         if i % 50 == 0:
@@ -108,7 +108,8 @@ def main():
     for ts in a.t_start:
         torch.manual_seed(a.noise_seed)
         print(f"[SDEDIT] t_start={ts} ({a.denoise_steps} Euler steps)", flush=True)
-        outputs[ts] = cfm_refine(model, diffusion, x1, ts, a.denoise_steps, conds)
+        outputs[ts] = cfm_refine(model, diffusion, x1, ts, a.denoise_steps, conds,
+                                 align=bool(getattr(ck_args, "cfm_time_align", False)))
         d = OUT_ROOT / f"t{int(ts*1000):04d}" / "singles"
         d.mkdir(parents=True, exist_ok=True)
         for i in range(a.num_images):

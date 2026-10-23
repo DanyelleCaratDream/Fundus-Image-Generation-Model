@@ -219,6 +219,9 @@ def main():
     if objective is None:
         objective = "ddpm"
 
+    # CFM 时间轴对齐标志（训练时写入 checkpoint args；采样必须用同一约定）
+    time_align = bool(getattr(ckpt_args, "cfm_time_align", False)) if ckpt_args is not None else False
+
     sampler = args.sampler
     if sampler == "auto":
         sampler = "euler" if objective == "cfm" else "ddim"
@@ -227,7 +230,8 @@ def main():
         sampler = "euler"
 
     print(f"[INFO] 模型架构: FiLM 调制 = {'启用' if use_ssn else '禁用'}")
-    print(f"[INFO] 训练目标: {objective.upper()}  |  采样: {sampler.upper()} × {args.sampling_steps} NFE")
+    print(f"[INFO] 训练目标: {objective.upper()}  |  采样: {sampler.upper()} × {args.sampling_steps} NFE"
+          f"{'  |  时间轴对齐' if time_align else ''}")
 
     # 加载模型（支持条件扩散 + FiLM）
     model = UNet(
@@ -307,6 +311,7 @@ def main():
                     model, shape, device,
                     sampling_steps=args.sampling_steps,
                     cond=cond_batch,
+                    time_align=time_align,
                 )
             else:
                 print(f"  DDIM 采样 ({bs} 张, {args.sampling_steps} 步)...", end=" ", flush=True)

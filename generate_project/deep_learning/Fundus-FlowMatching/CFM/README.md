@@ -58,6 +58,12 @@ CFM/
 | **cfm128** | film_l1lpips final（A 域最佳） | combined_sq128 / mask128 | 320（780→1100） | loss 0.90→0.12–0.14；8/8 结构完整、色彩比 D3 近真实，血管偏软 |
 | **cfm256** | cfm128 final | combined_sq256 / mask256 | 320（1100→1420） | loss 0.100；**作者目检 97/100**；锐度 0.00295≈D3 0.00313 |
 | **cfm256_lesion** | cfm256 final | 同上 + 病灶权重 λ=8 | 150（1420→1570） | 进行中；目标提升出血/渗出保留 |
+| **cfm128_align**（消融） | film_l1lpips final | 同 cfm128，但时间轴反转对齐 DDPM | 320（780→1100） | 待跑（GPU 空出后）；验证“时间语义对齐”是否加速/稳定迁移 |
+
+> **时间轴问题（2026-10-23 发现）**：DDPM 的 t=0 是干净图、999 是噪声；CFM 的 t=0 是噪声。
+> 原实现把 CFM 的 t 直接映射到 0..999，等于让模型“倒着学”时间条件（首轮 loss 0.904≈预测零速度）。
+> `--cfm_time_align` 改为 `idx=(1−t)·T`；采样端（generate/sdedit/deliver）会从 checkpoint
+> 的 `args.cfm_time_align` 自动读取同一约定。
 
 ## 4. 结果摘要（B 域三模型，60 张/模型，severe 参照 72 张）
 

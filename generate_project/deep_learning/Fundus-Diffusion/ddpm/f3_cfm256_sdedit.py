@@ -26,14 +26,14 @@ OUT_ROOT = J / "F3_cfm256_sdedit"
 
 
 @torch.no_grad()
-def refine(model, diffusion, x1, t_start, steps, cond):
+def refine(model, diffusion, x1, t_start, steps, cond, align=False):
     b = x1.shape[0]
     noise = torch.randn_like(x1)
     x = t_start * x1 + (1.0 - t_start) * noise
     dt = (1.0 - t_start) / steps
     for i in range(steps):
         t_cont = torch.full((b,), t_start + i * dt, device=x1.device)
-        t_idx = diffusion.t_cont_to_index(t_cont)
+        t_idx = diffusion.t_cont_to_index(t_cont, align=align)
         v = model(x, t_idx, cond=cond) if cond is not None else model(x, t_idx)
         x = x + v * dt
     return x.clamp(-1.0, 1.0)
@@ -87,7 +87,8 @@ def main():
     for ts in a.t_start:
         torch.manual_seed(a.noise_seed)
         print(f"[SDEDIT] t_start={ts} {a.denoise_steps} Euler steps", flush=True)
-        outputs[ts] = refine(model, diffusion, x1, ts, a.denoise_steps, conds)
+        outputs[ts] = refine(model, diffusion, x1, ts, a.denoise_steps, conds,
+                             align=bool(getattr(ck_args, "cfm_time_align", False)))
         d = Path(a.out_root) / f"t{int(ts*1000):04d}" / "singles"
         d.mkdir(parents=True, exist_ok=True)
         for i in range(a.num_images):

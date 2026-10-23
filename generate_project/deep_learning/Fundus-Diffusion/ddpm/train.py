@@ -121,6 +121,8 @@ def parse_args():
     parser.add_argument("--lpips_t", type=int, default=200,
                         help="LPIPS/颜色正则只在「靠近干净图」的时间段计算。"
                              "DDPM：timestep < lpips_t；CFM：t_cont > 1 - lpips_t/timesteps")
+    parser.add_argument("--cfm_time_align", action="store_true",
+                        help="CFM 时间轴与 DDPM 对齐（t=0 噪声→index999），从 DDPM 权重迁移时用")
     parser.add_argument("--lesion_weight_dir", type=str, default=None,
                         help="病灶权重图目录（与图同名的 PNG，0=非病灶 255=病灶）；仅 CFM 分支生效")
     parser.add_argument("--lesion_lambda", type=float, default=5.0,
@@ -411,9 +413,14 @@ class GaussianDiffusion:
         """把 [B] 的连续时间扩成可与 x 相乘的形状。"""
         return t_cont.view(-1, *([1] * (x.ndim - 1))).to(dtype=x.dtype)
 
-    def t_cont_to_index(self, t_cont):
-        """连续 t∈[0,1] → 离散 embedding 下标 0..T-1（不改 TimeEmbedding 架构）。"""
-        t_idx = (t_cont * self.timesteps).long()
+    def t_cont_to_index(self, t_cont, align=False):
+        """连续 t∈[0,1] → 离散 embedding 下标 0..T-1（不改 TimeEmbedding 架构）。
+
+        align=True：反转时间轴，使 CFM 的 t=0（噪声）对应 DDPM 的 999（噪声）、
+        t=1（数据）对应 0（干净）——从 DDPM 权重迁移时语义对齐，避免"倒着学"。
+        """
+        tt = (1.0 - t_cont) if align else t_cont
+        t_idx = (tt * self.timesteps).long()
         return t_idx.clamp(0, self.timesteps - 1)
 
     def cfm_path(self, x1, t_cont, noise=None):
@@ -437,7 +444,7 @@ class GaussianDiffusion:
         return x_t + (1.0 - t) * v_pred
 
     @torch.no_grad()
-    def euler_sample(self, model, shape, device, sampling_steps=50, cond=None):
+    def euler_sample(self, model, shape, device, sampling_steps=50, cond=None, time_align=False):
         """
         CFM 欧拉采样：t=0 纯噪声 → t=1 数据，NFE = sampling_steps。
         评估时与 DDIM 使用相同步数（默认 50），不要拿 1000 步打 50 步。
@@ -452,7 +459,7 @@ class GaussianDiffusion:
 
         for i in range(sampling_steps):
             t_cont = torch.full((batch_size,), i / sampling_steps, device=device)
-            t_idx = self.t_cont_to_index(t_cont)
+            t_idx = self.t_cont_to_index(t_cont, align=time_align)
             if cond_broadcast is not None:
                 v = model(x, t_idx, cond=cond_broadcast)
             else:
@@ -1090,7 +1097,8 @@ def main():
 
                 if is_cfm:
                     t_cont = torch.rand(batch, device=device)
-                    t = diffusion.t_cont_to_index(t_cont)
+                    t = diffusion.t_cont_to_index(
+                        t_cont, align=bool(getattr(args, "cfm_time_align", False)))
                     x_t, v_target, _noise = diffusion.cfm_path(real_data, t_cont)
                     predicted = model(x_t, t, cond=cond) if cond is not None else model(x_t, t)
                     if args.loss_type == "mse":

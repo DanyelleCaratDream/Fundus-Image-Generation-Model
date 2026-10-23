@@ -42,6 +42,16 @@ PRESETS = {
         "--epochs", "1420",
         "--output_dir", str(CFM / "results/cfm256"),
     ],
+    # 消融：时间轴与 DDPM 对齐（t=0 噪声→index999），其余与 cfm128 完全一致
+    "cfm128_align": [
+        "--objective", "cfm", "--cfm_time_align",
+        "--dataset_path", str(REPO / "fundus/combined_sq128"),
+        "--cond_path", str(DDPM / "conditions_combined_128"),
+        "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "1100",
+        "--output_dir", str(CFM / "results/cfm128_align"),
+    ],
     # CFM@256 → 病灶加权续训（150 轮）
     "cfm256_lesion": [
         "--objective", "cfm",
