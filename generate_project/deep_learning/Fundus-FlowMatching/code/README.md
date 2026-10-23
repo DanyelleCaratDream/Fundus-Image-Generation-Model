@@ -20,11 +20,13 @@ F:/python/python.exe train.py --objective cfm \
     --cond_path ./conditions_combined_128 \
     --resume ./results_film_l1lpips/models/final_model.pth \
     --img_size 128 --base_dim 128 --batch_size 2 --epochs 1100 \
-    --output_dir ./results_cfm_l1lpips
+    --output_dir ../Fundus-FlowMatching/results/cfm128
 ```
 采样：`generate.py --sampler auto`（读到 cfm checkpoint 自动用 Euler）。
 
-> 现状：**代码就位、从未训练**（EXPERIMENTS.md 无 cfm 记录）。
+> 现状（2026-10-23）：已训练两条线——`results/cfm128/`（320 轮，loss 0.12–0.14）与
+> `results/cfm256/`（原生 256，loss 0.100，作者目检 97/100）。见 ../README.md 第 2 节。
+> 路径说明：训练器在 `Fundus-Diffusion/ddpm/`，实验输出按约定放本目录 `results/`。
 
 ## 2. 外部库（code/external/）
 

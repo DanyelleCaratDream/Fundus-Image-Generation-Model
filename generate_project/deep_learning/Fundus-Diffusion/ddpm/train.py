@@ -109,6 +109,10 @@ def parse_args():
     parser.add_argument("--lpips_t", type=int, default=200,
                         help="LPIPS/颜色正则只在「靠近干净图」的时间段计算。"
                              "DDPM：timestep < lpips_t；CFM：t_cont > 1 - lpips_t/timesteps")
+    parser.add_argument("--lesion_weight_dir", type=str, default=None,
+                        help="病灶权重图目录（与图同名的 PNG，0=非病灶 255=病灶）；仅 CFM 分支生效")
+    parser.add_argument("--lesion_lambda", type=float, default=5.0,
+                        help="病灶权重上限：w = 1 + λ·mask（默认 5 → 最大 6 倍）")
     parser.add_argument("--cond_path", type=str, default=None,
                         help="条件图路径（血管骨架等），开启条件扩散训练")
 
@@ -146,9 +150,11 @@ def check_environment(no_cuda=False):
 class FundusDataset(Dataset):
     """直接从文件夹读取眼底图，可选加载条件图（血管骨架）。"""
 
-    def __init__(self, root, transform=None, cond_root=None, cond_transform=None, img_size=128):
+    def __init__(self, root, transform=None, cond_root=None, cond_transform=None, img_size=128,
+                 lesion_root=None):
         self.transform = transform
         self.cond_root = cond_root
+        self.lesion_root = lesion_root
         self.cond_transform = cond_transform or transform
         self.img_size = img_size
         self.image_paths = []
@@ -191,6 +197,22 @@ class FundusDataset(Dataset):
                     cond = (torch.from_numpy(np.array(cond_pil)).float() / 255.0 * 2.0 - 1.0).unsqueeze(0)
             if cond is None:
                 cond = torch.zeros(1, self.img_size, self.img_size)
+
+        # 病灶权重图（可选）：0=非病灶 → 权重 1，255 → 权重 1+λ
+        if self.lesion_root:
+            basename = os.path.splitext(os.path.basename(self.image_paths[idx]))[0]
+            wp = os.path.join(self.lesion_root, basename + ".png")
+            w = torch.zeros(1, self.img_size, self.img_size)
+            if os.path.isfile(wp):
+                if _HAS_CV2:
+                    wv = cv2.imread(wp, cv2.IMREAD_GRAYSCALE)
+                    if wv is not None:
+                        wv = cv2.resize(wv, (self.img_size, self.img_size))
+                        w = torch.from_numpy(wv.astype(np.float32) / 255.0).unsqueeze(0)
+                else:
+                    wv = np.array(Image.open(wp).convert("L").resize((self.img_size, self.img_size)))
+                    w = torch.from_numpy(wv.astype(np.float32) / 255.0).unsqueeze(0)
+            return img, cond, w, idx
         return img, cond, idx
 
 
@@ -881,6 +903,7 @@ def main():
         args.dataset_path, transform=transform,
         cond_root=args.cond_path,
         img_size=args.img_size,
+        lesion_root=getattr(args, "lesion_weight_dir", None),
     )
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
@@ -1053,6 +1076,11 @@ def main():
                         loss = F.mse_loss(predicted, v_target)
                     else:
                         loss = F.l1_loss(predicted, v_target)
+                    # 病灶区域加权（可选）：w=1+λ·mask，按权重归一化保持 loss 尺度
+                    if getattr(args, "lesion_weight_dir", None) and len(batch_data) > 3:
+                        lw = batch_data[2].to(device, dtype=predicted.dtype)
+                        lw = 1.0 + float(getattr(args, "lesion_lambda", 5.0)) * lw
+                        loss = (torch.abs(predicted - v_target) * lw).sum() / lw.sum()
                     # CFM：t→1 靠近数据，对应 DDPM 的低噪声段
                     low_noise_mask = t_cont > (1.0 - float(lpips_t) / args.timesteps)
                     if low_noise_mask.any():

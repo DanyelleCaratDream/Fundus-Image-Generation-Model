@@ -31,16 +31,35 @@ L   = E || v_θ(x_t, t) - v ||²        # 回归损失
 | 采样 | DDIM/DDPM，N 步 | Euler/RK，N 步（NFE 口径一致可直接对比） |
 | 条件 | cross-attn / FiLM / concat | 同左（条件只进网络，不改路径） |
 
-## 2. 我们的现状（2026-10-21）
+## 2. 我们的现状（2026-10-23 更新：CFM 已训练并胜出）
 
-- **代码已就位、从未训练**：`train.py` 实现了 OT 线性路径 `cfm_path()`（行 385）、
-  由速度反推 x1 `cfm_predict_x1()`（行 400，供 LPIPS/颜色正则）、Euler 采样 `euler_sample()`
-  （行 406）；`generate.py` 有 `--sampler auto|euler` 与 `--objective` 覆盖。
-  证据：`grep -n "cfm" train.py generate.py`。
-- **从未跑过 CFM**：EXPERIMENTS.md 全文无 cfm/flow-matching 实验记录；D3/D4 config 均为 ddpm。
-- **下一步（F2，作者已排期）**：除 `--objective cfm` 外一切照抄 D3 config
-  （`resume=film_l1lpips/final_model.pth`、`combined_sq128`、`conditions_combined_128`、
-  L1+LPIPS 0.1+color 0.01、bd128、batch2、1100ep、同种子），与 D3_ema 同槽对决。
+**CFM 不是"待做"，而是已经跑完两条线**——只是训练器住在
+`../Fundus-Diffusion/ddpm/train.py`（共用 FiLM 条件 UNet，`--objective cfm` 切换），
+结果已归位到本目录 `results/`：
+
+| 实验 | 配置 | 结果 | 目录 |
+|:--|:--|:--|:--|
+| **F2（CFM@128）** | 从 film_l1lpips 初始化，其余复刻 D3；320 轮 | loss 0.90→0.12–0.14；8/8 结构完整、色彩接近真实，血管偏软 | `results/cfm128/` |
+| **F3（CFM@256）** | 从 CFM@128 初始化，combined_sq256 + 256 mask；320 轮 | loss 0.100；**作者目检 97/100**；锐度 0.00295≈D3 0.00313、色彩距离最小 | `results/cfm256/` |
+
+B 域三模型同协议评估（60 张/模型，severe 参照 72 张）：
+
+| 指标 | D3 | CFM@128 | **CFM@256** |
+|:--|--:|--:|--:|
+| FID ↓ | 222.69 | 178.87 | **121.84** |
+| KID ↓ | 0.1287 | 0.1634 | **0.0902** |
+| 颜色距离 ↓ | 0.2996 | 0.0782 | **0.0345** |
+| BRISQUE ↓（真实 11.02） | 42.83 | 38.00 | **13.21** |
+| 出血保留率 ↑ | **0.754** | 0.320 | 0.204 |
+
+**结论**：CFM@256 在真实性/分布上全面领先，D3 在病灶保留上更强——真实性与病理保真的取舍。
+下一步（进行中）：病灶区域加权训练、病灶移植。
+
+### 2.1 代码入口（无需复制）
+
+`train.py` 实现 OT 线性路径 `cfm_path()`、`cfm_predict_x1()`、Euler `euler_sample()`；
+`generate.py` 的 `--sampler auto` 对 CFM checkpoint 自动选 Euler（2026-10-22 修复分派 bug 后）。
+训练命令见 `code/README.md`；新实验输出请写到本目录 `results/<exp>/`。
 
 ## 3. 目录约定
 

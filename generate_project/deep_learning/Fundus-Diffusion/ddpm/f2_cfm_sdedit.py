@@ -74,7 +74,7 @@ def load_base_images(n):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--checkpoint", default=str(ROOT / "results_cfm_l1lpips/models/final_model.pth"))
+    ap.add_argument("--checkpoint", default=str(ROOT.parent.parent / "Fundus-FlowMatching/results/cfm128/models/final_model.pth"))
     ap.add_argument("--cond_path", default=str(ROOT / "conditions_combined_128"))
     ap.add_argument("--num_images", type=int, default=8)
     ap.add_argument("--img_size", type=int, default=128)
