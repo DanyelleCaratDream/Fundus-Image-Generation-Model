@@ -98,6 +98,7 @@ def main():
     ap.add_argument("--base_dim", type=int, default=128)
     ap.add_argument("--out", required=True)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--limit", type=int, default=0, help="只处理前 N 张（0=全部）")
     ap.add_argument("--no_cuda", action="store_true")
     a = ap.parse_args()
 
@@ -127,6 +128,8 @@ def main():
     # 2) 测试图 → 直方图匹配 → 从 s_target 重建
     files = sorted([p for p in Path(a.src).iterdir()
                     if p.suffix.lower() in (".png", ".jpg", ".jpeg")])
+    if a.limit > 0:
+        files = files[:a.limit]
     assert files, f"no images in {a.src}"
     conds = load_condition_images(a.cond, a.img_size, len(files)).to(device)
     before, after = [], []
