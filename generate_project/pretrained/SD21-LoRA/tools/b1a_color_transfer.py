@@ -13,10 +13,11 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm"
 REAL_DIR = Path(r"D:\AI_Model_Project_for_Fundus_Color_Images\fundus\HRSG_4_758_sq256\train")
-SRC_DIR = ROOT / "judgment_20261020" / "B1a_lora" / "singles"
-OUT_DIR = ROOT / "judgment_20261020" / "B1a_lora_ct" / "singles"
+SRC_DIR = ROOT / "judgment" / "B1a_lora" / "singles"
+OUT_DIR = ROOT / "judgment" / "B1a_lora_ct" / "singles"
 
 
 def fundus_mask(arr):
@@ -109,7 +110,7 @@ def main():
         for i, f in enumerate(sorted(d.glob("*.png"))[:n]):
             canvas.paste(Image.open(f).convert("RGB").resize((S, S), Image.BICUBIC), (PAD + i * (S + PAD), y))
         y += S + PAD
-    out = ROOT / "judgment_20261020" / "b1a_ct_compare.png"
+    out = ROOT / "judgment" / "b1a_ct_compare.png"
     canvas.save(out)
     print(f"[done] {out}")
 

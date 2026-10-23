@@ -9,9 +9,10 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parent
-D3_DIR = ROOT / "judgment_20261018" / "D3_ema" / "singles"
-B1A_DIR = ROOT / "judgment_20261020" / "B1a_lora" / "singles"
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm"
+D3_DIR = DDPM / "judgment_20261018" / "D3_ema" / "singles"
+B1A_DIR = ROOT / "judgment" / "B1a_lora" / "singles"
 N = 8
 PAD = 6
 CAP = 26
@@ -45,10 +46,10 @@ d3, l3 = load_grid(D3_DIR, 256, "")
 b1, lb = load_grid(B1A_DIR, 256, "")
 sheet([(d3, "D3_ema  (from-scratch 128px, EMA, seed42-49, DDIM100) - upscaled to 256"),
        (b1, "B1a LoRA (SD2.1-base 512 + KylianSu LoRA, seed42-49, DDIM100) - downscaled to 256")],
-      256, ROOT / "judgment_20261020" / "b1a_vs_d3_same256.png")
+      256, ROOT / "judgment" / "b1a_vs_d3_same256.png")
 
 d3b, _ = load_grid(D3_DIR, 512, "")
 b1b, _ = load_grid(B1A_DIR, 512, "")
 sheet([(d3b, "D3_ema  (from-scratch 128px) - upscaled to 512"),
        (b1b, "B1a LoRA (native 512)")],
-      512, ROOT / "judgment_20261020" / "b1a_vs_d3_native.png")
+      512, ROOT / "judgment" / "b1a_vs_d3_native.png")

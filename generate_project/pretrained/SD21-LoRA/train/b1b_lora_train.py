@@ -27,8 +27,8 @@ from transformers import CLIPTextModel, CLIPTokenizer
 
 BASE = Path(r"D:\hf_cache\hub\models--LanguageMachines--stable-diffusion-2-1-base\snapshots"
             r"\2579f99c90b5a3019fc115ee9566d5ec4f17fccf")
-DATA = Path(__file__).resolve().parent / "b1b_data" / "severe512"
-OUT = Path(__file__).resolve().parent / "b1b_lora"
+DATA = Path(__file__).resolve().parents[1] / "data" / "b1b_data" / "severe512"
+OUT = Path(__file__).resolve().parents[1] / "results" / "b1b_lora"
 PROMPT = ("a fundus image of a human retina with severe diabetic retinopathy, "
           "showing hemorrhages and hard exudates")
 

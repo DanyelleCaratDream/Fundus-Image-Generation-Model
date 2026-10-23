@@ -12,9 +12,10 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parent
-J = ROOT / "judgment_20261020"
-S3 = ROOT / "sdedit_D3_ema"
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm"
+J = DDPM / "judgment_20261020"  # 跨线对比：D3/CFM 图仍在 diffusion
+S3 = DDPM / "sdedit_D3_ema"
 ROWS = [
     ((ROOT / "b1b_data/severe512").glob("*.jpg"),
      "real severe (teacher train, 512)"),

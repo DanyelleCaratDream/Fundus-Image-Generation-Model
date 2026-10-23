@@ -17,7 +17,7 @@ import numpy as np
 from PIL import Image
 
 SRC = Path(r"D:\AI_Model_Project_for_Fundus_Color_Images\fundus\HRSG_4_758_square\train\severe")
-OUT = Path(__file__).resolve().parent / "b1b_data" / "severe_patches"
+OUT = Path(__file__).resolve().parents[1] / "data" / "b1b_data" / "severe_patches"
 PATCH = 512
 PER_BIG = 4
 MIN_SIDE = 700

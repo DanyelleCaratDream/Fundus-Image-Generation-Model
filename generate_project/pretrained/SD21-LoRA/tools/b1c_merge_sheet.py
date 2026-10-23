@@ -4,9 +4,10 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parent
-REAL = ROOT / "b1b_data" / "severe512"
-J = ROOT / "judgment_20261020"
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm"
+REAL = ROOT / "data" / "b1b_data" / "severe512"
+J = ROOT / "judgment"
 ROWS = [
     (REAL.glob("*.jpg"), "real severe (teacher train, 512)"),
     ((J / "B1b_lora_500" / "singles").glob("*.png"), "B1b ours r32 step500 (no merge)"),

@@ -26,8 +26,9 @@ BASE = Path(r"D:\hf_cache\hub\models--LanguageMachines--stable-diffusion-2-1-bas
 KYLIAN = Path(r"D:\hf_cache\hub\models--KylianSu--vessel-bezier-retinal-weights\snapshots"
               r"\3875b7e4eb8d146c58525c77b61e67a72fa147c7\weights\sd21_lora_fundus_v2"
               r"\pytorch_lora_weights.safetensors")
-OURS = Path(__file__).resolve().parent / "b1b_lora" / "lora_step_00500.safetensors"
-OUT_ROOT = Path(__file__).resolve().parent / "judgment_20261020"
+OURS = Path(__file__).resolve().parents[1] / "results" / "b1b_lora" / "lora_step_00500.safetensors"
+OUT_ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm" / "judgment_20261020"
 PROMPT = ("a fundus image of a human retina with severe diabetic retinopathy, "
           "showing hemorrhages and hard exudates")
 

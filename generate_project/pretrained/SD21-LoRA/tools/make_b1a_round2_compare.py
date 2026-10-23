@@ -4,7 +4,8 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parent / "judgment_20261020"
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm" / "judgment_20261020"
 ROWS = [
     (ROOT / "B1a_lora" / "singles", "R1 gen: cfg7.5, no neg prompt (raw)"),
     (ROOT / "B1a_lora_ct" / "singles", "R1 + color transfer (L full, a/b shift only)"),

@@ -4,13 +4,14 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
+DDPM = Path(__file__).resolve().parents[3] / "deep_learning" / "Fundus-Diffusion" / "ddpm"
 ROWS = [
-    (ROOT / "judgment_20261018" / "D3_ema" / "singles",
+    (DDPM / "judgment_20261018" / "D3_ema" / "singles",
      "D3_ema  (from-scratch 128px, EMA) - upsample 256"),
-    (ROOT / "judgment_20261020" / "B1a_lora" / "singles",
+    (ROOT / "judgment" / "B1a_lora" / "singles",
      "B1a LoRA (SD2.1-base 512, native, no color fix) - downsample 256"),
-    (ROOT / "judgment_20261020" / "B1a_lora_ct" / "singles",
+    (ROOT / "judgment" / "B1a_lora_ct" / "singles",
      "B1a LoRA + Reinhard LAB transfer (anchor = real B-domain train stats) - 256"),
 ]
 S, PAD, CAP, N = 256, 6, 24, 8
@@ -26,6 +27,6 @@ for d, label in ROWS:
     for i, f in enumerate(files):
         canvas.paste(Image.open(f).convert("RGB").resize((S, S), Image.BICUBIC), (PAD + i * (S + PAD), y))
     y += S + PAD
-out = ROOT / "judgment_20261020" / "b1a_final_three_way.png"
+out = ROOT / "judgment" / "b1a_final_three_way.png"
 canvas.save(out)
 print(f"saved {out} {canvas.size}")
