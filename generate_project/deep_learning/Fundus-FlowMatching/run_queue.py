@@ -91,8 +91,9 @@ def run(cmd, cwd, name, stdout_file=None):
             r = subprocess.run([str(c) for c in cmd], cwd=str(cwd), stdout=fo,
                                stderr=subprocess.DEVNULL)
     else:
-        r = subprocess.run([str(c) for c in cmd], cwd=str(cwd), stdout=LOG,
-                           stderr=subprocess.STDOUT)
+        with open(LOG, "a", encoding="utf-8") as fo:
+            r = subprocess.run([str(c) for c in cmd], cwd=str(cwd), stdout=fo,
+                               stderr=subprocess.STDOUT)
     log(f"  END {name}: exit={r.returncode}")
     return r.returncode
 
@@ -132,68 +133,74 @@ def eval_model(ckpt, tag, cond_path, img_size, epochs_note=""):
     log(f"  END metrics-fundus-{tag}: exit={r.returncode}")
 
 
+def safe(name, fn):
+    status(name, "running")
+    try:
+        fn()
+        status(name, "done")
+    except Exception:
+        log("STEP " + name + " ERROR\n" + traceback.format_exc())
+        status(name, "error")
+
+
+def step_lesion_eval():
+    dst = CFM / "models/cfm256_lesion_final_model.pth"
+    if not dst.exists():
+        src = CFM / "results/cfm256_lesion/models/final_model.pth"
+        if src.exists():
+            if dst.exists():
+                dst.unlink()
+            shutil.move(str(src), str(dst))
+    eval_model(dst, "cfm256_lesion", CFM / "data/conditions_combined_256", 256)
+
+
+def step_tta():
+    run([PY, CFM / "tools/tta_hist_match.py",
+         "--ckpt", CFM / "models/cfm256_final_model.pth",
+         "--src", REPO / "fundus/HRSG_4_758_sq256/train/severe",
+         "--cond", CFM / "data/conditions_combined_256",
+         "--num_ref", "12", "--s_target", "0.5", "--steps", "100",
+         "--limit", "8", "--out", CFM / "results/tta_hm"], DDPM, "tta_hm")
+
+
+def step_tiger():
+    run([PY, TIGER / "tools/tiger_zeroshot.py", "--num", "4", "--steps", "30",
+         "--out", TIGER / "results/tiger_zeroshot"], TIGER, "tiger_zeroshot")
+
+
+def step_align_train():
+    run([PY, CFM / "train/train_cfm.py", "--preset", "cfm128_align"], CFM, "cfm128_align_train")
+
+
+def step_align_eval():
+    eval_model(CFM / "results/cfm128_align/models/final_model.pth", "cfm128_align",
+               CFM / "data/conditions_combined_128", 128)
+
+
+def step_text_train():
+    run([PY, CFM / "train/train_cfm.py", "--preset", "cfm128_text"], CFM, "cfm128_text_train")
+
+
+def step_text_eval():
+    eval_model(CFM / "results/cfm128_text/models/final_model.pth", "cfm128_text",
+               CFM / "data/conditions_combined_128", 128)
+
+
 def main():
     LOG.write_text("", encoding="utf-8")
-    log("QUEUE START")
-    try:
-        # 0) 等训练结束并归位权重
-        status("wait_lesion", "running")
-        src = wait_lesion_final()
-        if src is None:
-            log("!! 找不到 lesion 权重，跳过评估")
-        else:
-            dst = CFM / "models/cfm256_lesion_final_model.pth"
-            if src.name != dst.name or src.parent != dst.parent:
-                if dst.exists():
-                    dst.unlink()
-                shutil.move(str(src), str(dst))
-            log(f"lesion 权重 -> {dst}")
-            # 1) 评估
-            status("eval_lesion", "running")
-            eval_model(dst, "cfm256_lesion", CFM / "data/conditions_combined_256", 256)
-            status("eval_lesion", "done")
-
-        # 2) ROADMAP-1 直方图匹配
-        status("tta_hm", "running")
-        run([PY, CFM / "tools/tta_hist_match.py",
-             "--ckpt", CFM / "models/cfm256_final_model.pth",
-             "--src", REPO / "fundus/HRSG_4_758_sq256/train/severe",
-             "--cond", CFM / "data/conditions_combined_256",
-             "--num_ref", "12", "--s_target", "0.5", "--steps", "100",
-             "--limit", "8", "--out", CFM / "results/tta_hm"], DDPM, "tta_hm")
-        status("tta_hm", "done")
-
-        # 3) ROADMAP-7 Tiger 零样本
-        status("tiger", "running")
-        run([PY, TIGER / "tools/tiger_zeroshot.py", "--num", "4", "--steps", "30",
-             "--out", TIGER / "results/tiger_zeroshot"], TIGER, "tiger_zeroshot")
-        status("tiger", "done")
-
-        # 4) ROADMAP-2 时间对齐训练
-        status("cfm128_align_train", "running")
-        run([PY, CFM / "train/train_cfm.py", "--preset", "cfm128_align"], CFM, "cfm128_align_train")
-        status("cfm128_align_train", "done")
-        # 5) 评估
-        status("cfm128_align_eval", "running")
-        eval_model(CFM / "results/cfm128_align/models/final_model.pth", "cfm128_align",
-                   CFM / "data/conditions_combined_128", 128)
-        status("cfm128_align_eval", "done")
-
-        # 6) ROADMAP-8 文本条件训练
-        status("cfm128_text_train", "running")
-        run([PY, CFM / "train/train_cfm.py", "--preset", "cfm128_text"], CFM, "cfm128_text_train")
-        status("cfm128_text_train", "done")
-        # 7) 评估
-        status("cfm128_text_eval", "running")
-        eval_model(CFM / "results/cfm128_text/models/final_model.pth", "cfm128_text",
-                   CFM / "data/conditions_combined_128", 128)
-        status("cfm128_text_eval", "done")
-
-        log("QUEUE DONE")
-        status("all", "done")
-    except Exception:
-        log("QUEUE ERROR\n" + traceback.format_exc())
-        status("all", "error")
+    log("QUEUE RESTART")
+    for name, fn in [
+        ("eval_lesion", step_lesion_eval),
+        ("tta_hm", step_tta),
+        ("tiger", step_tiger),
+        ("cfm128_align_train", step_align_train),
+        ("cfm128_align_eval", step_align_eval),
+        ("cfm128_text_train", step_text_train),
+        ("cfm128_text_eval", step_text_eval),
+    ]:
+        safe(name, fn)
+    log("QUEUE DONE")
+    status("all", "done")
 
 
 if __name__ == "__main__":
