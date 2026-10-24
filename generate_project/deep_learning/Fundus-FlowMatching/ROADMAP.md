@@ -14,7 +14,7 @@
 | 2 | **时间语义对齐消融**（cfm128_align） | 我们自己的发现 | 320 轮 @128，约 5h | 时间轴反转是否拖慢了 DDPM→CFM 迁移？ | 代码已实现，排队 |
 | 3 | **去时间条件消融** | TTA-Flow / He et al. ICML25 | 320 轮 @128，约 5h | 完全去掉 t 条件是否更稳、更好？ | 未实现（需改 UNet） |
 | 4 | **x1 参数化消融** | TTA-Flow | 320 轮 @128，约 5h | 直接预测 x1（速度反推）是否优于预测 v？ | 未实现 |
-| 5 | **检索 + 重心条件** | FSFM | 1–2 天 | 72 张 severe 上做类内插值能否提升多样性？ | A=RETFound-CFP（权重/特征已就绪，待 C 之后跑）+ C=手工特征（15 维，**cfm128_featC 训练中**，2026-10-24 启动）；RETFound sanity：within-severe cos 0.702 < cross 0.722，类别可分性弱；手工特征 within 0.04 > cross -0.012，略优 |
+| 5 | **检索 + 重心条件** | FSFM | 1–2 天 | 72 张 severe 上做类内插值能否提升多样性？ | A=RETFound-CFP（权重/特征/重心条件已就绪，`cfm128_featA` 预设）+ C=手工特征（**cfm128_featC 训练中**）；RETFound sanity：within 0.702 < cross 0.722（可分性弱）；手工特征 within 0.04 > cross -0.012 |
 | 6 | **双向流统一生成/分类** | SymmFlow | 中期 | 能否把 severe 生成与 DR 分级统一进一个模型？ | 仅参考 |
 
 ## 每项的判据与产出
@@ -72,4 +72,5 @@
 
 - GPU 单卡 8GB：同一时间只能跑一个训练；推理类实验（#1）可与训练错开。
 - 温度纪律 ≤70°C：训练器已内置每 25 步守护。
+- 去时间条件（TTA-Flow）已实现：`--no_time_cond`（UNet 不使用时间嵌入），预设 `cfm128_notime`。
 - 每项完成后：更新 `EXPERIMENTS.md`（执行记录），并按协议询问是否写入 DLreport。

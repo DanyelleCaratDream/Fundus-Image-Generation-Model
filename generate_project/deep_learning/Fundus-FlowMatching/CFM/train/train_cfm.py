@@ -74,6 +74,27 @@ PRESETS = {
         "--epochs", "1100",
         "--output_dir", str(CFM / "results/cfm128_featC"),
     ],
+    # 去时间条件（TTA-Flow）：UNet 不接收 t，其余同 cfm128
+    "cfm128_notime": [
+        "--objective", "cfm", "--no_time_cond",
+        "--dataset_path", str(REPO / "fundus/combined_sq128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
+        "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "1100",
+        "--output_dir", str(CFM / "results/cfm128_notime"),
+    ],
+    # A 路：RETFound-CFP 1024 维特征 + 重心条件
+    "cfm128_featA": [
+        "--objective", "cfm",
+        "--feat_cond_dir", str(CFM / "data/retfound_cfp"),
+        "--dataset_path", str(REPO / "fundus/combined_sq128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
+        "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "1100",
+        "--output_dir", str(CFM / "results/cfm128_featA"),
+    ],
     # CFM@256 → 病灶加权续训（150 轮）
     "cfm256_lesion": [
         "--objective", "cfm",

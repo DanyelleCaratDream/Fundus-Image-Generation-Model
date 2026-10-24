@@ -91,7 +91,8 @@ def main():
     use_ssn = getattr(ck_args, "use_scale_shift_norm", True) if ck_args is not None else True
     model = UNet(T=1000, channels=3, base_dim=a.base_dim, dim_mults=(1, 2, 3, 4),
                  attn_layers=(2,), dropout=0.0, cond_channels=1,
-                 use_scale_shift_norm=use_ssn)
+                 use_scale_shift_norm=use_ssn,
+        use_time_cond=not bool(getattr(ck_args, "no_time_cond", False)))
     model.load_state_dict(ckpt.get("model_state_dict", ckpt), strict=False)
     if "ema_state_dict" in ckpt and ckpt.get("has_ema", False):
         model.load_state_dict(ckpt["ema_state_dict"], strict=False)

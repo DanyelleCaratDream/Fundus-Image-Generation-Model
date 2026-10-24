@@ -54,7 +54,8 @@ def main():
 
     model = UNet(T=1000, channels=3, base_dim=a.base_dim, dim_mults=(1, 2, 3, 4),
                  attn_layers=(2,), dropout=0.0, cond_channels=1,
-                 use_scale_shift_norm=use_ssn, text_dim=dim)
+                 use_scale_shift_norm=use_ssn, text_dim=dim,
+                 use_time_cond=not bool(getattr(ck_args, "no_time_cond", False)) if ck_args else True)
     model.load_state_dict(ck.get("model_state_dict", ck), strict=False)
     if "ema_state_dict" in ck and ck.get("has_ema", False):
         model.load_state_dict(ck["ema_state_dict"], strict=False)

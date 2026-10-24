@@ -127,6 +127,8 @@ def parse_args():
     parser.add_argument("--lpips_t", type=int, default=200,
                         help="LPIPS/颜色正则只在「靠近干净图」的时间段计算。"
                              "DDPM：timestep < lpips_t；CFM：t_cont > 1 - lpips_t/timesteps")
+    parser.add_argument("--no_time_cond", action="store_true",
+                        help="移除时间条件（TTA-Flow 时间无关网络）；默认保留")
     parser.add_argument("--cfm_time_align", action="store_true",
                         help="CFM 时间轴与 DDPM 对齐（t=0 噪声→index999），从 DDPM 权重迁移时用")
     parser.add_argument("--lesion_weight_dir", type=str, default=None,
@@ -715,9 +717,10 @@ class UNet(nn.Module):
 
     def __init__(self, T=1000, channels=3, base_dim=128, dim_mults=(1, 2, 3, 4),
                  attn_layers=(2,), dropout=0.1, cond_channels=0,
-                 use_scale_shift_norm=True, text_dim=0):
+                 use_scale_shift_norm=True, text_dim=0, use_time_cond=True):
         super().__init__()
         self.use_scale_shift_norm = use_scale_shift_norm
+        self.use_time_cond = use_time_cond
         tdim = base_dim * 4
         self.time_embedding = TimeEmbedding(T, base_dim, tdim)
 
@@ -808,6 +811,8 @@ class UNet(nn.Module):
     def forward(self, x, t, cond=None, text_emb=None):
         # 时间步编码
         temb = self.time_embedding(t)
+        if not self.use_time_cond:
+            temb = torch.zeros_like(temb)   # TTA-Flow：完全移除时间条件
         if text_emb is not None and self.text_proj is not None:
             temb = temb + self.text_proj(text_emb)
 
@@ -1065,6 +1070,7 @@ def main():
         use_scale_shift_norm=use_ssn,
         text_dim=(1024 if getattr(args, "use_text_cond", False)
                   else (dataset.feat_dim if getattr(args, "feat_cond_dir", None) else 0)),
+        use_time_cond=not getattr(args, "no_time_cond", False),
     ).to(device)
 
     n_params = count_parameters(model)

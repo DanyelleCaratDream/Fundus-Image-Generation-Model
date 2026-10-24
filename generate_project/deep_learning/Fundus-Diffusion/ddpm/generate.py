@@ -237,6 +237,7 @@ def main():
 
     # CFM 时间轴对齐标志（训练时写入 checkpoint args；采样必须用同一约定）
     time_align = bool(getattr(ckpt_args, "cfm_time_align", False)) if ckpt_args is not None else False
+    use_time_cond = not bool(getattr(ckpt_args, "no_time_cond", False)) if ckpt_args is not None else True
     use_text = bool(getattr(ckpt_args, "use_text_cond", False)) if ckpt_args is not None else False
 
     sampler = args.sampler
@@ -261,6 +262,7 @@ def main():
         cond_channels=cond_channels,
         use_scale_shift_norm=use_ssn,
         text_dim=(1024 if use_text else 0),
+        use_time_cond=use_time_cond,
     )
 
     # 兼容不同保存格式
