@@ -36,6 +36,7 @@ import sys
 import math
 import time
 import json
+from pathlib import Path
 from datetime import datetime
 
 import numpy as np
@@ -132,6 +133,9 @@ def parse_args():
                         help="病灶权重图目录（与图同名的 PNG，0=非病灶 255=病灶）；仅 CFM 分支生效")
     parser.add_argument("--lesion_lambda", type=float, default=5.0,
                         help="病灶权重上限：w = 1 + λ·mask（默认 5 → 最大 6 倍）")
+    parser.add_argument("--feat_cond_dir", type=str, default=None,
+                        help="检索条件特征目录（feats.npy + names.json）；C 路手工特征或 A 路 RETFound")
+    parser.add_argument("--feat_k", type=int, default=2, help="类内近邻数（Dirichlet 重心）")
     parser.add_argument("--use_text_cond", action="store_true",
                         help="轻量文本条件：CLIP 文本向量加到时间嵌入（与 mask 条件并行）")
     parser.add_argument("--text_prompt_normal", type=str,
@@ -181,7 +185,7 @@ class FundusDataset(Dataset):
     """直接从文件夹读取眼底图，可选加载条件图（血管骨架）。"""
 
     def __init__(self, root, transform=None, cond_root=None, cond_transform=None, img_size=128,
-                 lesion_root=None, severe_names=None):
+                 lesion_root=None, severe_names=None, feat_root=None, feat_k=2):
         self.transform = transform
         self.cond_root = cond_root
         self.lesion_root = lesion_root
@@ -202,6 +206,33 @@ class FundusDataset(Dataset):
         if len(self.image_paths) == 0:
             raise ValueError(f"在 {root} 中没有找到任何图片！")
         print(f"  找到 {len(self.image_paths)} 张图片")
+
+        # 检索条件特征（C/A 路）：feats.npy + names.json，训练时做类内 Dirichlet 重心采样
+        self.feat_mat = None
+        self.feat_idx = None
+        self.feat_nbrs = None
+        self.feat_dim = 0
+        if feat_root:
+            fr = Path(feat_root)
+            X = np.load(fr / "feats.npy")
+            names = json.load(open(fr / "names.json", encoding="utf-8"))
+            name2i = {os.path.splitext(n)[0]: i for i, n in enumerate(names)}
+            Xs = (X - X.mean(0)) / (X.std(0) + 1e-8)
+            Xs = Xs / (np.linalg.norm(Xs, axis=1, keepdims=True) + 1e-8)
+            self.feat_dim = int(Xs.shape[1])
+            self.feat_mat = torch.from_numpy(Xs.astype(np.float32))
+            labels = np.array([1 if os.path.splitext(n)[0] in self.severe_names else 0 for n in names])
+            sim = Xs @ Xs.T
+            self.feat_idx = [name2i.get(os.path.splitext(os.path.basename(p))[0])
+                             for p in self.image_paths]
+            self.feat_nbrs = []
+            for idx in self.feat_idx:
+                if idx is None:
+                    self.feat_nbrs.append([]); continue
+                cand = [j for j in range(len(names)) if labels[j] == labels[idx] and j != idx]
+                order = sorted(cand, key=lambda j: -sim[idx, j])[:feat_k]
+                self.feat_nbrs.append(order)
+            print(f"  检索特征: dim={self.feat_dim}, 覆盖 {sum(i is not None for i in self.feat_idx)}/{len(self.image_paths)}")
 
     def __len__(self):
         return len(self.image_paths)
@@ -233,6 +264,24 @@ class FundusDataset(Dataset):
         # 文本标签：severe 名单内=1，其余=0（仅 --use_text_cond 时使用）
         tid = torch.tensor(1 if basename in self.severe_names else 0, dtype=torch.long)
 
+        # 检索特征：anchor 偏置 + Dirichlet 类内重心采样
+        feat = None
+        if self.feat_mat is not None:
+            fi = self.feat_idx[idx]
+            if fi is None:
+                feat = torch.zeros(self.feat_dim)
+            else:
+                nbrs = self.feat_nbrs[idx]
+                if nbrs:
+                    w_self = float(np.random.uniform(0.6, 0.9))
+                    w = np.random.dirichlet(np.ones(len(nbrs))) * (1.0 - w_self)
+                    v = self.feat_mat[fi] * w_self
+                    for j, wj in zip(nbrs, w):
+                        v = v + self.feat_mat[j] * float(wj)
+                    feat = v
+                else:
+                    feat = self.feat_mat[fi].clone()
+
         # 病灶权重图（可选）：0=非病灶 → 权重 1，255 → 权重 1+λ
         if self.lesion_root:
             wp = os.path.join(self.lesion_root, basename + ".png")
@@ -246,9 +295,13 @@ class FundusDataset(Dataset):
                 else:
                     wv = np.array(Image.open(wp).convert("L").resize((self.img_size, self.img_size)))
                     w = torch.from_numpy(wv.astype(np.float32) / 255.0).unsqueeze(0)
+            if feat is not None:
+                return img, cond, w, feat, idx
             if self.severe_names:
                 return img, cond, w, tid, idx
             return img, cond, w, idx
+        if feat is not None:
+            return img, cond, feat, idx
         if self.severe_names:
             return img, cond, tid, idx
         return img, cond, idx
@@ -838,8 +891,12 @@ class EMA:
         return self.shadow
 
     def load_state_dict(self, state_dict):
-        """加载 EMA 权重"""
-        self.shadow = state_dict
+        """加载 EMA 权重（兼容新增参数：旧 checkpoint 没有的键保留当前初始化）"""
+        for k, v in state_dict.items():
+            if k in self.shadow and self.shadow[k].shape == v.shape:
+                self.shadow[k].copy_(v)
+            elif k not in self.shadow:
+                self.shadow[k] = v.clone()
 
 
 # ============================================================
@@ -966,6 +1023,8 @@ def main():
         img_size=args.img_size,
         lesion_root=getattr(args, "lesion_weight_dir", None),
         severe_names=severe_names,
+        feat_root=getattr(args, "feat_cond_dir", None),
+        feat_k=getattr(args, "feat_k", 2),
     )
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
@@ -1004,7 +1063,8 @@ def main():
         dropout=args.dropout,
         cond_channels=cond_channels,
         use_scale_shift_norm=use_ssn,
-        text_dim=(1024 if getattr(args, "use_text_cond", False) else 0),
+        text_dim=(1024 if getattr(args, "use_text_cond", False)
+                  else (dataset.feat_dim if getattr(args, "feat_cond_dir", None) else 0)),
     ).to(device)
 
     n_params = count_parameters(model)
@@ -1164,6 +1224,9 @@ def main():
                 if text_table is not None:
                     tid = batch_data[3] if getattr(args, "lesion_weight_dir", None) else batch_data[2]
                     text_emb_b = text_table[tid.to(device)]
+                elif getattr(args, "feat_cond_dir", None):
+                    pos = 3 if getattr(args, "lesion_weight_dir", None) else 2
+                    text_emb_b = batch_data[pos].to(device).float()
 
                 is_cfm = getattr(args, "objective", "ddpm") == "cfm"
                 lpips_t = getattr(args, "lpips_t", 200)

@@ -63,6 +63,17 @@ PRESETS = {
         "--epochs", "1100",
         "--output_dir", str(CFM / "results/cfm128_text"),
     ],
+    # C 路：手工可解释特征 + 类内 Dirichlet 重心条件（检索增强，提多样性）
+    "cfm128_featC": [
+        "--objective", "cfm",
+        "--feat_cond_dir", str(CFM / "data/handcrafted"),
+        "--dataset_path", str(REPO / "fundus/combined_sq128"),
+        "--cond_path", str(CFM / "data/conditions_combined_128"),
+        "--resume", str(DDPM / "results_film_l1lpips/models/final_model.pth"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "1100",
+        "--output_dir", str(CFM / "results/cfm128_featC"),
+    ],
     # CFM@256 → 病灶加权续训（150 轮）
     "cfm256_lesion": [
         "--objective", "cfm",
