@@ -28,6 +28,8 @@
 
 **两套评分尺度，永不混排。** ①**人工分**（human score，0-100）：单人目测校准，校准集 N=6（film_l1lpips 87.5 / film 85 / base_cj 75 / cond 70 / dcgan 20 / vae 10，`eval/human_scores.csv`）；只在校准语境出现并注明"单人 N=6"。②**六维门控总分**（gated composite score，0-100）：3.4 所述六维加权 + 门控，横评库 11 模型现版（`eval_data/_scores.json`，formula v1，n_models=11）。该总分为 min-max **相对分**，模型库扩大会整体平移——引用必须注明版本；本文主用②，①仅用于校准分析。
 
+**FID 参照口径（必须随数字声明）**：B 域 FID/KID 的参照集为老师 train/severe 唯一底图 72 张（`eval_data/real_severe_train`），与生成器训练池（193 张 combined_sq256）同源——感知哈希比对 63/72（88%）内容相同、61 张像素级一致。因此 B 域 FID 衡量的是**训练分布拟合**，不是留出泛化。A 域（330 张快照）与 B 域（72 张）参照集不同（真实病灶中位 0.0425 vs 0.1156），**禁止跨章比较 FID/KID/C2ST**。
+
 ## 4.4 下游验证协议（TSTR）— stub + 【占位:TSTR-下游验证】
 
 （待写：只补最缺类（severe）、真实 test 评估、相对 TRTR 基线降幅；基线 QWK 0.747@256 含跨 split 泄漏乐观偏差（口径 #15），置换前后不可比；协议出处 classify_project/README.md + Esteban 2017（R6））

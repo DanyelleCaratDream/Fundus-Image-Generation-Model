@@ -89,7 +89,7 @@ def main():
     time_align = bool(getattr(ca, "cfm_time_align", False)) if ca else False
     conds = torch.from_numpy(np.load(a.conds)).float().cuda()
     cond_imgs = load_condition_images(a.cond, a.img_size, a.num).cuda()
-    diffusion = GaussianDiffusion(timesteps=1000).cuda()
+    diffusion = GaussianDiffusion(timesteps=1000).to("cuda")
 
     out = Path(a.out_root) / a.tag / "singles"
     out.mkdir(parents=True, exist_ok=True)

@@ -125,22 +125,44 @@ def polynomial_kernel(X, Y, degree=3, coef0=1.0, gamma=None):
     return (gamma * X @ Y.T + coef0) ** degree
 
 
-def compute_kid(real_feats, fake_feats, degree=3, coef0=1.0, num_subsets=100, subset_size=100):
-    """KID: 无偏核距离（Biukowski et al.）。用小样本子集估计，对 300 张小样本更稳。"""
+def _kid_mmd_unbiased(kk, ll, kl):
+    """无偏 MMD^2：核矩阵求和时排除对角线（样本与自身的核项）。"""
+    m, n = kk.shape[0], ll.shape[0]
+    kk_sum = (kk.sum() - np.trace(kk)) / (m * (m - 1))
+    ll_sum = (ll.sum() - np.trace(ll)) / (n * (n - 1))
+    kl_sum = kl.sum() / (m * n)
+    return kk_sum + ll_sum - 2 * kl_sum
+
+
+def compute_kid_stats(real_feats, fake_feats, degree=3, coef0=1.0,
+                      num_subsets=100, subset_size=100, seed=0):
+    """KID: 无偏核距离（Bińkowski et al. 2018）。
+
+    无偏估计（排除核矩阵对角）；子集自助采样 num_subsets 次；
+    返回均值与标准差。子集大小自动收缩到不超过较小样本集的一半。
+    """
     m = min(len(real_feats), len(fake_feats))
-    if m < 2 * subset_size:
-        subset_size = m // 2
-    rng = np.random.RandomState(0)
-    kk = polynomial_kernel(real_feats, real_feats, degree, coef0)
-    ll = polynomial_kernel(fake_feats, fake_feats, degree, coef0)
-    kl = polynomial_kernel(real_feats, fake_feats, degree, coef0)
+    if m < 2:
+        raise ValueError("KID 需要至少 2 个样本")
+    subset_size = max(2, min(subset_size, m // 2))
+    rng = np.random.RandomState(seed)
+    vals = []
+    for _ in range(num_subsets):
+        ri = rng.choice(len(real_feats), subset_size, replace=False)
+        fi = rng.choice(len(fake_feats), subset_size, replace=False)
+        kk = polynomial_kernel(real_feats[ri], real_feats[ri], degree, coef0)
+        ll = polynomial_kernel(fake_feats[fi], fake_feats[fi], degree, coef0)
+        kl = polynomial_kernel(real_feats[ri], fake_feats[fi], degree, coef0)
+        vals.append(_kid_mmd_unbiased(kk, ll, kl))
+    return float(np.mean(vals)), float(np.std(vals))
 
-    kk_mean = np.mean(kk)
-    ll_mean = np.mean(ll)
-    kl_mean = np.mean(kl)
 
-    kid = kk_mean + ll_mean - 2 * kl_mean
-    return float(kid)
+def compute_kid(real_feats, fake_feats, degree=3, coef0=1.0,
+                num_subsets=100, subset_size=100):
+    """KID 均值（向后兼容；需要标准差请用 compute_kid_stats）。"""
+    mean, _ = compute_kid_stats(real_feats, fake_feats, degree, coef0,
+                                num_subsets, subset_size)
+    return mean
 
 
 def rbf_kernel(X, Y, sigma_list=None):
@@ -340,7 +362,7 @@ def evaluate(real_dir, fake_dir, img_size=128, device="cuda", verbose=True):
 
     results = {}
     results["fid"] = compute_fid(real_feats, fake_feats)
-    results["kid"] = compute_kid(real_feats, fake_feats)
+    results["kid"], results["kid_std"] = compute_kid_stats(real_feats, fake_feats)
     results["mmd"] = compute_mmd(real_feats, fake_feats)
     results["is"] = compute_is(fake, device)
     results.update(compute_prdc(real_feats, fake_feats))  # precision/recall/density/coverage
@@ -380,7 +402,7 @@ def main():
         print(f"  {os.path.basename(args.fake)}  通用层指标")
         print("=" * 50)
         print(f"  FID           : {results['fid']:.2f}")
-        print(f"  KID           : {results['kid']:.4f}")
+        print(f"  KID           : {results['kid']:.4f} ± {results.get('kid_std', float('nan')):.4f}  (std over subsets)")
         print(f"  MMD           : {results['mmd']:.4f}")
         print(f"  IS            : {results['is']:.2f}")
         print(f"  Precision     : {results['precision']:.4f}")

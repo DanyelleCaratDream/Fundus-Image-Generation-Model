@@ -96,6 +96,10 @@
 | 判别器记忆 | discriminator memorization |
 | 数据卫生 | data hygiene |
 | 通道塌缩 | channel collapse |
+| 高血压视网膜病变 | hypertensive retinopathy (HR) |
+| Keith-Wagener-Barker 分级（KW I–IV，severe = KW-IV） | Keith-Wagener-Barker grading |
+| 数据集合名 HRSG_4_758：HR 四分类（normal/mild/moderate/severe），"_4" 指四分类（待老师确认） | HRSG_4_758 |
+| 术语红线：本项目疾病一律写 HR（高血压视网膜病变），禁止写 DR/糖尿病视网膜病变；DR 仅出现在引用他人工作（DR-GAN/DRIVE/ETDRS）或历史借用 prompt 中。 | terminology red line |
 
 ---
 

@@ -23,7 +23,7 @@
 
 > A 域全部为重度（KW-IV）眼底彩照，**无标签、无病灶 mask**；血管骨架 330 张在 `generate_project/deep_learning/Fundus-Diffusion/ddpm/conditions/`。
 
-### B 域 —— 老师数据集（DR 四分类，Phase D 主战场）
+### B 域 —— 老师数据集（HR 四分类，Phase D 主战场）
 
 | 池 | 路径 | 数量 | 说明 | 状态 |
 |:--|:--|--:|:--|:--|

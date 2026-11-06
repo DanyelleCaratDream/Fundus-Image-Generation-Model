@@ -91,7 +91,7 @@ def main():
     ap.add_argument("--ckpt", required=True)
     ap.add_argument("--src", required=True, help="测试图目录（png/jpg）")
     ap.add_argument("--cond", default=str(ROOT / "data/conditions_combined_256"))
-    ap.add_argument("--num_ref", type=int, default=16)
+    ap.add_argument("--num_ref", type=int, default=8)
     ap.add_argument("--s_target", type=float, default=0.5)
     ap.add_argument("--steps", type=int, default=100)
     ap.add_argument("--img_size", type=int, default=256)
@@ -116,10 +116,11 @@ def main():
     x = torch.randn(shape, device=device)
     dt = a.s_target / max(1, int(a.s_target * a.steps))
     n0 = max(1, int(a.s_target * a.steps))
-    for i in range(n0):
-        t_cont = torch.full((a.num_ref,), i * dt, device=device)
-        t_idx = diffusion.t_cont_to_index(t_cont, align=time_align)
-        x = x + model(x, t_idx, cond=conds_ref) * dt
+    with torch.no_grad():          # 必须：否则参考轨迹会保留计算图，8GB 直接 OOM
+        for i in range(n0):
+            t_cont = torch.full((a.num_ref,), i * dt, device=device)
+            t_idx = diffusion.t_cont_to_index(t_cont, align=time_align)
+            x = x + model(x, t_idx, cond=conds_ref) * dt
     refs = x.clamp(-1, 1)
     cdfs = avg_cdf(refs)
     save_image(torch.cat([refs[:4]]), out / "reference_samples.png", nrow=4, normalize=True)

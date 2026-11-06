@@ -81,11 +81,11 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     summary = {}
     for ep in a.epochs:
-        ck = Path(a.ckpt_dir) / f"checkpoint_epoch_{ep:05d}.pth"
+        ck = Path(a.ckpt_dir) / f"checkpoint_epoch_{ep:06d}.pth"
         if not ck.exists():
             print(f"[skip] missing {ck}")
             continue
-        d = out / f"epoch_{ep:05d}"
+        d = out / f"epoch_{ep:06d}"
         d.mkdir(parents=True, exist_ok=True)
         if a.feat_conds:
             cmd = [PY, CFM / "tools/sample_feat.py", "--ckpt", ck, "--conds", a.feat_conds,
@@ -113,7 +113,7 @@ def main():
         dr = ImageDraw.Draw(canvas); y = PAD
         for ep in rows:
             dr.text((PAD, y), f"epoch {ep}", fill="black"); y += CAP
-            for i, f in enumerate(sorted((out / f"epoch_{ep:05d}").glob("*.png"))[:N]):
+            for i, f in enumerate(sorted((out / f"epoch_{ep:06d}").glob("*.png"))[:N]):
                 canvas.paste(Image.open(f).convert("RGB").resize((S, S)), (PAD + i * (S + PAD), y))
             y += S + PAD
         canvas.save(out / f"scan_{a.tag}.png")

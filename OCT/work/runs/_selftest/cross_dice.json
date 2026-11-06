@@ -1,0 +1,77 @@
+{
+  "mode": "raw_baseline",
+  "csv": "D:\\AI_Model_Project_for_Fundus_Color_Images\\OCT\\work\\runs\\_selftest\\retouch_fake.csv",
+  "source": "D:\\AI_Model_Project_for_Fundus_Color_Images\\OCT\\work\\runs\\_selftest\\volumes",
+  "ckpt": "D:\\AI_Model_Project_for_Fundus_Color_Images\\OCT\\work\\runs\\_selftest\\seg_fake.pt",
+  "image_range": "0-1",
+  "source_range": "0-1",
+  "annotated_only": true,
+  "slice_manifest": null,
+  "num_volumes": 2,
+  "num_slices": 7,
+  "dice": {
+    "IRF": 1.1,
+    "SRF": 2.1,
+    "PED": 0.4,
+    "Mean": 1.2
+  },
+  "dice_std": {
+    "IRF": 1.3,
+    "SRF": 3.3,
+    "PED": 0.7,
+    "Mean": 0.8
+  },
+  "per_volume": [
+    {
+      "volume": "vol_a.npy",
+      "n_slices": 4,
+      "IRF": 0.012870974268788742,
+      "SRF": 0.017435897418014466,
+      "PED": 0.003451802607146049
+    },
+    {
+      "volume": "vol_b.npy",
+      "n_slices": 3,
+      "IRF": 0.008620689652075903,
+      "SRF": 0.02469135799928873,
+      "PED": 0.005112474436320943
+    }
+  ],
+  "per_slice": [
+    {
+      "IRF": 0.025695931468345493,
+      "SRF": 0.0,
+      "PED": 0.0
+    },
+    {
+      "IRF": 0.0,
+      "SRF": 0.06974358967205786,
+      "PED": 0.0
+    },
+    {
+      "IRF": 0.0,
+      "SRF": 0.0,
+      "PED": 0.013807210428584196
+    },
+    {
+      "IRF": 0.02578796560680947,
+      "SRF": 0.0,
+      "PED": 0.0
+    },
+    {
+      "IRF": 0.025862068956227707,
+      "SRF": 0.0,
+      "PED": 0.0
+    },
+    {
+      "IRF": 0.0,
+      "SRF": 0.07407407399786618,
+      "PED": 0.0
+    },
+    {
+      "IRF": 0.0,
+      "SRF": 0.0,
+      "PED": 0.015337423308962827
+    }
+  ]
+}

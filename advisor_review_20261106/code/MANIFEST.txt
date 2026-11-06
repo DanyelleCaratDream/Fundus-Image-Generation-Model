@@ -1,0 +1,14 @@
+advisor_review_20261106/code 内容：
+ - cfm256_lesion_actual_config.json
+ - cfm256_lesion_config.json
+ - dataset_getitem_excerpt.py
+ - diagnose_weighting.py
+ - make_lesion_weights.py
+ - make_review_figures.py
+ - metrics_common_kid_excerpt.py
+ - recompute_kid.py
+ - test_weighting.py
+ - train_loss_block_fixed.py
+ - train_weighted_loss_excerpt.py
+ - weight_misalign_demo.png
+ - weighting_diagnosis.json

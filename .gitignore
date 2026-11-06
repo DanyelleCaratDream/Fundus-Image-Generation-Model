@@ -61,3 +61,14 @@ pretrained/SD21-LoRA/data/b1b_data/
 
 # 上游参考实现（体积大、上游变动）
 **/upstream/
+
+# === 2026-11-06 派生/备份产物 ===
+research-report/*_backup_*.docx
+research-report/_media_dl/
+eval_data/_audit/inception_feats/
+judgment/delivery_screening_*/
+
+# === OCT 复现（暂停；下载/内嵌仓库不入库） ===
+OCT/download/
+OCT/work/code/tta-flow/
+**/tmp_repo/

@@ -64,6 +64,9 @@ def parse_args():
     parser.add_argument("--dropout", type=float, default=0.0, help="Dropout（推理时 = 0）")
     parser.add_argument("--output_dir", type=str, default="./generated", help="输出文件夹")
     parser.add_argument("--grid_size", type=int, default=8, help="网格大小 (0=单张)")
+    parser.add_argument("--resumable", action="store_true",
+                        help="逐批落盘+断点续跑；要求 --color_correct 关闭且 grid_size=0；"
+                             "每个 batch 用 seed+batch_start 独立播种")
     parser.add_argument("--seed", type=int, default=42, help="随机种子")
     parser.add_argument("--use_raw", action="store_true",
                         help="强制使用原始权重而非 EMA 权重（EMA 在续训过的 checkpoint 上可能退化）")
@@ -183,6 +186,15 @@ def apply_color_correct(images, target_mean, target_std):
 
 def main():
     args = parse_args()
+
+    if args.resumable:
+        # 颜色校正需要全部图像就位后统一处理；网格图也需要全部图像
+        if args.color_correct:
+            print("[ERROR] --resumable 与 --color_correct 不兼容：颜色校正需要全部图像。")
+            sys.exit(1)
+        if args.grid_size > 0:
+            print("[ERROR] --resumable 要求 --grid_size 0：网格图需要全部图像。")
+            sys.exit(1)
 
     if not os.path.isfile(args.checkpoint):
         print(f"[ERROR] 模型文件不存在: {args.checkpoint}")
@@ -324,14 +336,37 @@ def main():
     # 生成
     print(f"[GEN] 正在生成 {args.num_images} 张图片...")
     batch_size = min(args.num_images, 8)
-    all_images = []
+
+    # 可续跑模式：逐批落盘，不在显存/内存里累积全部图像
+    if args.resumable:
+        singles_dir = os.path.join(args.output_dir, "singles")
+        os.makedirs(singles_dir, exist_ok=True)
+        print(f"[INFO] 可续跑模式：每批独立播种 (seed + batch_start)，已存在的图自动跳过")
+    else:
+        all_images = []
 
     with torch.no_grad():
         remaining = args.num_images
         batch_idx = 0
         while remaining > 0:
             bs = min(batch_size, remaining)
+            global_start = batch_idx * batch_size  # 本批第一张图的全局索引
             shape = (bs, args.channels, args.img_size, args.img_size)
+
+            batch_paths = []
+            if args.resumable:
+                batch_paths = [
+                    os.path.join(singles_dir, f"sample_{global_start + i:04d}.png")
+                    for i in range(bs)
+                ]
+                if all(os.path.isfile(p) for p in batch_paths):
+                    print(f"  [SKIP] batch {batch_idx} "
+                          f"(sample_{global_start:04d}-{global_start + bs - 1:04d}) 已存在")
+                    remaining -= bs
+                    batch_idx += 1
+                    continue
+                # 每批独立播种：断点续跑时该批结果与从头跑一致
+                torch.manual_seed(args.seed + global_start)
 
             # 取对应的条件图
             cond_batch = None
@@ -360,9 +395,22 @@ def main():
                 )
 
             print("完成")
-            all_images.append(samples.cpu())
+            if args.resumable:
+                # 立即落盘；只补写缺失的索引（部分完成的 batch）
+                n_saved = 0
+                for i, p in enumerate(batch_paths):
+                    if not os.path.isfile(p):
+                        save_image(samples[i].cpu(), p, normalize=True)
+                        n_saved += 1
+                print(f"  [SAVE] batch {batch_idx} 落盘 {n_saved} 张 -> {singles_dir}")
+            else:
+                all_images.append(samples.cpu())
             remaining -= bs
             batch_idx += 1
+
+    if args.resumable:
+        print(f"[OK] 逐批生成完成，单张图已保存到: {singles_dir}")
+        return
 
     all_images = torch.cat(all_images, dim=0)
     print(f"[OK] 已生成 {len(all_images)} 张图片")

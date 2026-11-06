@@ -1,0 +1,65 @@
+{
+  "sample_shapes": {
+    "img": [
+      3,
+      256,
+      256
+    ],
+    "cond": [
+      1,
+      256,
+      256
+    ],
+    "w": [
+      1,
+      256,
+      256
+    ]
+  },
+  "dtypes": {
+    "img": "torch.float32",
+    "cond": "torch.float32",
+    "w": "torch.float32"
+  },
+  "ranges": {
+    "img": [
+      -1.0,
+      0.8745098114013672
+    ],
+    "cond": [
+      -1.0,
+      1.0
+    ],
+    "w": [
+      0.0,
+      0.99540114402771
+    ]
+  },
+  "num_workers_note": "batch 后 w=[B,1,H,W]，predicted=[B,3,H,W]",
+  "weight_files": 193,
+  "loss_scale": {
+    "plain_l1": 1.1285089254379272,
+    "old_lambda0": 3.3855268955230713,
+    "old_lambda0_over_plain": 3.0000001056343346,
+    "old_zero_mask_lambda8": 3.3855268955230713,
+    "old_zero_mask_lambda8_over_plain": 3.0000001056343346,
+    "new_lambda0": 1.1285089254379272,
+    "new_lambda0_over_plain": 1.0,
+    "new_zero_mask_lambda8": 1.1285089254379272,
+    "new_zero_mask_lambda8_over_plain": 1.0,
+    "old_random_mask_over_new": 3.0000001053724903
+  },
+  "misalignment": {
+    "sample": "0bf8a9db042015e556be924ec11f3bba06f10cf2",
+    "weight_overlap_with_exudate_before_flip": 0.5511111111111111,
+    "weight_overlap_with_exudate_after_image_flip_only": 0.0,
+    "demo_png": "D:\\AI_Model_Project_for_Fundus_Color_Images\\generate_project\\deep_learning\\Fundus-FlowMatching\\CFM\\judgment\\weight_misalign_demo.png"
+  },
+  "film_l1lpips_configs": [
+    {
+      "config": "D:\\AI_Model_Project_for_Fundus_Color_Images\\generate_project\\deep_learning\\Fundus-Diffusion\\ddpm\\results_film_l1lpips\\config.json",
+      "cond_path": "./conditions",
+      "dataset_path": "../../fundus/_all_images_ORIGINAL"
+    }
+  ]
+}

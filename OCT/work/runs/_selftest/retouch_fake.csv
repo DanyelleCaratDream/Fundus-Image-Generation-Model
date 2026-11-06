@@ -1,0 +1,3 @@
+volume,mask
+D:\AI_Model_Project_for_Fundus_Color_Images\OCT\work\runs\_selftest\volumes\vol_a.npy,D:\AI_Model_Project_for_Fundus_Color_Images\OCT\work\runs\_selftest\annotations\vol_a.npy
+D:\AI_Model_Project_for_Fundus_Color_Images\OCT\work\runs\_selftest\volumes\vol_b.npy,D:\AI_Model_Project_for_Fundus_Color_Images\OCT\work\runs\_selftest\annotations\vol_b.npy

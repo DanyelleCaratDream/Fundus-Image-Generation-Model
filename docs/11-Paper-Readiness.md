@@ -24,7 +24,7 @@
 | **六维评分** | 加权 + 门控总分，与人工分 Kendall τ = 0.73 | `eval_data/_scores.json` |
 | **定量图** | 13 张现成图 | `research-report/figures/`（6）+ `machine_learning/report/figures/`（7） |
 | **文献** | 7 篇调研约 12 万字，03 号含 16 条经检索验证的参考文献 | `machine_learning/report/01-07`、`pretrained/`、`transfer_learning/` |
-| **下游数据集** | 老师给的 DR 分级数据，758 张四分类三划分，完好 | `fundus/HRSG_4_758_v0.3.4/` |
+| **下游数据集** | 老师给的 HR 分级数据，758 张四分类三划分，完好 | `fundus/HRSG_4_758_v0.3.4/` |
 
 ---
 

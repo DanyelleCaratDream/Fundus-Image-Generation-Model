@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""DR 四级分级分类器 —— 用于分辨率消融实验（128 / 256 / 512 哪个够用）。
+"""HR 四级分级分类器 —— 用于分辨率消融实验（128 / 256 / 512 哪个够用）。
 
 设计取舍（为了让"分辨率"成为唯一变量）：
   · 训练时**不做数据增强**，只 resize + 归一化
@@ -158,7 +158,7 @@ def train_one(size: int, root: Path, seed: int, epochs: int, bs: int,
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="DR 分级分类器（分辨率消融）")
+    ap = argparse.ArgumentParser(description="HR 分级分类器（分辨率消融）")
     ap.add_argument("--data", required=True, help="正方形数据集根目录")
     ap.add_argument("--size", type=int, required=True, help="输入分辨率")
     ap.add_argument("--seeds", type=int, nargs="+", default=[42, 52, 62])

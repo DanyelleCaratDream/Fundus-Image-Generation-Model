@@ -107,6 +107,29 @@ PRESETS = {
         "--epochs", "1570",
         "--output_dir", str(CFM / "results/cfm256_lesion"),
     ],
+    # ---- 修正管线两臂（2026-11-06 缺陷修复后；从零、同步增强）----
+    # 待导师确认后再运行。两臂唯一差异 = lesion_lambda（0 vs 8）；
+    # 都带 lesion_weight_dir 以保持数据 tuple 一致，λ=0 时数学上等于普通 L1。
+    "cfm256_clean_ctrl": [
+        "--objective", "cfm",
+        "--dataset_path", str(REPO / "fundus/combined_sq256"),
+        "--cond_path", str(CFM / "data/conditions_combined_256"),
+        "--lesion_weight_dir", str(CFM / "data/lesion_weights_256"),
+        "--lesion_lambda", "0",
+        "--img_size", "256", "--base_dim", "128", "--batch_size", "1",
+        "--epochs", "320",
+        "--output_dir", str(CFM / "results/cfm256_clean_ctrl"),
+    ],
+    "cfm256_clean_exudate": [
+        "--objective", "cfm",
+        "--dataset_path", str(REPO / "fundus/combined_sq256"),
+        "--cond_path", str(CFM / "data/conditions_combined_256"),
+        "--lesion_weight_dir", str(CFM / "data/lesion_weights_256"),
+        "--lesion_lambda", "8",
+        "--img_size", "256", "--base_dim", "128", "--batch_size", "1",
+        "--epochs", "320",
+        "--output_dir", str(CFM / "results/cfm256_clean_exudate"),
+    ],
 }
 
 COMMON = [

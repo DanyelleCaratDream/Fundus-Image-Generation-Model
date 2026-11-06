@@ -58,6 +58,7 @@ DEFAULT_TEXT_ENCODER_DIR = (r"D:\hf_cache\hub\models--LanguageMachines--stable-d
                             r"\snapshots\2579f99c90b5a3019fc115ee9566d5ec4f17fccf")
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
 from torchvision.utils import save_image
 try:
     import lpips
@@ -187,13 +188,16 @@ class FundusDataset(Dataset):
     """直接从文件夹读取眼底图，可选加载条件图（血管骨架）。"""
 
     def __init__(self, root, transform=None, cond_root=None, cond_transform=None, img_size=128,
-                 lesion_root=None, severe_names=None, feat_root=None, feat_k=2):
+                 lesion_root=None, severe_names=None, feat_root=None, feat_k=2, augment=False):
         self.transform = transform
         self.cond_root = cond_root
         self.lesion_root = lesion_root
         self.severe_names = set(severe_names or [])
         self.cond_transform = cond_transform or transform
         self.img_size = img_size
+        # 同步空间增强（图像/条件图/病灶权重图共用一次 flip+rotate）。
+        # 2026-11-06 修复：此前随机翻转/旋转只作用于图像，cond 与权重图不跟随 → 系统性错位。
+        self.augment = augment
         self.image_paths = []
         if not os.path.isdir(root):
             raise FileNotFoundError(f"数据集路径不存在: {root}")
@@ -241,6 +245,13 @@ class FundusDataset(Dataset):
 
     def __getitem__(self, idx):
         img = Image.open(self.image_paths[idx]).convert("RGB")
+        # 同步空间增强：一次采样 flip/angle，图像/条件图/权重图共用（2026-11-06 修复错位）
+        do_flip = bool(torch.rand(1).item() < 0.5)
+        angle = (torch.rand(1).item() * 2.0 - 1.0) * 15.0
+        if self.augment:
+            if do_flip:
+                img = TF.hflip(img)
+            img = TF.rotate(img, angle, interpolation=TF.InterpolationMode.BILINEAR, fill=0)
         if self.transform:
             img = self.transform(img)
 
@@ -261,6 +272,10 @@ class FundusDataset(Dataset):
                     cond = (torch.from_numpy(np.array(cond_pil)).float() / 255.0 * 2.0 - 1.0).unsqueeze(0)
             if cond is None:
                 cond = torch.zeros(1, self.img_size, self.img_size)
+            if self.augment:
+                if do_flip:
+                    cond = torch.flip(cond, dims=[-1])
+                cond = TF.rotate(cond, angle, interpolation=TF.InterpolationMode.BILINEAR, fill=-1.0)
 
         basename = os.path.splitext(os.path.basename(self.image_paths[idx]))[0]
         # 文本标签：severe 名单内=1，其余=0（仅 --use_text_cond 时使用）
@@ -297,6 +312,10 @@ class FundusDataset(Dataset):
                 else:
                     wv = np.array(Image.open(wp).convert("L").resize((self.img_size, self.img_size)))
                     w = torch.from_numpy(wv.astype(np.float32) / 255.0).unsqueeze(0)
+            if self.augment:
+                if do_flip:
+                    w = torch.flip(w, dims=[-1])
+                w = TF.rotate(w, angle, interpolation=TF.InterpolationMode.BILINEAR, fill=0.0)
             if feat is not None:
                 return img, cond, w, feat, idx
             if self.severe_names:
@@ -992,27 +1011,15 @@ def main():
     use_cuda = check_environment(args.no_cuda)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    # 数据预处理（增强版）
+    # 数据预处理：空间增强（flip/rotate）已移入 FundusDataset.__getitem__，
+    # 与 cond / 病灶权重图共用同一组随机参数（2026-11-06 修复图像-条件错位）。
     transform = transforms.Compose([
         transforms.Resize((args.img_size, args.img_size)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15, fill=0),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
 
     cond_channels = 1 if args.cond_path else 0
-    cond_transform = None
-    if args.cond_path:
-        # 条件图的预处理（归一化到 [-1, 1]，不做 ColorJitter）
-        cond_transform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((args.img_size, args.img_size)),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomRotation(degrees=15, fill=0),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,)),
-        ])
 
     severe_names = None
     if getattr(args, "use_text_cond", False):
@@ -1030,6 +1037,7 @@ def main():
         severe_names=severe_names,
         feat_root=getattr(args, "feat_cond_dir", None),
         feat_k=getattr(args, "feat_k", 2),
+        augment=True,
     )
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
@@ -1247,11 +1255,18 @@ def main():
                         loss = F.mse_loss(predicted, v_target)
                     else:
                         loss = F.l1_loss(predicted, v_target)
-                    # 病灶区域加权（可选）：w=1+λ·mask，按权重归一化保持 loss 尺度
+                    # 渗出区域加权（可选）：w=1+λ·mask，分子/分母同形状归一化。
+                    # 2026-11-06 修复：lw 为 [B,1,H,W] 而 predicted 为 [B,3,H,W]，
+                    # 旧写法分母只算 1 个通道 → 加权项恒为预期加权均值的 3 倍；
+                    # λ=0 时也不等于 F.l1_loss。expand_as 后两者形状一致。
                     if getattr(args, "lesion_weight_dir", None) and len(batch_data) > 3:
                         lw = batch_data[2].to(device, dtype=predicted.dtype)
-                        lw = 1.0 + float(getattr(args, "lesion_lambda", 5.0)) * lw
-                        loss = (torch.abs(predicted - v_target) * lw).sum() / lw.sum()
+                        w = (1.0 + float(getattr(args, "lesion_lambda", 5.0)) * lw).expand_as(predicted)
+                        if args.loss_type == "mse":
+                            err = (predicted - v_target) ** 2
+                        else:
+                            err = (predicted - v_target).abs()
+                        loss = (err * w).sum() / w.sum()
                     # CFM：t→1 靠近数据，对应 DDPM 的低噪声段
                     low_noise_mask = t_cont > (1.0 - float(lpips_t) / args.timesteps)
                     if low_noise_mask.any():

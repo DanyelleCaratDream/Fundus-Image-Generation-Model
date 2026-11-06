@@ -401,7 +401,7 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
 - **分两阶段（先零训练后训练）**：
   - **B1a（零训练推理验证，先做）**：下载 SD2.1-base（~5GB，走 hf-mirror.com，HF 直连可能超时——openaipublic 教训）
     + 套件组件 → 用**我们的血管 mask**（conditions_combined_128，192 张现成）作 ControlNet hint +
-    DR 病灶文本 prompt（学 KylianSu 句式"a fundus photograph with diabetic retinopathy showing microaneurysms and hemorrhages"）
+    DR 病灶文本 prompt（学 KylianSu 句式"a fundus photograph with diabetic retinopathy showing microaneurysms and hemorrhages"）（历史借用 KylianSu DR LoRA 的 prompt 原文，保留仅作可复现记录；本项目任务为 HR）
     → 512 推理 8 张（显存 4~6GB，8GB 卡无压力）→ **作者看图 vs D3_ema 基线**（同 mask 尽量配对）。
     目的：验证"SD 先验 + 血管条件"能到什么水平，作为 B1b 的上界参照。
   - **B1b（LoRA 微调，视 B1a 结果）**：Kohya sd-scripts，LoRA rank 32~64 + noise_offset 0.1（KylianSu 配方），
@@ -483,9 +483,9 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
   生成的是**正常眼底**，不含 severe 病灶（出血/渗出/微动脉瘤）——而 B 域的用途是**扩充 severe 类**。
   图再真，若无病理特征，对分类器扩充无益甚至有害（教模型"severe=正常图"）。**下一轮必须先验证
   severe 定向 prompt 能否生成可辨识病灶**，这是 B1a 是否成立的更硬条件，优先级高于色彩微调。
-  候选 prompt：`"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`。
+  候选 prompt：`"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`（历史借用 KylianSu DR LoRA 的 prompt 原文，保留仅作可复现记录；本项目任务为 HR）。
 - **执行记录 6（2026-10-20，severe 定向 prompt 探路：硬缺陷）**：4 张（seed 42–45, cfg7.5, DDIM50），
-  prompt = `"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`。
+  prompt = `"a fundus image of a human retina with severe diabetic retinopathy, showing hemorrhages and hard exudates"`（历史借用 KylianSu DR LoRA 的 prompt 原文，保留仅作可复现记录；本项目任务为 HR）。
   **结果：4/4 无任何病灶**（无出血/渗出/微动脉瘤），seed 44/45 血管清晰但为正常眼底形态，
   seed 42/43 连血管都淡。**结论：LoRA 对病理描述无响应**——其训练数据无"病灶↔文本"配对，只学到眼底图外观。
   含义：**B1a LoRA-only 不能直接用于 severe 扩充**（图真但无病理，会教分类器"severe=正常图"），
@@ -696,11 +696,11 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
   `f3_cfm256_sdedit_compare.png`。
   **② 正式评估（B 域三模型同协议）**：参照集 = 老师 train/severe 唯一底图 72 张
   （`eval_data/real_severe_train`，与生成器训练集同源 → FID 属"拟合训练分布"口径，需注明）；
-  每模型 60 张（seed 100–159、Euler 50 NFE）、指标在 256 口径计算（128 模型内部上采样）。
+  每模型 60 张（**采样 seed=100、8 张/批连续随机流**、Euler 50 NFE）、指标在 256 口径计算（128 模型内部上采样）。
   | 指标 | D3 | CFM@128 | **CFM@256** |
   |:--|--:|--:|--:|
   | FID ↓ | 222.69 | 178.87 | **121.84** |
-  | KID ↓ | 0.1287 | 0.1634 | **0.0902** |
+  | KID ↓（2026-11-06 无偏重算，mean±std） | 0.118±0.010 | 0.158±0.007 | **0.084±0.008** |
   | MS-SSIM (close1) | 0.1596 | 0.4058 | **0.4522** |
   | LPIPS-NN ↓ | 0.7180 | 0.5064 | **0.4156** |
   | 颜色均值距离 ↓ | 0.2996 | 0.0782 | **0.0345** |
@@ -733,6 +733,78 @@ D1 与 DL-EX-015 **只差数据量**（76→193），是干净的单变量对照
   受控比较，目标函数效应已被隔离；从头 CFM 对应的是 D4（从零），其信息价值低（193 张下
   预期同样塌缩），成本却要 20h+。若审稿人追问"无预训练时 CFM 是否仍有优势"，可补一个
   较短预算（如 500 轮 @128）的从零臂，作为可选补充而非主线。
+
+- **执行记录 21（2026-10-26，TTA 组件 + 检索条件消融出数 + 两个负结果）**：
+  背景：执行记录 20 排期的 `cfm128_align/text/notime/featC/featA` 五个 128px 消融 + HM 投影 +
+  Tiger 零样本，经 `run_pipeline.py` + `run_post.py` 两条流水线于 2026-10-26 02:12 / 02:31 跑完。
+  协议：与 cfm128 基线**完全同口径**（128px、60 张、**采样 seed=100（8 张/批连续流）**、Euler 50 NFE、B 域指标在 256
+  口径算、参照集 = 老师 train/severe 唯一底图 72 张 `eval_data/real_severe_train`）。
+
+  | 方法 | FID↓ | KID↓ | 疑似出血占比↑* | 疑似渗出占比↑* | 疑似出血存在↑* | 疑似渗出存在↑* | C2ST↓ | BRISQUE↓ |
+  |:--|--:|--:|--:|--:|--:|--:|--:|--:|
+  | cfm128 基线 | 178.9 | 0.158±0.007 | 0.320 | 0.445 | 0.267 | 0.633 | 0.940 | 38.0 |
+  | align（时间对齐） | 151.8 | 0.121±0.008 | 0.375 | 0.571 | 0.250 | 0.683 | 0.943 | 36.6 |
+  | **text（文本条件）** | **148.2** | **0.113±0.007** | 0.420 | 0.575 | 0.250 | 0.633 | **0.916** | 36.7 |
+  | notime（去时间条件） | 183.7 | 0.168±0.008 | 0.522 | 0.252 | 0.300 | 0.533 | 0.928 | 40.1 |
+  | featC（手工特征检索） | 164.9 | 0.136±0.010 | **0.567** | — | 0.367 | 0.450 | **0.836** | 37.7 |
+  | featA（RETFound 检索） | 162.8 | 0.137±0.010 | 0.463 | 0.691 | 0.383 | 0.633 | 0.930 | 38.0 |
+
+  \* 上述"出血/渗出"列均为**颜色阈值疑似像素占比（代理指标，未经验证）**：出血 R<0.42 且 R−G>0.04 且
+  R−B>0.04；渗出 min(RGB)>0.42 且 mean>0.48；主要跟随整体亮度（全白 DCGAN 渗出存在率=1.0）。
+  featC 渗出 1.029 为极小分母伪影，已从核心表移除（原始值保留 JSON 与记录 21 脚注）。
+  **另：全部 10-26 消融均受 2026-11-06 发现的增强错位缺陷影响（图像随机翻转/旋转，cond mask 未跟随），
+  FID 排名只作相对参考；cfm256_lesion 另受加权损失 3× 尺度缺陷影响，不作为方法证据。**
+
+  多样性（LPIPS pairwise，featC/featA 测）：featC 0.346 / featA 0.346 vs cfm128 基线 0.321（**+7.8%**）。
+  数据源：`eval_data/{cfm128,cfm128_align,cfm128_text,cfm128_notime,cfm128_featC,cfm128_featA}_{metrics,fundus_metrics}.json`
+  + `eval_data/cfm128_feat{C,A}_diversity.json`。
+
+  **逐方法解读**：
+  - **align（时间对齐）**：FID 178.9→151.8（−15%）、KID 0.158→0.121。证实执行记录 20 的判断——
+    DDPM→CFM 时间语义反转确为隐性损失源，对齐后收敛更稳、分布更近。**有效，但被 text 超过**。
+  - **text（文本条件）**：FID 148.2（六方法最低）、KID 0.113±0.007（最低）、C2ST 0.916（非检索类最低）。
+    零初始化 `text_proj` 把 severe 文本嵌入加到时间嵌入，不破坏预训练（加载后 maxdiff=0.0 验证）。
+    **128px 最佳真实感/分布方法** → 待迁 256 交付线。
+  - **notime（去时间条件）**：FID 183.7（比基线还差）、KID 0.168±0.008（最差）。TTA-Flow 在 OCT 上
+    "去时间条件更好"的结论**在眼底彩照不成立**——眼底生成需要时间条件调度结构。负结果；
+    但出血保留 0.522 反而最高（去时间后网络倾向输出暗色/病灶样结构）——分布差但局部病理样信号强，
+    矛盾如实记。
+  - **featC（15 维手工特征检索 + Dirichlet 重心）**：FID 164.9（未改善），但出血保留 0.567（最高）、
+    C2ST 0.836（全方法最低 = 最难判别）、多样性 +7.8%。检索条件走"病理保真 + 多样性"路线，代价是
+    分布指标。疑似渗出占比 1.029（>1，真实中位近 0 致比值失真；已从核心表移除，仅留档不解读）。
+  - **featA（RETFound-CFP 1024 维检索）**：FID 162.8、出血存在 0.383（最高）、出血保留 0.463。
+    与 featC 方向一致但幅度弱——基础模型特征信息量高但条件注入更难学。**A vs C：可解释手工特征
+    在病理保真上反超黑盒基础模型特征**（与作者最初"要可解释性"倾向一致）。
+
+  **两个负结果（已出图，存档）**：
+  1. **轨迹对齐 HM 投影**（`CFM/results/tta_hm/tta_compare.png`）：真实 severe 图经参考轨迹 CDF
+     匹配 + ODE 重建后**过曝/高饱和，不可用**。TTA-Flow 的直方图匹配组件在眼底跨域投影失效
+     （OCT 灰度单通道 vs 眼底 RGB 三通道且色彩动态范围大）。参考样本 `reference_samples.png`。
+  2. **Tiger 零样本**（`pretrained/TextGuidedDiffusion/results/tiger_zeroshot/tiger_zeroshot_sheet.png`）：
+     罕见病文本引导扩散出**灰度类超声环**，完全不像眼底。跨模态预训练（OCT/CFP 混合）不迁移到
+     彩照眼底。权重 6.2GB 已下载，零样本负结果存档。
+
+  **结论**：①时间语义对齐有效（align）；②文本条件是最佳单条件（text）；③TTA-Flow 的去时间条件
+  与轨迹 HM 在眼底**不迁移**（notime / HM 双负）；④检索条件（featC/featA）走"病理保真 + 多样性"
+  而非"分布指标"路线——与交付目标（augment severe 类）更对路，但 FID 不改善须如实写。
+  主结果仍固定 final EMA（与 D3/D4 可比口径）；检查点扫描诊断脚本本次完全失败（0 图，
+  `D:/tmp` 归档疑似失效 + 子目录未生成），不影响主结果，附录材料待修。
+  **跨 split 重复审计（2026-11-06）**：758 张、123,297 对跨 split 穷举；严格分层
+  （exact：md5/解码差≤1e-6；near：MSE≤1e-3）得 **32 对（5 exact + 27 near）**，3/3 已知像素级
+  重复命中（80024≡80052、80029≡80038、80028≡80055），另 16788/16796≡16794；
+  dHash 不参与判定（假阳性过高）。表：`fundus/reports/cross_split_audit_2026-11-06.csv`。
+  历史 113 对为 2.6e-3 宽阈值、不可直接横比；建议老师按眼/序列重划分。
+  **下一步**：①text 条件迁 256 交付线；②cfm256_lesion **不作交付候选**（3× 尺度 + 增强错位缺陷）；
+  修正版 `cfm256_clean_exudate`（从零、同步增强、λ=8）待导师确认后与 `cfm256_clean_ctrl`（λ=0）成对训练——两臂
+  各生 200 张（seed 200–399）筛 76，见 `Fundus-FlowMatching/run_delivery.py`（2026-11-06 启动）。
+  **渗出加权参数记录**：λ=8.0（config cfm256_lesion.json:12，非默认 5.0）；权重图仅检测渗出（make_lesion_weights.py:27 明确放弃出血检测），血管仅用于减除渗出假阳性，非降权；出血保留 +24% 为附带现象，不作加权归因。
+  **cfm256_lesion 结果记录（2026-10-24 完成；2026-11-06 复核后仅作探索性记录）**：
+  **两缺陷披露**：①加权损失分母只计单通道 → 加权项为预期加权均值 3×（训练日志实证 0.3312/0.1083=3.057×，λ=0 时亦为 3×）；
+  ②图像随机翻转/旋转时权重图与血管 mask 未跟随 → 权重施加在错位区域（诊断：翻转后与渗出区域重叠 0.551→0.000）。
+  因此下列数字**不构成方法证据**；修正后的 C1'/C2' 将从零重训（待导师确认）。
+  config λ=8、1420→1570 轮、seed 42；
+  FID 115.22、KID 0.0758（旧实现口径，新无偏口径待重算）、出血保留 0.253（+24%，附带不作归因）、
+  渗出保留 0.324（+36%）、C2ST 0.899、BRISQUE 14.49；指标局限见 paper ch5 5.8 口径限制 + 5.9 指标局限。
 
 ---
 
