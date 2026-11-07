@@ -107,14 +107,24 @@ PRESETS = {
         "--epochs", "1570",
         "--output_dir", str(CFM / "results/cfm256_lesion"),
     ],
-    # ---- 修正管线两臂（2026-11-06 缺陷修复后；从零、同步增强）----
-    # 待导师确认后再运行。两臂唯一差异 = lesion_lambda（0 vs 8）；
-    # 都带 lesion_weight_dir 以保持数据 tuple 一致，λ=0 时数学上等于普通 L1。
+    # ---- 修正管线（2026-11-07 冻结 61 张 HR severe 名单后）----
+    # 数据：fundus/hrsevere_61_sq{128,256}（61 张老师 HR severe 唯一底图，从零、同步增强）。
+    # 名单冻结见 fundus/hrsevere_61_frozen.json；5 张 1ffa95aX 潜在序列关联图保留并披露局限。
+    "cfm128_hrsevere_pilot": [
+        "--objective", "cfm",
+        "--dataset_path", str(REPO / "fundus/hrsevere_61_sq128"),
+        "--cond_path", str(CFM / "data/conditions_hrsevere_61_128"),
+        "--img_size", "128", "--base_dim", "128", "--batch_size", "2",
+        "--epochs", "320",
+        "--output_dir", str(CFM / "results/cfm128_hrsevere_pilot"),
+    ],
+    # 两臂唯一差异 = lesion_lambda（0 vs 8）；都带 lesion_weight_dir 保持数据 tuple 一致，
+    # λ=0 时数学上等于普通 L1。C2 正式名称：渗出候选区域加权 CFM。
     "cfm256_clean_ctrl": [
         "--objective", "cfm",
-        "--dataset_path", str(REPO / "fundus/combined_sq256"),
-        "--cond_path", str(CFM / "data/conditions_combined_256"),
-        "--lesion_weight_dir", str(CFM / "data/lesion_weights_256"),
+        "--dataset_path", str(REPO / "fundus/hrsevere_61_sq256"),
+        "--cond_path", str(CFM / "data/conditions_hrsevere_61_256"),
+        "--lesion_weight_dir", str(CFM / "data/lesion_weights_hrsevere_61_256"),
         "--lesion_lambda", "0",
         "--img_size", "256", "--base_dim", "128", "--batch_size", "1",
         "--epochs", "320",
@@ -122,9 +132,9 @@ PRESETS = {
     ],
     "cfm256_clean_exudate": [
         "--objective", "cfm",
-        "--dataset_path", str(REPO / "fundus/combined_sq256"),
-        "--cond_path", str(CFM / "data/conditions_combined_256"),
-        "--lesion_weight_dir", str(CFM / "data/lesion_weights_256"),
+        "--dataset_path", str(REPO / "fundus/hrsevere_61_sq256"),
+        "--cond_path", str(CFM / "data/conditions_hrsevere_61_256"),
+        "--lesion_weight_dir", str(CFM / "data/lesion_weights_hrsevere_61_256"),
         "--lesion_lambda", "8",
         "--img_size", "256", "--base_dim", "128", "--batch_size", "1",
         "--epochs", "320",

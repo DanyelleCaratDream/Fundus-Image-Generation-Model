@@ -31,8 +31,13 @@ Thumbs.db
 # === Claude 记忆 ===
 .claude/
 
-# === 数据集（不在 git 中分发） ===
-fundus/
+# === 数据集（不在 git 中分发，图像/子集目录忽略） ===
+fundus/*
+# 但审计/清单类记录入库（论文数据审计证据，非图像数据）
+!fundus/reports/
+!fundus/hrsevere_61_frozen.json
+!fundus/hrsevere_61_FROZEN.md
+!fundus/_removed_dups_sq256/MANIFEST.md
 
 # === 评估图（只提交评估结果 JSON/CSV，不提交 1800+ 张图片） ===
 eval_data/*/

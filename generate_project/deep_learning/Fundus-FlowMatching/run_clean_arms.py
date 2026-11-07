@@ -28,8 +28,9 @@ LOG = FLOW / "RUN_CLEAN_ARMS.log"
 STATUS = FLOW / "CLEAN_ARMS_STATUS.json"
 
 ARMS = [
-    ("cfm256_clean_ctrl", "cfm256_clean_ctrl"),
-    ("cfm256_clean_exudate", "cfm256_clean_exudate"),
+    ("cfm128_hrsevere_pilot", "cfm128_hrsevere_pilot", 128),
+    ("cfm256_clean_ctrl", "cfm256_clean_ctrl", 256),
+    ("cfm256_clean_exudate", "cfm256_clean_exudate", 256),
 ]
 
 
@@ -86,19 +87,19 @@ def run(cmd, cwd, name):
     return r.returncode
 
 
-def eval_arm(tag, dry):
+def eval_arm(tag, dry, img_size=256):
     ck = CFM / f"results/{tag}/models/final_model.pth"
     out = REPO / f"eval_data/{tag}"
     gen = [PY, DDPM / "generate.py", "--checkpoint", ck, "--num_images", "60",
-           "--img_size", "256", "--base_dim", "128", "--seed", "100",
+           "--img_size", str(img_size), "--base_dim", "128", "--seed", "100",
            "--sampling_steps", "50", "--sampler", "euler",
-           "--cond_path", CFM / "data/conditions_combined_256",
+           "--cond_path", CFM / f"data/conditions_hrsevere_61_{img_size}",
            "--output_dir", out, "--grid_size", "0"]
     common = [PY, REPO / "eval/metrics_common.py", "--real", REPO / "eval_data/real_severe_train",
               "--fake", out / "singles", "--img_size", "256", "--device", "cuda", "--json"]
     fundus = [PY, REPO / "eval/metrics_fundus.py", "--real", REPO / "eval_data/real_severe_train",
               "--fake", out / "singles", "--model", tag, "--img_size", "256", "--device", "cuda",
-              "--cond_path", CFM / "data/conditions_combined_256", "--json"]
+              "--cond_path", CFM / "data/conditions_hrsevere_61_256", "--json"]
     if dry:
         for c in (gen, common, fundus):
             print("  ", " ".join(str(x) for x in c))
@@ -125,15 +126,15 @@ def main():
 
     if not a.dry_run:
         LOG.write_text("", encoding="utf-8")
-        log("CLEAN ARMS START (2 arms x 320 epochs, from scratch)")
+        log("CLEAN ARMS START (pilot 128 + 2 arms 256, 320 epochs, from scratch)")
 
-    for tag, preset in ARMS:
+    for tag, preset, img_size in ARMS:
         train = [PY, CFM / "train/train_cfm.py", "--preset", preset]
         if a.dry_run:
-            print(f"[arm] {tag}")
+            print(f"[arm] {tag} ({img_size}px)")
             print("  ", " ".join(str(x) for x in train))
             if not a.skip_eval:
-                eval_arm(tag, dry=True)
+                eval_arm(tag, dry=True, img_size=img_size)
             continue
         status(tag, "running")
         if not wait_ready():
@@ -142,7 +143,7 @@ def main():
             continue
         rc = run(train, CFM, f"train-{tag}")
         if rc == 0 and not a.skip_eval:
-            rc = eval_arm(tag, dry=False)
+            rc = eval_arm(tag, dry=False, img_size=img_size)
         status(tag, "done" if rc == 0 else "error")
 
     if not a.dry_run:

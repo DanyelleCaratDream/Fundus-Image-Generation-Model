@@ -1,0 +1,322 @@
+{
+ "frozen_at": "2026-11-07",
+ "source": "combined_sq256 ∩ train/severe (base, non-aug)",
+ "count": 61,
+ "suspect_sequence": [
+  "1ffa95a4-8d87-11e8-9daf-6045cb817f5b.",
+  "1ffa95a5-8d87-11e8-9daf-6045cb817f5b.",
+  "1ffa95a9-8d87-11e8-9daf-6045cb817f5b.",
+  "1ffa95ab-8d87-11e8-9daf-6045cb817f5b.",
+  "1ffa95af-8d87-11e8-9daf-6045cb817f5b.",
+  "1ffa95b0-8d87-11e8-9daf-6045cb817f5b."
+ ],
+ "suspect_count": 6,
+ "note": "6 张 1ffa95aX/b0 为同设备连拍（UUID v1 时间戳 a4~b0 连续，13 帧序列），与 val/test 的连拍兄弟存在潜在序列关联；无患者/眼别元数据，保留并披露局限",
+ "files": [
+  {
+   "file": "0bf8a9db042015e556be924ec11f3bba06f10cf2.jpg",
+   "md5_256": "b9ee17487d3538e6c1fce1ebf10c0af2",
+   "suspect_sequence": false
+  },
+  {
+   "file": "101a775efe69f6fd9d6766d5ffd592c8d6569891.jpg",
+   "md5_256": "c0df46f1848aac41e9b5fa72dafad30f",
+   "suspect_sequence": false
+  },
+  {
+   "file": "1077.jpg",
+   "md5_256": "f4c203621ee7a78ea39cf4b553878769",
+   "suspect_sequence": false
+  },
+  {
+   "file": "15419.jpg",
+   "md5_256": "f06d44cb78d5340981b33fe9332dfef6",
+   "suspect_sequence": false
+  },
+  {
+   "file": "15683.jpg",
+   "md5_256": "a4a7b4eefd54282d5039a962a8f68bb1",
+   "suspect_sequence": false
+  },
+  {
+   "file": "15684.jpg",
+   "md5_256": "66f3e85dfeabe3cfd5a2ac7e158088da",
+   "suspect_sequence": false
+  },
+  {
+   "file": "1757.jpg",
+   "md5_256": "c4f18ef9d277438352f500146785c83f",
+   "suspect_sequence": false
+  },
+  {
+   "file": "1ffa95a4-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "2c5f24a9ba4e465454956124f44b6d01",
+   "suspect_sequence": true
+  },
+  {
+   "file": "1ffa95a5-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "df1a2a8ac9f2a75d573bee359a7613b9",
+   "suspect_sequence": true
+  },
+  {
+   "file": "1ffa95a9-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "2f863e222804f87c3dd498be526e229b",
+   "suspect_sequence": true
+  },
+  {
+   "file": "1ffa95ab-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "2fbfc57d7cf24a5f474928da1cec1d8b",
+   "suspect_sequence": true
+  },
+  {
+   "file": "1ffa95af-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "99c514e856cfbcd3937bec65d61dc102",
+   "suspect_sequence": true
+  },
+  {
+   "file": "1ffa95b0-8d87-11e8-9daf-6045cb817f5b..jpg",
+   "md5_256": "e68458d5256bbd27f04adcd556cdb36c",
+   "suspect_sequence": true
+  },
+  {
+   "file": "21e273fb1c3c8d166a735c3ce787b64c8ada67c2.jpg",
+   "md5_256": "d2f104baa94d663b63cd217b48c31b35",
+   "suspect_sequence": false
+  },
+  {
+   "file": "28_left.jpg",
+   "md5_256": "a20a0b6a5fb3518d4420dc632d70a5a7",
+   "suspect_sequence": false
+  },
+  {
+   "file": "2920.jpg",
+   "md5_256": "537b2a650bcc29a36f674df4ef386ce3",
+   "suspect_sequence": false
+  },
+  {
+   "file": "30767.jpg",
+   "md5_256": "c81255a4234287b9b61aa79e74b9be0a",
+   "suspect_sequence": false
+  },
+  {
+   "file": "31431.jpg",
+   "md5_256": "5ba8fd692ba3dcca6b4cd711b483d5c7",
+   "suspect_sequence": false
+  },
+  {
+   "file": "31432.jpg",
+   "md5_256": "19a39445ee99cac90793bf430ce61b86",
+   "suspect_sequence": false
+  },
+  {
+   "file": "32_right.jpg",
+   "md5_256": "6782532d520d87377b18b3c8918aed24",
+   "suspect_sequence": false
+  },
+  {
+   "file": "3de36b817ba577bb8a16dd8bf6c95fe05f66755c.jpg",
+   "md5_256": "62190ea0b520460444a5c662d3c1558b",
+   "suspect_sequence": false
+  },
+  {
+   "file": "3eed6f7d0e928c4f695757d2d154a82bf2e3b3d3.jpg",
+   "md5_256": "04c6502d2bc232fd4d9e5363cab271d7",
+   "suspect_sequence": false
+  },
+  {
+   "file": "62e5366cb967fa9d728bd150fe39708c798a0530.jpg",
+   "md5_256": "ddf42eee639eea603cc60a68d267809b",
+   "suspect_sequence": false
+  },
+  {
+   "file": "6a5ac0d63bb17f4154922af743a98646d89455c2.jpg",
+   "md5_256": "96b8f34e5d0cf1b80e50108c2d2fb135",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80020.jpg",
+   "md5_256": "d240526a8a4986f84601623b3697b604",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80022.png",
+   "md5_256": "e29fc222fbb587cb44a599f92f41e1ff",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80025.jpg",
+   "md5_256": "9bc2c36f3922b9ab2ad00966a6355170",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80026.png",
+   "md5_256": "d11217534367fdec54def1835426df70",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80027.jpg",
+   "md5_256": "c7bcc63ee32046e28d680662915603a6",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80030.jpg",
+   "md5_256": "b76e17bdc6cc368eee72b3c1d82fce85",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80032.jpg",
+   "md5_256": "ea907b0a19655978e9b0a7e03484631d",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80036.jpg",
+   "md5_256": "80b47c00834612c21275e7367c3097ab",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80037.jpg",
+   "md5_256": "c05dbb13240633784e8af13e626cf693",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80039.png",
+   "md5_256": "4a9015ee7eb69a42f62c8eec22e3b25c",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80040.jpg",
+   "md5_256": "7a2a9466c42f631845f91f60899d33e4",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80041.jpg",
+   "md5_256": "6a331ff3b9463b80ee5c91e06e4628a8",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80042.jpg",
+   "md5_256": "a48415d1e09a651744cf505d5dbd3292",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80043.jpg",
+   "md5_256": "c1f89ca58f36a4955aee4667d0089fe5",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80045.jpg",
+   "md5_256": "1aa1399a4e7d1df8437c3d9ddb61bc14",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80046.jpg",
+   "md5_256": "b5995ce992bd3342302d9de8ebe5cda4",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80047.jpg",
+   "md5_256": "930c1d5e16ffea98b46ec06bfe200de9",
+   "suspect_sequence": false
+  },
+  {
+   "file": "80050.jpg",
+   "md5_256": "07b6cd07c90cb3849b83f123357eb2f6",
+   "suspect_sequence": false
+  },
+  {
+   "file": "861_left.jpg",
+   "md5_256": "95e4f3334db1d0f6a94a60d2c5997bf2",
+   "suspect_sequence": false
+  },
+  {
+   "file": "8e06c22851c4492532a1b583383e96be579b00ad.jpg",
+   "md5_256": "e2821560ad8c21333e58318346efb87b",
+   "suspect_sequence": false
+  },
+  {
+   "file": "983_left.jpg",
+   "md5_256": "70bbbcef31592cf9b27da81a70007046",
+   "suspect_sequence": false
+  },
+  {
+   "file": "983_right.jpg",
+   "md5_256": "c373ff33ff721fe1577af7761aa5f407",
+   "suspect_sequence": false
+  },
+  {
+   "file": "IM000715.jpg",
+   "md5_256": "e0c70bad72887d36ae6cb440e277c1a3",
+   "suspect_sequence": false
+  },
+  {
+   "file": "IM000716.jpg",
+   "md5_256": "a3ba86f2e7680406be199af129ca6fcd",
+   "suspect_sequence": false
+  },
+  {
+   "file": "ceee348eb63613f6096d278ec0f16c11968d0a4d.jpg",
+   "md5_256": "a2d97cb0ec8420cb5778e15d26d023be",
+   "suspect_sequence": false
+  },
+  {
+   "file": "e3a5c4421746b2624928ca7921f79de55aadcf54.jpg",
+   "md5_256": "c6b197611dc40168a762420501c512c3",
+   "suspect_sequence": false
+  },
+  {
+   "file": "eb83e7b2d06cebb82e926c0ef14bd5dd6fc747d2.jpg",
+   "md5_256": "cc2261a130a3b95a4f5c20ca6b1e89c4",
+   "suspect_sequence": false
+  },
+  {
+   "file": "f3ef1dd4076e5badebfc9db6bbe30c2d19fc408e.jpg",
+   "md5_256": "4b0820df1551f6413c59824309dc0923",
+   "suspect_sequence": false
+  },
+  {
+   "file": "f40442bb45d1bd431e4a51375ebe1f7253cd1648.jpg",
+   "md5_256": "4e7c869ba1d1d4f71fa3cfe2e4cb3c2d",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0019.jpg",
+   "md5_256": "76d0003cfafa9fb223316fab8622518c",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0021.jpg",
+   "md5_256": "22968e080f510b89426b71e85f6fd1e5",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0026.jpg",
+   "md5_256": "2aa96abbd937d0a0c34e739e537176b8",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0168.jpg",
+   "md5_256": "a5b822544d9c9dcb99172c0beacf70a6",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0169.jpg",
+   "md5_256": "dbfedb7238b4beff65e272c0cf089c54",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0210.jpg",
+   "md5_256": "1e3c81691289ea4a1d846e69c9be6247",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0211.jpg",
+   "md5_256": "bb7b1b513c34423579a8eef729b866c1",
+   "suspect_sequence": false
+  },
+  {
+   "file": "im0333.jpg",
+   "md5_256": "fb0201eaca29f5844c3cfe3b2331d061",
+   "suspect_sequence": false
+  }
+ ]
+}
